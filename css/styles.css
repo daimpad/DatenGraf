@@ -588,6 +588,92 @@ textarea.csv-textarea:focus { outline: none; border-color: var(--c-accent); }
 
 .wizard-footer .step-hint { font-size: 11px; color: var(--c-muted); }
 
+/* ── Hero Section ────────────────────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, rgba(58,120,231,.08) 0%, rgba(206,88,241,.08) 100%);
+  border: 1px solid rgba(200,200,200,.2);
+  border-radius: 12px;
+  padding: 48px 40px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.hero-headline {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  margin-bottom: 12px;
+  color: var(--c-text);
+}
+
+.hero-subheadline {
+  font-size: 15px;
+  color: var(--c-muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hero-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.hero-card {
+  background: rgba(255,255,255,.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(200,200,200,.3);
+  border-radius: 8px;
+  padding: 20px 16px;
+  transition: all .2s;
+}
+
+.hero-card:hover {
+  border-color: var(--c-accent);
+  box-shadow: 0 4px 12px rgba(58,120,231,.12);
+}
+
+.hero-card-icon {
+  font-size: 32px;
+  color: var(--c-accent);
+  margin-bottom: 10px;
+}
+
+.hero-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--c-text);
+}
+
+.hero-card p {
+  font-size: 12px;
+  color: var(--c-muted);
+  line-height: 1.5;
+}
+
+.hero.hidden { display: none; }
+
 /* ── Legend ──────────────────────────────────────────────────── */
 .legend {
   display: flex;
@@ -617,4 +703,30 @@ textarea.csv-textarea:focus { outline: none; border-color: var(--c-accent); }
   .sidebar { position: fixed; z-index: 200; height: 100vh; }
   .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
   .insights-grid { grid-template-columns: 1fr; }
+
+  .hero {
+    padding: 32px 24px;
+  }
+
+  .hero-headline {
+    font-size: 24px;
+  }
+
+  .hero-subheadline {
+    font-size: 14px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .btn-lg {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }

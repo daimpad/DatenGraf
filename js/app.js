@@ -152,7 +152,17 @@ function updateSelectFilter(id, options) {
 }
 
 // ── Render dispatcher ─────────────────────────────────────────────────────────
+function updateHeroVisibility() {
+  const hero = document.getElementById('hero-section');
+  if (allData.length > 0) {
+    hero.classList.add('hidden');
+  } else {
+    hero.classList.remove('hidden');
+  }
+}
+
 function renderAll() {
+  updateHeroVisibility();
   renderList(filteredData);
   renderNetwork(filteredData);
   renderInsights(filteredData);
@@ -733,6 +743,10 @@ document.getElementById('btn-load-sample').addEventListener('click', () => {
     })
     .catch(e => setStatus(`Fehler beim Laden: ${e.message}`, 'error'));
 });
+
+// ── Hero Section ───────────────────────────────────────────────────────────────
+document.getElementById('hero-wizard-btn').addEventListener('click', () => openWizard());
+document.getElementById('hero-sample-btn').addEventListener('click', () => document.getElementById('btn-load-sample').click());
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 renderAll();
