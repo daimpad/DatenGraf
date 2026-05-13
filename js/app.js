@@ -2,11 +2,11 @@
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const REL_COLORS_HEX = {
-  'übergibt':    '#4285F4',
-  'nutzt':       '#34A853',
-  'erstellt':    '#FBBC05',
-  'empfängt':    '#EA4335',
-  'verarbeitet': '#8F44AD'
+  'übergibt':    '#6c8ebf',
+  'nutzt':       '#5fa878',
+  'erstellt':    '#c4a23a',
+  'empfängt':    '#bf6c6c',
+  'verarbeitet': '#9b72b8'
 };
 
 const SCHUTZ_OPTS    = ['DSGVO-relevant', 'Intern', 'Öffentlich'];
@@ -237,10 +237,12 @@ const CY_STYLE = [
     selector: 'node',
     style: {
       label: 'data(id)', 'text-valign': 'center', 'text-halign': 'center',
-      'background-color': '#848484', color: '#fff',
-      'font-size': '11px', 'text-outline-width': 1, 'text-outline-color': '#666',
+      'background-color': '#7a6fa8', color: '#fff',
+      'font-size': '11px', 'font-family': 'Inter, sans-serif',
+      'text-outline-width': 1.5, 'text-outline-color': '#5c5080',
       width: 'data(size)', height: 'data(size)',
-      'text-wrap': 'wrap', 'text-max-width': '80px'
+      'text-wrap': 'wrap', 'text-max-width': '80px',
+      'border-width': 2, 'border-color': 'rgba(255,255,255,0.4)',
     }
   },
   {
@@ -248,13 +250,15 @@ const CY_STYLE = [
     style: {
       width: 2, 'line-color': 'data(color)',
       'target-arrow-color': 'data(color)', 'target-arrow-shape': 'triangle',
-      'curve-style': 'bezier', opacity: 0.8,
-      label: 'data(type)', 'font-size': '9px', 'text-rotation': 'autorotate',
-      'text-background-color': '#fff', 'text-background-opacity': 0.8, 'text-background-padding': '2px'
+      'curve-style': 'bezier', opacity: 0.7,
+      label: 'data(type)', 'font-size': '9px', 'font-family': 'Inter, sans-serif',
+      'text-rotation': 'autorotate',
+      'text-background-color': '#f5f3fb', 'text-background-opacity': 0.9, 'text-background-padding': '3px',
+      'text-background-shape': 'roundrectangle'
     }
   },
-  { selector: '.highlighted', style: { 'background-color': '#ff5722', 'line-color': '#ff5722', 'target-arrow-color': '#ff5722', opacity: 1, 'z-index': 999 } },
-  { selector: '.faded',       style: { opacity: 0.15, 'z-index': 0 } },
+  { selector: '.highlighted', style: { 'background-color': '#420093', 'line-color': '#420093', 'target-arrow-color': '#420093', opacity: 1, 'z-index': 999, 'border-color': '#fff', 'border-width': 2 } },
+  { selector: '.faded',       style: { opacity: 0.12, 'z-index': 0 } },
 ];
 
 function prepareElements(data) {
