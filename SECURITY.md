@@ -50,7 +50,7 @@ Eine vom Nutzer eingegebene URL wird per `fetch()` geladen. Da CORS den Abruf be
 
 Bitte melden Sie Sicherheitsprobleme **nicht** als öffentliches GitHub-Issue.
 
-**Kontakt:** [DEINE E-MAIL]
+**Kontakt:** contact@nozilla.de
 
 Bitte senden Sie folgende Informationen:
 
