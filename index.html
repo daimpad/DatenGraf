@@ -3,862 +3,1653 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Datengraf – Datenfluss-Visualisierung</title>
-
+  <title>Datengraf</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
-
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
+    /* ── Design Tokens ───────────────────────────────────────────── */
+    :root {
+      --c-bg:        #f0f2f5;
+      --c-surface:   #ffffff;
+      --c-border:    #e0e0e0;
+      --c-text:      #1a1a1a;
+      --c-muted:     #666;
+      --c-accent:    #1a1a1a;
+      --c-accent-h:  #3b78e7;
+      --c-danger:    #c0392b;
+      --c-success:   #27ae60;
+      --c-warn:      #e67e22;
+
+      --rel-übergibt:   #4285F4;
+      --rel-nutzt:      #34A853;
+      --rel-erstellt:   #FBBC05;
+      --rel-empfängt:   #EA4335;
+      --rel-verarbeitet:#8F44AD;
+
+      --schutz-dsgvo:   #EA4335;
+      --schutz-intern:  #e67e22;
+      --schutz-oeffentlich: #34A853;
+
+      --erfassung-manuell:       #8F44AD;
+      --erfassung-automatisiert: #4285F4;
+
+      --sidebar-w: 280px;
+      --radius: 6px;
+      --shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #f4f4f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      background: var(--c-bg);
+      color: var(--c-text);
+      min-height: 100vh;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    h1, h2 { color: #333; }
-
-    /* ── Import Panel ─────────────────────────────────────────── */
-    .import-panel {
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.1);
-    }
-
-    .import-panel h2 { margin-top: 0; }
-
-    .import-method-tabs {
+    /* ── Layout ──────────────────────────────────────────────────── */
+    .app-shell {
       display: flex;
-      gap: 4px;
-      margin-bottom: 16px;
-      border-bottom: 2px solid #ddd;
-      padding-bottom: 0;
+      min-height: 100vh;
     }
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--c-surface);
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      transition: transform .25s;
+    }
+
+    .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); position: fixed; }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .sidebar-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .sidebar-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--c-muted);
+      margin-bottom: 10px;
+    }
+
+    .filter-group { margin-bottom: 10px; }
+    .filter-group label { display: block; font-size: 12px; color: var(--c-muted); margin-bottom: 4px; }
+
+    .filter-group select,
+    .filter-group input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: #fafafa;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus { outline: none; border-color: var(--c-accent); }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .chip {
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1.5px solid var(--c-border);
+      font-size: 11px;
+      cursor: pointer;
+      background: #fafafa;
+      transition: background .12s, border-color .12s;
+      white-space: nowrap;
+    }
+
+    .chip.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }
+    .chip:hover:not(.active) { border-color: var(--c-accent); }
+
+    .sidebar-actions { padding: 14px 16px; margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
+
+    /* ── Main area ───────────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-border);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 52px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-brand { font-weight: 800; font-size: 18px; letter-spacing: -.5px; }
+
+    .topbar-tabs { display: flex; gap: 2px; margin-left: 20px; }
+
+    .topbar-tab {
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--c-muted);
+      font-weight: 500;
+      transition: background .12s, color .12s;
+    }
+
+    .topbar-tab:hover { background: var(--c-bg); color: var(--c-text); }
+    .topbar-tab.active { background: var(--c-accent); color: #fff; }
+
+    .topbar-spacer { flex: 1; }
+
+    .content { flex: 1; padding: 20px; overflow: auto; }
+
+    /* ── Import panel ────────────────────────────────────────────── */
+    .import-panel {
+      background: var(--c-surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--c-border);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .import-panel-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid transparent;
+    }
+
+    .import-panel-header.open { border-bottom-color: var(--c-border); }
+    .import-panel-title { font-weight: 600; font-size: 14px; }
+    .import-panel-toggle { margin-left: auto; font-size: 12px; color: var(--c-muted); }
+
+    .import-panel-body { padding: 16px; display: none; }
+    .import-panel-body.open { display: block; }
+
+    .import-method-tabs { display: flex; gap: 4px; margin-bottom: 14px; }
 
     .import-method-tab {
-      padding: 8px 18px;
-      cursor: pointer;
+      padding: 6px 14px;
+      border: 1.5px solid var(--c-border);
+      border-radius: 20px;
       background: none;
-      border: none;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      font-size: 14px;
-      color: #666;
-      font-weight: 500;
-      transition: color .15s, border-color .15s;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--c-muted);
+      transition: all .12s;
     }
 
-    .import-method-tab:hover { color: #333; }
-
-    .import-method-tab.active {
-      color: #000;
-      border-bottom-color: #000;
-      font-weight: 700;
-    }
+    .import-method-tab.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }
 
     .import-section { display: none; }
     .import-section.active { display: block; }
 
-    /* URL import */
-    .url-row {
-      display: flex;
-      gap: 8px;
-    }
+    .url-row { display: flex; gap: 8px; }
+    .url-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--c-border); border-radius: var(--radius); font-size: 13px; }
+    .url-row input:focus { outline: none; border-color: var(--c-accent); }
 
-    .url-row input[type="text"] {
-      flex: 1;
-      padding: 9px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    .url-row input[type="text"]:focus {
-      outline: none;
-      border-color: #000;
-    }
-
-    /* File upload */
     .file-drop-zone {
-      border: 2px dashed #bbb;
-      border-radius: 6px;
-      padding: 32px;
+      border: 2px dashed var(--c-border);
+      border-radius: var(--radius);
+      padding: 28px;
       text-align: center;
-      color: #777;
+      color: var(--c-muted);
       cursor: pointer;
-      transition: border-color .2s, background .2s;
       position: relative;
+      transition: border-color .15s, background .15s;
     }
 
-    .file-drop-zone:hover,
-    .file-drop-zone.drag-over {
-      border-color: #000;
-      background: #f8f8f8;
-    }
+    .file-drop-zone:hover, .file-drop-zone.drag-over { border-color: var(--c-accent); background: #f8f8f8; }
+    .file-drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 
-    .file-drop-zone input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
+    textarea.csv-textarea {
       width: 100%;
-      height: 100%;
-    }
-
-    .file-drop-zone .drop-label { font-size: 15px; }
-    .file-drop-zone .drop-sub { font-size: 12px; margin-top: 6px; }
-    #file-name-display { margin-top: 10px; font-size: 13px; color: #444; min-height: 18px; }
-
-    /* Textarea / paste */
-    textarea {
-      width: 100%;
-      height: 200px;
+      height: 180px;
       padding: 10px;
       font-family: monospace;
-      font-size: 13px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      font-size: 12px;
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
       resize: vertical;
     }
 
-    textarea:focus { outline: none; border-color: #000; }
+    textarea.csv-textarea:focus { outline: none; border-color: var(--c-accent); }
 
-    .helper-text { font-size: 12px; color: #888; margin-bottom: 8px; }
-
-    /* ── Buttons ──────────────────────────────────────────────── */
-    button {
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn {
       padding: 8px 16px;
-      background: #000;
-      color: #fff;
+      border-radius: var(--radius);
       border: none;
-      border-radius: 4px;
       cursor: pointer;
-      font-size: 14px;
-      transition: background .15s;
-    }
-
-    button:hover { background: #3b78e7; }
-
-    #status-message {
-      margin-top: 10px;
       font-size: 13px;
-      min-height: 18px;
-    }
-
-    #status-message.error { color: #c0392b; }
-    #status-message.success { color: #27ae60; }
-    #status-message.loading { color: #888; }
-
-    /* ── Legend ───────────────────────────────────────────────── */
-    .legend {
-      margin: 0 0 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
+      font-weight: 500;
+      transition: background .12s;
+      display: inline-flex;
       align-items: center;
+      gap: 5px;
     }
 
-    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+    .btn-primary { background: var(--c-accent); color: #fff; }
+    .btn-primary:hover { background: var(--c-accent-h); }
+    .btn-secondary { background: #f0f0f0; color: var(--c-text); }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-danger { background: var(--c-danger); color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-icon { width: 30px; height: 30px; padding: 0; justify-content: center; }
 
-    .legend-color {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      flex-shrink: 0;
-    }
+    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
 
-    /* ── View tabs ────────────────────────────────────────────── */
-    .view-tabs {
+    #status-message { margin-top: 8px; font-size: 12px; min-height: 16px; }
+    #status-message.error   { color: var(--c-danger); }
+    #status-message.success { color: var(--c-success); }
+    #status-message.loading { color: var(--c-muted); }
+
+    /* ── Tab content panels ──────────────────────────────────────── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── List view ───────────────────────────────────────────────── */
+    .list-stats {
       display: flex;
-      gap: 4px;
-      margin-bottom: 0;
-    }
-
-    .view-tab {
-      padding: 9px 20px;
-      cursor: pointer;
-      background: #848484;
-      color: #fff;
-      border: none;
-      border-radius: 4px 4px 0 0;
-      font-size: 14px;
-    }
-
-    .view-tab.active {
-      background: #000;
-      font-weight: 700;
-    }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* ── List view ────────────────────────────────────────────── */
-    #list-visualization {
-      overflow: auto;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 0 4px 4px 4px;
-      background: #fafafa;
-      margin-bottom: 20px;
-    }
-
-    .rel-node {
-      padding: 8px 12px;
-      background: #848484;
-      color: #fff;
-      border-radius: 5px;
-      display: inline-block;
-      font-size: 13px;
-    }
-
-    .relationship {
-      display: flex;
-      align-items: center;
+      gap: 12px;
       flex-wrap: wrap;
-      gap: 6px;
-      margin: 8px 0;
-      padding: 10px 12px;
-      border-left: 5px solid #4285F4;
-      background: #f0f0f0;
-      border-radius: 0 4px 4px 0;
+      margin-bottom: 14px;
     }
 
-    .relationship-type { font-weight: bold; color: #333; font-size: 13px; }
-    .relationship-arrow { font-size: 18px; }
-
-    .badge {
-      padding: 2px 8px;
-      border-radius: 3px;
-      font-size: 11px;
+    .stat-pill {
+      padding: 5px 12px;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: 20px;
+      font-size: 12px;
       font-weight: 600;
     }
 
-    .badge-data   { background: #FBBC05; color: #000; }
-    .badge-freq   { background: #34A853; color: #fff; }
-    .badge-format { background: #EA4335; color: #fff; }
-
-    /* ── Network view ─────────────────────────────────────────── */
-    #network-visualization {
-      border: 1px solid #ddd;
-      border-radius: 0 4px 4px 4px;
-      margin-bottom: 20px;
-      background: #fff;
+    .rel-card {
+      background: var(--c-surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--c-border);
+      border-left-width: 4px;
+      margin-bottom: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
-    .controls-bar {
-      padding: 10px 12px;
+    .rel-node {
+      padding: 4px 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .rel-arrow { color: var(--c-muted); font-size: 16px; }
+    .rel-type { font-size: 12px; font-weight: 600; color: var(--c-muted); }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .badge-data   { background: #fff3cd; color: #856404; }
+    .badge-freq   { background: #d1e7dd; color: #0f5132; }
+    .badge-format { background: #f8d7da; color: #842029; }
+    .badge-dsgvo  { background: #f8d7da; color: #842029; }
+    .badge-intern { background: #fff3cd; color: #856404; }
+    .badge-oeffentlich { background: #d1e7dd; color: #0f5132; }
+    .badge-manuell      { background: #e8d5f5; color: #6f42c1; }
+    .badge-automatisiert{ background: #cfe2ff; color: #0a58ca; }
+
+    .rel-card-actions { margin-left: auto; }
+
+    /* ── Network view ────────────────────────────────────────────── */
+    .network-toolbar {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 8px 12px;
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
       align-items: center;
-      border-bottom: 1px solid #eee;
-    }
-
-    .controls-bar select {
-      padding: 7px 10px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      font-size: 13px;
-    }
-
-    .zoom-controls {
-      display: flex;
-      gap: 3px;
-      margin-left: auto;
-    }
-
-    .zoom-controls button,
-    #fullscreen-btn {
-      width: 30px;
-      height: 30px;
-      font-size: 15px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     #network-container {
-      height: 600px;
+      background: #fff;
+      border: 1px solid var(--c-border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      height: 560px;
     }
 
-    /* Fullscreen */
+    .fullscreen #network-container { height: calc(100vh - 52px); }
+
     .fullscreen {
       position: fixed !important;
-      inset: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      background: #fff !important;
-      z-index: 9999 !important;
-      margin: 0 !important;
-      border-radius: 0 !important;
+      inset: 0;
+      z-index: 9999;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
     }
 
-    .fullscreen #network-container { height: calc(100vh - 60px); }
+    /* ── Insights / Dashboard ────────────────────────────────────── */
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .insight-card {
+      background: var(--c-surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--c-border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .insight-card-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--c-border);
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .insight-card-icon { font-size: 18px; }
+
+    .insight-card-body { padding: 12px 16px; }
+
+    .rank-list { list-style: none; }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+
+    .rank-item:last-child { border-bottom: none; }
+
+    .rank-pos {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--c-bg);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .rank-bar-wrap { width: 80px; height: 6px; background: var(--c-bg); border-radius: 3px; }
+    .rank-bar { height: 100%; border-radius: 3px; background: var(--c-accent); }
+
+    .rank-value { font-size: 11px; color: var(--c-muted); width: 30px; text-align: right; }
+
+    .cluster-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .cluster-item {
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      background: var(--c-bg);
+      font-size: 12px;
+    }
+
+    .cluster-title { font-weight: 600; margin-bottom: 4px; }
+    .cluster-nodes { color: var(--c-muted); line-height: 1.5; }
+
+    .insight-empty { color: var(--c-muted); font-size: 13px; padding: 8px 0; }
+
+    /* ── Wizard Modal ────────────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.hidden { display: none; }
+
+    .wizard {
+      background: var(--c-surface);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      overflow: hidden;
+    }
+
+    .wizard-header {
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .wizard-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+
+    .step-indicators {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .step-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--c-bg);
+      color: var(--c-muted);
+      border: 2px solid var(--c-border);
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+
+    .step-dot.done { background: var(--c-success); border-color: var(--c-success); color: #fff; }
+    .step-dot.active { background: var(--c-accent); border-color: var(--c-accent); color: #fff; }
+
+    .step-label { color: var(--c-muted); font-size: 11px; }
+    .step-label.active { color: var(--c-text); font-weight: 600; }
+
+    .step-line { flex: 1; height: 2px; background: var(--c-border); border-radius: 1px; }
+    .step-line.done { background: var(--c-success); }
+
+    .wizard-body { padding: 20px 24px; min-height: 260px; }
+
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; }
+
+    .form-row { margin-bottom: 14px; }
+    .form-row label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: var(--c-muted); text-transform: uppercase; letter-spacing: .05em; }
+
+    .form-row input[type="text"],
+    .form-row select,
+    .form-row textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: inherit;
+      background: #fafafa;
+      transition: border-color .12s;
+    }
+
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus { outline: none; border-color: var(--c-accent); background: #fff; }
+
+    .form-row textarea { height: 70px; resize: vertical; }
+
+    .form-row-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .radio-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .radio-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .12s, background .12s;
+    }
+
+    .radio-option:hover { border-color: var(--c-accent); background: #f8f8f8; }
+    .radio-option.selected { border-color: var(--c-accent); background: #f0f4ff; }
+    .radio-option input[type="radio"] { margin-top: 2px; flex-shrink: 0; }
+    .radio-option-label { font-weight: 600; font-size: 13px; }
+    .radio-option-desc { font-size: 11px; color: var(--c-muted); margin-top: 2px; }
+
+    .wizard-footer {
+      padding: 14px 24px;
+      border-top: 1px solid var(--c-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+
+    .wizard-footer .step-hint { font-size: 11px; color: var(--c-muted); }
+
+    /* ── Legend ──────────────────────────────────────────────────── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Misc ────────────────────────────────────────────────────── */
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--c-muted);
+    }
+
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state p { font-size: 14px; }
+
+    #sidebar-toggle-btn {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; z-index: 200; height: 100vh; }
+      .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+      .insights-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Datengraf</h1>
 
-    <!-- ── Import Panel ───────────────────────────────────────── -->
-    <div class="import-panel">
-      <h2>CSV-Daten importieren</h2>
-
-      <div class="import-method-tabs">
-        <button class="import-method-tab active" data-import="paste">Einfügen</button>
-        <button class="import-method-tab" data-import="url">URL</button>
-        <button class="import-method-tab" data-import="file">Datei</button>
-      </div>
-
-      <!-- Paste -->
-      <div class="import-section active" id="import-paste">
-        <p class="helper-text">CSV-Daten direkt einfügen (mit Kopfzeile):</p>
-        <textarea id="csv-input">Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Anmerkungen
-Grunderwerb,Dezernat 14,GB 1 Verwaltung,LBV.SH,Datenverarbeiter,übergibt,Straßenverwaltung,Eigentumsverhältnisse von Grundstücken,auf Anfrage,"Text, Mail",
-Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Grunderwerb,Eigentumsverhältnisse von Grundstücken,auf Anfrage,Text,
-Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenersteller,erstellt,Allgemein,Vereinbarung,unregelmäßig,pdf,
-Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Vereinbarung,unregelmäßig,pdf,
-Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Entwurf,unregelmäßig,pdf,
-Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Vereinbarung,unregelmäßig,pdf,
-Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,
-Ing.-Büro,Extern,Extern,,Datenersteller,übergibt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,
-Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 441,Verkehrszahlen,auf Anfrage,"Mail, Excel",
-MWVATT VII41,Ministerium,VII 41,MWVATT,Datenverwalter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,empfängt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
-Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 452,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
-Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 454,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
-Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 462,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
-Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 464,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
-Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
-Fachbereich 454,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 454,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 454,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
-Fachbereich 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
-Fachbereich 464,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 464,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
-Fachbereich 464,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Sträßenlängen,jährlich,SIB Datenbank,
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,verarbeitet,Fachbereiche Betrieb,UI-Personalbemessung,jährlich,Excel,Die Straßenlängen dienen der Personalbemessung
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,verarbeitet,Fachbereiche Betrieb,UI-Fahrzeugbemessung,jährlich,Excel,Die Straßenlängen dienen der Fahrzeugbemessung
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,wöchentlich,SAP Datenbank,Bewirtschaftung der Finanzmittel
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenersteller,erstellt,Dezernat 41,Finanzmittel (Bedarf),jährlich,Excel,
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Straßenmeistereien,Bestandsdaten (Fahrzeuge u. Geräte),wöchentlich,ProUI Datenbank,
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,übergibt,Fachbereich 432,Sträßenlängen,jährlich,SIB Datenbank,
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,empfängt,Fachbereiche Betrieb,UI-Personalbemessung,jährlich,Excel,Die Straßenlängen dienen der Personalbemessung
-Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,empfängt,Fachbereiche Betrieb,UI-Fahrzeugbemessung,jährlich,Excel,Die Straßenlängen dienen der Fahrzeugbemessung
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Sträßenlängen,jährlich,SIB Datenbank,
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Straßenbestanddaten,Bei Bedarf,SIB Datenbank,
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 451,VIS Akte,Bei Bedarf,E-Akte,Vergaben
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 452,VIS Akte,Bei Bedarf,E-Akte,"Anbau, Nutzungen"
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,monatlich,SAP Datenbank,Haushaltsmittel
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenverarbeiter,nutzt,Dezernat 10,Finanzmittel,täglich,SAP Datenbank,"Mittelbindungen, Reservierungen"
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 11,Fehlzeiten,bei Bedarf,KOPERS,Krankendaten
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,übergibt,Dezernat 41,Erfassung Tagesdaten UI Personal,täglich,PRO-UI,Tagesdaten
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,übergibt,Dezernat 42,Erfassung Schäden,bei Bedarf,PRO-UI,Schäden BLK
-SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,erstellt,Dezernat 11,Arbeitszeiten,täglich,PrimeWeb,Tagesdaten Verwaltung
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 20,Straßennetz/Bestandsdaten,Bei Bedarf,shape,Lärmkataster
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 23,Straßennetz/Bestandsdaten,regelmäßig,"wfs, gml",DA-Nord
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 23,Straßennetz/Bestandsdaten,Bei Bedarf,"Mail, pdf",Datenaufnahme
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 30,Straßennetz/Querschnitte/Aufbau,Bei Bedarf,"ESS, Schnittstelle TT-SIB",ZEB-Erfassung
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 30,Straßennetz/Querschnitte/Aufbau,Bei Bedarf,"ESS, Schnittstelle TT-SIB",ZEB-Erfassung
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 40,Straßennetz/Bestandsdaten,regelmäßig,"ESS, Schnittstelle TT-SIB","Infosys, Baumkataster"
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 40,Straßennetz/Bestandsdaten,Bei Bedarf,pdf,MapInfokarten
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 40,Straßennetz/Bestandsdaten,Bei Bedarf,Excel,Abfragen aus TT-SIB
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 41,Straßennetz/Bestandsdaten,Bei Bedarf,"Excel, pdf",Abfragen aus TT-SIB
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 42,Straßennetz,täglich,Abgleich über Schnittstelle,
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,empfängt,Dezernat 42,Bauwerke,täglich,Abgleich über Schnittstelle,
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 43,Straßennetz,quartalsweise,OKSTRA,INS / Vemags
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 43,Straßennetz,Bei Bedarf,"Mail, pdf","Netzänderungen (z.B. Baulast, OD-Bescheide)"
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 44,Straßennetz/Verkehrsmengen,regelmäßig,"Excel, int. wfs Dienst",
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 44,Verkehrsmengen,Bei Bedarf,"Excel, dbf",
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 45,Straßennetz/Bestandsdaten,regelmäßig,Webanwendung,Infosys
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 45,Straßennetz/Bestandsdaten,Bei Bedarf,pdf,MapInfokarten
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 45,Straßennetz/Bestandsdaten,Bei Bedarf,Excel,Abfragen aus TT-SIB
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 45,Bestandsdaten,unregelmäßig,"excel, pdf",Datenaufnahme durch SM
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 46,Straßennetz/Bestandsdaten,regelmäßig,Webanwendung,Infosys
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 46,Straßennetz/Bestandsdaten,Bei Bedarf,pdf,MapInfokarten
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 46,Straßennetz/Bestandsdaten,Bei Bedarf,Excel,Abfragen aus TT-SIB
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 46,Bestandsdaten,unregelmäßig,"excel, pdf",Datenaufnahme durch SM
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,LBV-SH,Straßennetz/Bestandsdaten,immer,Webandwendung,Infosys für jeden verfügbar
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,S 3,Straßennetz/Bestandsdaten,regelmäßig,shape,LRVN
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,S 6,Straßennetz/Bestandsdaten,regelmäßig,"wfs, gml",Baustellkoordination
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,MWVATT,Straßennetz/Bestandsdaten,Bei Bedarf,"shape, gml",RIS-SH
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,LvermGeo,Straßennetz,halbjährlich,int. Wfs,Datendienst für Inspire
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,LvermGeo,Geobasisdaten,regelmäßig,"WMS, WFS",
-Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,übergibt,BMDV,Bisstra-Datenlieferung,quartalsweise,"OKSTRA, ESS-Format",</textarea>
-        <br>
-        <button id="visualize-btn-paste">Visualisieren</button>
-      </div>
-
-      <!-- URL -->
-      <div class="import-section" id="import-url">
-        <p class="helper-text">CSV-Datei über URL laden (z. B. raw.githubusercontent.com):</p>
-        <div class="url-row">
-          <input type="text" id="csv-url" placeholder="https://raw.githubusercontent.com/…/data.csv">
-          <button id="visualize-btn-url">Laden &amp; Visualisieren</button>
-        </div>
-      </div>
-
-      <!-- File -->
-      <div class="import-section" id="import-file">
-        <p class="helper-text">Lokale CSV-Datei auswählen oder hierher ziehen:</p>
-        <div class="file-drop-zone" id="drop-zone">
-          <input type="file" id="csv-file" accept=".csv">
-          <div class="drop-label">CSV-Datei auswählen</div>
-          <div class="drop-sub">oder hierher ziehen</div>
-        </div>
-        <div id="file-name-display"></div>
-        <br>
-        <button id="visualize-btn-file">Visualisieren</button>
-      </div>
-
-      <div id="status-message"></div>
+<!-- ── Wizard Modal ────────────────────────────────────────────── -->
+<div class="modal-backdrop hidden" id="wizard-backdrop">
+  <div class="wizard" role="dialog" aria-modal="true">
+    <div class="wizard-header">
+      <div class="wizard-title" id="wizard-title">Neuen Datenfluss erfassen</div>
+      <div class="step-indicators" id="step-indicators"></div>
     </div>
-
-    <!-- ── Legend ──────────────────────────────────────────────── -->
-    <div class="legend">
-      <strong>Farbkodierung:</strong>
-      <div class="legend-item"><div class="legend-color" style="background:#4285F4"></div><span>übergibt</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:#34A853"></div><span>nutzt</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:#FBBC05"></div><span>erstellt</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:#EA4335"></div><span>empfängt</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:#8F44AD"></div><span>verarbeitet</span></div>
-    </div>
-
-    <!-- ── View Tabs ───────────────────────────────────────────── -->
-    <div class="view-tabs">
-      <button class="view-tab active" data-tab="list">Listenansicht</button>
-      <button class="view-tab" data-tab="network">Netzwerkkarte</button>
-    </div>
-
-    <div id="list-visualization" class="tab-content active"></div>
-
-    <div id="network-visualization" class="tab-content">
-      <div class="controls-bar">
-        <select id="filter-relation"><option value="all">Alle Beziehungen</option></select>
-        <select id="filter-organization"><option value="all">Alle Organisationen</option></select>
-        <select id="filter-department"><option value="all">Alle Abteilungen</option></select>
-        <select id="filter-frequency"><option value="all">Alle Häufigkeiten</option></select>
-        <select id="filter-format"><option value="all">Alle Formate</option></select>
-        <button id="reset-layout">Layout zurücksetzen</button>
-        <div class="zoom-controls">
-          <button id="zoom-in" title="Vergrößern">+</button>
-          <button id="zoom-out" title="Verkleinern">−</button>
-          <button id="zoom-reset" title="Anpassen">=</button>
-          <button id="fullscreen-btn" title="Vollbild">⛶</button>
-        </div>
+    <div class="wizard-body" id="wizard-body"></div>
+    <div class="wizard-footer">
+      <span class="step-hint" id="wizard-hint"></span>
+      <div class="btn-row" style="margin:0">
+        <button class="btn btn-secondary btn-sm" id="wizard-cancel">Abbrechen</button>
+        <button class="btn btn-secondary btn-sm" id="wizard-back">← Zurück</button>
+        <button class="btn btn-primary btn-sm" id="wizard-next">Weiter →</button>
       </div>
-      <div id="network-container"></div>
     </div>
   </div>
+</div>
 
-  <script>
-    // ── State ──────────────────────────────────────────────────────────────
-    let parsedData = [];
-    let networkChart = null;
-    let pendingFileText = null;
+<div class="app-shell">
 
-    const relationshipColors = {
-      'übergibt':   '#4285F4',
-      'nutzt':      '#34A853',
-      'erstellt':   '#FBBC05',
-      'empfängt':   '#EA4335',
-      'verarbeitet':'#8F44AD'
-    };
+  <!-- ── Sidebar ─────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span>Filter</span>
+      <button class="btn btn-secondary btn-sm" id="clear-filters-btn">Zurücksetzen</button>
+    </div>
 
-    // ── Import-method tab switching ────────────────────────────────────────
-    document.querySelectorAll('.import-method-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.import-method-tab').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.import-section').forEach(s => s.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('import-' + btn.dataset.import).classList.add('active');
-        setStatus('');
-      });
-    });
+    <div class="sidebar-section">
+      <h3>Beziehungstyp</h3>
+      <div class="chip-group" id="filter-chips-relation"></div>
+    </div>
 
-    // ── View-tab switching ─────────────────────────────────────────────────
-    document.querySelectorAll('.view-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.getElementById(tab.dataset.tab + '-visualization').classList.add('active');
-        if (tab.dataset.tab === 'network' && networkChart) {
-          networkChart.resize();
-          networkChart.fit();
-        }
-      });
-    });
+    <div class="sidebar-section">
+      <h3>Schutzbedarf</h3>
+      <div class="chip-group" id="filter-chips-schutz"></div>
+    </div>
 
-    // ── Status helper ──────────────────────────────────────────────────────
-    function setStatus(msg, type = '') {
-      const el = document.getElementById('status-message');
-      el.textContent = msg;
-      el.className = type;
+    <div class="sidebar-section">
+      <h3>Erfassungsart</h3>
+      <div class="chip-group" id="filter-chips-erfassung"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Organisation</h3>
+      <div class="filter-group">
+        <select id="filter-organization"><option value="all">Alle</option></select>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Abteilung</h3>
+      <div class="filter-group">
+        <select id="filter-department"><option value="all">Alle</option></select>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Häufigkeit</h3>
+      <div class="filter-group">
+        <select id="filter-frequency"><option value="all">Alle</option></select>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Format</h3>
+      <div class="filter-group">
+        <select id="filter-format"><option value="all">Alle</option></select>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Suche</h3>
+      <div class="filter-group">
+        <input type="text" id="filter-search" placeholder="Akteur suchen…">
+      </div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="btn btn-secondary btn-sm" id="export-csv-btn">⬇ CSV exportieren</button>
+      <button class="btn btn-secondary btn-sm" id="save-local-btn">💾 Im Browser speichern</button>
+      <button class="btn btn-secondary btn-sm" id="load-local-btn">📂 Aus Browser laden</button>
+    </div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────────────── -->
+  <div class="main">
+    <div class="topbar">
+      <button class="btn btn-secondary btn-icon" id="sidebar-toggle-btn" title="Filter ein-/ausblenden">☰</button>
+      <span class="topbar-brand">Datengraf</span>
+      <nav class="topbar-tabs">
+        <button class="topbar-tab active" data-tab="list">Listenansicht</button>
+        <button class="topbar-tab" data-tab="network">Netzwerkkarte</button>
+        <button class="topbar-tab" data-tab="insights">Netzwerk-Insights</button>
+      </nav>
+      <div class="topbar-spacer"></div>
+      <button class="btn btn-primary btn-sm" id="open-wizard-btn">+ Datenfluss erfassen</button>
+    </div>
+
+    <div class="content">
+
+      <!-- Import Panel -->
+      <div class="import-panel">
+        <div class="import-panel-header" id="import-toggle">
+          <span>📥</span>
+          <span class="import-panel-title">CSV importieren</span>
+          <span class="import-panel-toggle" id="import-toggle-label">▼ öffnen</span>
+        </div>
+        <div class="import-panel-body" id="import-body">
+          <div class="import-method-tabs">
+            <button class="import-method-tab active" data-import="paste">Einfügen</button>
+            <button class="import-method-tab" data-import="url">URL</button>
+            <button class="import-method-tab" data-import="file">Datei</button>
+          </div>
+
+          <div class="import-section active" id="import-paste">
+            <textarea id="csv-input" class="csv-textarea" placeholder="CSV-Daten hier einfügen…"></textarea>
+          </div>
+
+          <div class="import-section" id="import-url">
+            <div class="url-row">
+              <input type="text" id="csv-url" placeholder="https://raw.githubusercontent.com/…/data.csv">
+              <button class="btn btn-primary btn-sm" id="btn-url-load">Laden</button>
+            </div>
+          </div>
+
+          <div class="import-section" id="import-file">
+            <div class="file-drop-zone" id="drop-zone">
+              <input type="file" id="csv-file" accept=".csv">
+              <div>📄 Datei auswählen oder hierher ziehen</div>
+              <div style="font-size:11px;color:var(--c-muted);margin-top:4px" id="file-name-display"></div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary btn-sm" id="btn-visualize">Visualisieren</button>
+            <button class="btn btn-secondary btn-sm" id="btn-append">Zu vorhandenen Daten hinzufügen</button>
+          </div>
+          <div id="status-message"></div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend" id="legend-bar">
+        <strong style="font-size:12px">Beziehungen:</strong>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--rel-übergibt)"></div>übergibt</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--rel-nutzt)"></div>nutzt</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--rel-erstellt)"></div>erstellt</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--rel-empfängt)"></div>empfängt</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--rel-verarbeitet)"></div>verarbeitet</div>
+        <span style="margin-left:10px;color:var(--c-muted)">|</span>
+        <strong style="font-size:12px">Schutz:</strong>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--schutz-dsgvo)"></div>DSGVO</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--schutz-intern)"></div>Intern</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--schutz-oeffentlich)"></div>Öffentlich</div>
+      </div>
+
+      <!-- Tab panels -->
+      <div class="tab-panel active" id="panel-list">
+        <div id="list-stats" class="list-stats"></div>
+        <div id="list-content"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-network">
+        <div class="network-toolbar" id="network-toolbar">
+          <button class="btn btn-secondary btn-sm" id="btn-reset-layout">Layout neu</button>
+          <button class="btn btn-icon btn-secondary" id="btn-zoom-in" title="+">+</button>
+          <button class="btn btn-icon btn-secondary" id="btn-zoom-out" title="−">−</button>
+          <button class="btn btn-icon btn-secondary" id="btn-zoom-fit" title="Anpassen">=</button>
+          <button class="btn btn-icon btn-secondary" id="btn-fullscreen" title="Vollbild">⛶</button>
+        </div>
+        <div id="network-container"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-insights">
+        <div class="insights-grid" id="insights-grid"></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app-shell -->
+
+<script>
+'use strict';
+
+// ── Constants ────────────────────────────────────────────────────────────────
+const REL_COLORS = {
+  'übergibt':    'var(--rel-übergibt)',
+  'nutzt':       'var(--rel-nutzt)',
+  'erstellt':    'var(--rel-erstellt)',
+  'empfängt':    'var(--rel-empfängt)',
+  'verarbeitet': 'var(--rel-verarbeitet)'
+};
+
+const REL_COLORS_HEX = {
+  'übergibt':    '#4285F4',
+  'nutzt':       '#34A853',
+  'erstellt':    '#FBBC05',
+  'empfängt':    '#EA4335',
+  'verarbeitet': '#8F44AD'
+};
+
+const SCHUTZ_OPTS = ['DSGVO-relevant', 'Intern', 'Öffentlich'];
+const ERFASSUNG_OPTS = ['Manuell', 'Automatisiert'];
+const ROLLEN_OPTS = ['Datenproduzent', 'Datenkonsument', 'Gatekeeper', 'Datenverwalter', 'Datenverarbeiter', 'Datenersteller', 'Datennutzer'];
+const BEZIEHUNG_OPTS = ['übergibt', 'nutzt', 'erstellt', 'empfängt', 'verarbeitet'];
+const LS_KEY = 'datengraf_data';
+
+const COSE_OPTS = {
+  name: 'cose',
+  idealEdgeLength: 120, nodeOverlap: 20, refresh: 20,
+  fit: true, padding: 30, randomize: false,
+  componentSpacing: 120, nodeRepulsion: 450000,
+  edgeElasticity: 100, nestingFactor: 5, gravity: 80,
+  numIter: 1000, initialTemp: 200, coolingFactor: 0.95, minTemp: 1.0
+};
+
+// ── State ────────────────────────────────────────────────────────────────────
+let allData = [];
+let filteredData = [];
+let networkChart = null;
+let pendingFileText = null;
+let activeFilters = {
+  relation: new Set(),
+  schutz: new Set(),
+  erfassung: new Set(),
+  organization: 'all',
+  department: 'all',
+  frequency: 'all',
+  format: 'all',
+  search: ''
+};
+
+// ── CSV Parser ───────────────────────────────────────────────────────────────
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = splitCSVLine(lines[0]).map(h => h.trim());
+  const result = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const values = splitCSVLine(lines[i]);
+    const obj = {};
+    headers.forEach((h, j) => { obj[h] = (values[j] ?? '').trim(); });
+    result.push(obj);
+  }
+  return result;
+}
+
+function splitCSVLine(line) {
+  const values = [];
+  let inQuotes = false, temp = '';
+  for (const ch of line) {
+    if (ch === '"') { inQuotes = !inQuotes; }
+    else if (ch === ',' && !inQuotes) { values.push(unquote(temp)); temp = ''; }
+    else { temp += ch; }
+  }
+  values.push(unquote(temp));
+  return values;
+}
+
+function unquote(s) {
+  s = s.trim();
+  if (s.startsWith('"') && s.endsWith('"')) return s.slice(1, -1);
+  return s;
+}
+
+function toCSV(data) {
+  const headers = ['Quelle','QuelleAbteilung','QuelleBereich','QuelleOrganisation','QuelleRolle',
+    'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen'];
+  const escape = v => (v && v.includes(',')) ? `"${v}"` : (v || '');
+  const rows = data.map(r => headers.map(h => escape(r[h] || '')).join(','));
+  return [headers.join(','), ...rows].join('\n');
+}
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+function applyFilters() {
+  filteredData = allData.filter(row => {
+    if (activeFilters.relation.size > 0 && !activeFilters.relation.has(row.Beziehung)) return false;
+    if (activeFilters.schutz.size > 0 && !activeFilters.schutz.has(row.Schutzbedarf)) return false;
+    if (activeFilters.erfassung.size > 0 && !activeFilters.erfassung.has(row.Erfassungsart)) return false;
+    if (activeFilters.organization !== 'all' && row.QuelleOrganisation !== activeFilters.organization) return false;
+    if (activeFilters.department !== 'all' && row.QuelleAbteilung !== activeFilters.department) return false;
+    if (activeFilters.frequency !== 'all' && row.Häufigkeit !== activeFilters.frequency) return false;
+    if (activeFilters.format !== 'all' && row.Format !== activeFilters.format) return false;
+    if (activeFilters.search) {
+      const q = activeFilters.search.toLowerCase();
+      if (!(row.Quelle || '').toLowerCase().includes(q) && !(row.Ziel || '').toLowerCase().includes(q)) return false;
     }
+    return true;
+  });
+  renderAll();
+}
 
-    // ── CSV parser ─────────────────────────────────────────────────────────
-    function parseCSV(csv) {
-      const lines = csv.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
-      const result = [];
+function clearFilters() {
+  activeFilters = { relation: new Set(), schutz: new Set(), erfassung: new Set(),
+    organization: 'all', department: 'all', frequency: 'all', format: 'all', search: '' };
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('filter-organization').value = 'all';
+  document.getElementById('filter-department').value = 'all';
+  document.getElementById('filter-frequency').value = 'all';
+  document.getElementById('filter-format').value = 'all';
+  document.getElementById('filter-search').value = '';
+  applyFilters();
+}
 
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
+// ── Sidebar filter UI ─────────────────────────────────────────────────────────
+function buildSidebarFilters() {
+  const rels = [...new Set(allData.map(r => r.Beziehung).filter(Boolean))];
+  const schutze = [...new Set(allData.map(r => r.Schutzbedarf).filter(Boolean))];
+  const erfassungen = [...new Set(allData.map(r => r.Erfassungsart).filter(Boolean))];
 
-        let inQuotes = false, temp = '', values = [];
-        for (const ch of lines[i]) {
-          if (ch === '"') { inQuotes = !inQuotes; }
-          else if (ch === ',' && !inQuotes) { values.push(temp); temp = ''; }
-          else { temp += ch; }
-        }
-        values.push(temp);
+  buildChipGroup('filter-chips-relation', rels, 'relation');
+  buildChipGroup('filter-chips-schutz', schutze, 'schutz');
+  buildChipGroup('filter-chips-erfassung', erfassungen, 'erfassung');
 
-        values = values.map(v =>
-          (v.startsWith('"') && v.endsWith('"')) ? v.slice(1, -1) : v
-        );
+  updateSelectFilter('filter-organization', [...new Set(allData.map(r => r.QuelleOrganisation).filter(Boolean))]);
+  updateSelectFilter('filter-department', [...new Set(allData.map(r => r.QuelleAbteilung).filter(Boolean))]);
+  updateSelectFilter('filter-frequency', [...new Set(allData.map(r => r.Häufigkeit).filter(Boolean))]);
+  updateSelectFilter('filter-format', [...new Set(allData.map(r => r.Format).filter(Boolean))]);
+}
 
-        const obj = {};
-        headers.forEach((h, j) => { obj[h] = values[j] ?? ''; });
-        result.push(obj);
-      }
-      return result;
-    }
-
-    // ── Visualize entry point ──────────────────────────────────────────────
-    function visualize(csvText) {
-      try {
-        parsedData = parseCSV(csvText);
-        visualizeList(parsedData);
-        visualizeNetwork(parsedData);
-        setStatus(`${parsedData.length} Zeilen geladen.`, 'success');
-      } catch (err) {
-        setStatus('Fehler beim Parsen: ' + err.message, 'error');
-      }
-    }
-
-    // ── Paste ──────────────────────────────────────────────────────────────
-    document.getElementById('visualize-btn-paste').addEventListener('click', () => {
-      const text = document.getElementById('csv-input').value.trim();
-      if (!text) { setStatus('Bitte CSV-Daten eingeben.', 'error'); return; }
-      visualize(text);
-    });
-
-    // ── URL ────────────────────────────────────────────────────────────────
-    document.getElementById('visualize-btn-url').addEventListener('click', async () => {
-      const url = document.getElementById('csv-url').value.trim();
-      if (!url) { setStatus('Bitte eine URL eingeben.', 'error'); return; }
-      setStatus('Lade Daten…', 'loading');
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        const text = await res.text();
-        visualize(text);
-      } catch (err) {
-        setStatus('Fehler beim Laden: ' + err.message, 'error');
-      }
-    });
-
-    // ── File upload ────────────────────────────────────────────────────────
-    const fileInput  = document.getElementById('csv-file');
-    const dropZone   = document.getElementById('drop-zone');
-    const fileNameEl = document.getElementById('file-name-display');
-
-    function readFile(file) {
-      if (!file) return;
-      fileNameEl.textContent = file.name;
-      const reader = new FileReader();
-      reader.onload = e => { pendingFileText = e.target.result; setStatus('Datei bereit – klicken Sie auf „Visualisieren".', 'success'); };
-      reader.onerror = () => setStatus('Fehler beim Lesen der Datei.', 'error');
-      reader.readAsText(file);
-    }
-
-    fileInput.addEventListener('change', () => readFile(fileInput.files[0]));
-
-    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      const file = e.dataTransfer.files[0];
-      if (file) readFile(file);
-    });
-
-    document.getElementById('visualize-btn-file').addEventListener('click', () => {
-      if (!pendingFileText) { setStatus('Bitte zuerst eine CSV-Datei auswählen.', 'error'); return; }
-      visualize(pendingFileText);
-    });
-
-    // ── List visualization ─────────────────────────────────────────────────
-    function visualizeList(data) {
-      const container = document.getElementById('list-visualization');
-      container.innerHTML = '';
-
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p>Keine Daten zum Anzeigen.</p>';
-        return;
-      }
-
-      const nodes = new Set();
-      data.forEach(r => { if (r.Quelle) nodes.add(r.Quelle); if (r.Ziel) nodes.add(r.Ziel); });
-
-      const stats = document.createElement('p');
-      stats.innerHTML = `<strong>Statistik:</strong> ${nodes.size} Knoten, ${data.length} Verbindungen`;
-      container.appendChild(stats);
-
-      data.forEach(row => {
-        if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
-
-        const div = document.createElement('div');
-        div.className = 'relationship';
-        div.style.borderLeftColor = relationshipColors[row.Beziehung] || '#4285F4';
-
-        const src = document.createElement('div');
-        src.className = 'rel-node';
-        src.textContent = row.Quelle;
-        if (row.QuelleAbteilung) src.title = `Abteilung: ${row.QuelleAbteilung}\nOrganisation: ${row.QuelleOrganisation || ''}`;
-
-        const relType = document.createElement('div');
-        relType.className = 'relationship-type';
-        relType.textContent = row.Beziehung;
-
-        const arrow = document.createElement('div');
-        arrow.className = 'relationship-arrow';
-        arrow.textContent = '→';
-
-        const tgt = document.createElement('div');
-        tgt.className = 'rel-node';
-        tgt.textContent = row.Ziel;
-
-        const badges = document.createElement('div');
-        badges.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
-
-        if (row.Datentyp) {
-          const b = document.createElement('span');
-          b.className = 'badge badge-data';
-          b.textContent = row.Datentyp;
-          badges.appendChild(b);
-        }
-        if (row.Häufigkeit) {
-          const b = document.createElement('span');
-          b.className = 'badge badge-freq';
-          b.textContent = row.Häufigkeit;
-          badges.appendChild(b);
-        }
-        if (row.Format) {
-          const b = document.createElement('span');
-          b.className = 'badge badge-format';
-          b.textContent = row.Format;
-          badges.appendChild(b);
-        }
-
-        div.append(src, relType, arrow, tgt, badges);
-        container.appendChild(div);
-      });
-    }
-
-    // ── Network visualization ──────────────────────────────────────────────
-    const COSE_LAYOUT = {
-      name: 'cose',
-      idealEdgeLength: 100, nodeOverlap: 20, refresh: 20,
-      fit: true, padding: 30, randomize: false,
-      componentSpacing: 100, nodeRepulsion: 400000,
-      edgeElasticity: 100, nestingFactor: 5, gravity: 80,
-      numIter: 1000, initialTemp: 200, coolingFactor: 0.95, minTemp: 1.0
-    };
-
-    const NODE_STYLE = [
-      {
-        selector: 'node',
-        style: {
-          'label': 'data(id)', 'text-valign': 'center', 'text-halign': 'center',
-          'background-color': '#848484', 'color': 'black', 'font-size': '12px',
-          'text-outline-width': 1, 'text-outline-color': '#fff',
-          'width': 'data(size)', 'height': 'data(size)'
-        }
-      },
-      {
-        selector: 'edge',
-        style: {
-          'width': 2, 'line-color': 'data(color)',
-          'target-arrow-color': 'data(color)', 'target-arrow-shape': 'triangle',
-          'curve-style': 'bezier', 'opacity': 0.8,
-          'label': 'data(type)', 'font-size': '10px',
-          'text-rotation': 'autorotate',
-          'text-background-color': 'white', 'text-background-opacity': 0.7,
-          'text-background-padding': '2px'
-        }
-      }
-    ];
-
-    function prepareNetworkData(data) {
-      const nodes = new Map();
-      const edges = [];
-
-      data.forEach(row => {
-        if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
-
-        if (!nodes.has(row.Quelle)) nodes.set(row.Quelle, { department: row.QuelleAbteilung || '', organization: row.QuelleOrganisation || '', connections: 0 });
-        nodes.get(row.Quelle).connections++;
-
-        if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { department: '', organization: '', connections: 0 });
-        nodes.get(row.Ziel).connections++;
-
-        edges.push({ source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: relationshipColors[row.Beziehung] || '#999', dataType: row.Datentyp || '', frequency: row.Häufigkeit || '', format: row.Format || '' });
-      });
-
-      const elements = [];
-      nodes.forEach((node, id) => {
-        elements.push({ data: { id, department: node.department, organization: node.organization, size: 20 + Math.min(30, node.connections * 5) } });
-      });
-      edges.forEach((edge, i) => {
-        elements.push({ data: { id: `e${i}`, source: edge.source, target: edge.target, type: edge.type, color: edge.color, dataType: edge.dataType, frequency: edge.frequency, format: edge.format } });
-      });
-
-      return elements;
-    }
-
-    function buildCytoscape(container, data) {
-      const cy = cytoscape({ container, elements: prepareNetworkData(data), style: NODE_STYLE, layout: COSE_LAYOUT });
-
-      cy.style()
-        .selector('.highlighted').style({ 'background-color': '#ff5722', 'line-color': '#ff5722', 'target-arrow-color': '#ff5722', opacity: 1, 'z-index': 999 })
-        .selector('.faded').style({ opacity: 0.3, 'z-index': 0 })
-        .update();
-
-      cy.on('tap', 'node', evt => {
-        const node = evt.target;
-        cy.elements().removeClass('highlighted faded');
-        const edges = node.connectedEdges();
-        const nbrs  = edges.connectedNodes();
-        cy.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
-        node.addClass('highlighted');
-        edges.addClass('highlighted');
-        nbrs.addClass('highlighted');
-      });
-
-      cy.on('tap', evt => {
-        if (evt.target === cy) cy.elements().removeClass('highlighted faded');
-      });
-
-      return cy;
-    }
-
-    function visualizeNetwork(data) {
-      if (!data || data.length === 0) {
-        document.getElementById('network-container').innerHTML = '<p>Keine Daten zum Anzeigen.</p>';
-        return;
-      }
-
-      const relationships = new Set(), organizations = new Set(), departments = new Set(), frequencies = new Set(), formats = new Set();
-      data.forEach(r => {
-        if (r.Beziehung) relationships.add(r.Beziehung);
-        if (r.QuelleOrganisation) organizations.add(r.QuelleOrganisation);
-        if (r.QuelleAbteilung) departments.add(r.QuelleAbteilung);
-        if (r.Häufigkeit) frequencies.add(r.Häufigkeit);
-        if (r.Format) formats.add(r.Format);
-      });
-
-      updateFilterOptions('filter-relation', [...relationships]);
-      updateFilterOptions('filter-organization', [...organizations]);
-      updateFilterOptions('filter-department', [...departments]);
-      updateFilterOptions('filter-frequency', [...frequencies]);
-      updateFilterOptions('filter-format', [...formats]);
-
-      const container = document.getElementById('network-container');
-      container.innerHTML = '';
-      networkChart = buildCytoscape(container, data);
-    }
-
-    function updateFilterOptions(selectId, options) {
-      const select = document.getElementById(selectId);
-      while (select.options.length > 1) select.options.remove(1);
-      options.forEach(opt => {
-        const o = document.createElement('option');
-        o.value = opt; o.textContent = opt;
-        select.appendChild(o);
-      });
-    }
-
-    // ── Filters ────────────────────────────────────────────────────────────
-    function applyFilters() {
-      const rel  = document.getElementById('filter-relation').value;
-      const org  = document.getElementById('filter-organization').value;
-      const dep  = document.getElementById('filter-department').value;
-      const freq = document.getElementById('filter-frequency').value;
-      const fmt  = document.getElementById('filter-format').value;
-
-      const filtered = parsedData.filter(r =>
-        (rel  === 'all' || r.Beziehung          === rel)  &&
-        (org  === 'all' || r.QuelleOrganisation  === org)  &&
-        (dep  === 'all' || r.QuelleAbteilung     === dep)  &&
-        (freq === 'all' || r.Häufigkeit          === freq) &&
-        (fmt  === 'all' || r.Format              === fmt)
-      );
-
-      const container = document.getElementById('network-container');
-      container.innerHTML = '';
-      if (filtered.length > 0) {
-        networkChart = buildCytoscape(container, filtered);
+function buildChipGroup(containerId, values, filterKey) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  values.forEach(val => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = val;
+    chip.addEventListener('click', () => {
+      if (activeFilters[filterKey].has(val)) {
+        activeFilters[filterKey].delete(val);
+        chip.classList.remove('active');
       } else {
-        container.innerHTML = '<p>Keine Daten für die ausgewählten Filter.</p>';
+        activeFilters[filterKey].add(val);
+        chip.classList.add('active');
       }
+      applyFilters();
+    });
+    container.appendChild(chip);
+  });
+}
+
+function updateSelectFilter(id, options) {
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  while (sel.options.length > 1) sel.options.remove(1);
+  options.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt; o.textContent = opt;
+    sel.appendChild(o);
+  });
+  if ([...options, 'all'].includes(cur)) sel.value = cur;
+}
+
+// ── Render dispatcher ─────────────────────────────────────────────────────────
+function renderAll() {
+  renderList(filteredData);
+  renderNetwork(filteredData);
+  renderInsights(filteredData);
+}
+
+// ── List view ─────────────────────────────────────────────────────────────────
+function renderList(data) {
+  const statsEl = document.getElementById('list-stats');
+  const contentEl = document.getElementById('list-content');
+
+  if (!data.length) {
+    statsEl.innerHTML = '';
+    contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>Keine Daten vorhanden. CSV importieren oder Datenfluss erfassen.</p></div>';
+    return;
+  }
+
+  const nodes = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean));
+  statsEl.innerHTML = `
+    <span class="stat-pill">🔵 ${nodes.size} Akteure</span>
+    <span class="stat-pill">🔗 ${data.length} Datenflüsse</span>
+    <span class="stat-pill">🔒 ${data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length} DSGVO</span>
+    <span class="stat-pill">🤖 ${data.filter(r => r.Erfassungsart === 'Automatisiert').length} automatisiert</span>
+  `;
+
+  contentEl.innerHTML = '';
+  data.forEach((row, idx) => {
+    if (!row.Quelle || !row.Ziel) return;
+    const card = document.createElement('div');
+    card.className = 'rel-card';
+    card.style.borderLeftColor = REL_COLORS_HEX[row.Beziehung] || '#ccc';
+
+    const schutzClass = row.Schutzbedarf === 'DSGVO-relevant' ? 'badge-dsgvo' :
+                        row.Schutzbedarf === 'Intern' ? 'badge-intern' :
+                        row.Schutzbedarf === 'Öffentlich' ? 'badge-oeffentlich' : '';
+    const erfClass = row.Erfassungsart === 'Manuell' ? 'badge-manuell' :
+                     row.Erfassungsart === 'Automatisiert' ? 'badge-automatisiert' : '';
+
+    card.innerHTML = `
+      <div class="rel-node">${esc(row.Quelle)}</div>
+      <div class="rel-type">${esc(row.Beziehung)}</div>
+      <div class="rel-arrow">→</div>
+      <div class="rel-node">${esc(row.Ziel)}</div>
+      ${row.Datentyp   ? `<span class="badge badge-data">${esc(row.Datentyp)}</span>` : ''}
+      ${row.Häufigkeit ? `<span class="badge badge-freq">${esc(row.Häufigkeit)}</span>` : ''}
+      ${row.Format     ? `<span class="badge badge-format">${esc(row.Format)}</span>` : ''}
+      ${schutzClass    ? `<span class="badge ${schutzClass}">${esc(row.Schutzbedarf)}</span>` : ''}
+      ${erfClass       ? `<span class="badge ${erfClass}">${esc(row.Erfassungsart)}</span>` : ''}
+      <div class="rel-card-actions" style="margin-left:auto">
+        <button class="btn btn-secondary btn-sm" data-del="${idx}" title="Löschen">✕</button>
+      </div>
+    `;
+    contentEl.appendChild(card);
+  });
+
+  contentEl.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.del);
+      allData.splice(allData.indexOf(filteredData[idx]), 1);
+      applyFilters();
+      buildSidebarFilters();
+    });
+  });
+}
+
+function esc(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Network view ─────────────────────────────────────────────────────────────
+const CY_STYLE = [
+  {
+    selector: 'node',
+    style: {
+      label: 'data(id)',
+      'text-valign': 'center', 'text-halign': 'center',
+      'background-color': '#848484', color: '#fff',
+      'font-size': '11px', 'text-outline-width': 1, 'text-outline-color': '#666',
+      width: 'data(size)', height: 'data(size)',
+      'text-wrap': 'wrap', 'text-max-width': '80px'
     }
+  },
+  {
+    selector: 'edge',
+    style: {
+      width: 2, 'line-color': 'data(color)',
+      'target-arrow-color': 'data(color)', 'target-arrow-shape': 'triangle',
+      'curve-style': 'bezier', opacity: 0.8,
+      label: 'data(type)', 'font-size': '9px',
+      'text-rotation': 'autorotate',
+      'text-background-color': '#fff', 'text-background-opacity': 0.8,
+      'text-background-padding': '2px'
+    }
+  },
+  { selector: '.highlighted', style: { 'background-color': '#ff5722', 'line-color': '#ff5722', 'target-arrow-color': '#ff5722', opacity: 1, 'z-index': 999 } },
+  { selector: '.faded', style: { opacity: 0.15, 'z-index': 0 } },
+  { selector: '.cluster-0', style: { 'background-color': '#4285F4' } },
+  { selector: '.cluster-1', style: { 'background-color': '#34A853' } },
+  { selector: '.cluster-2', style: { 'background-color': '#FBBC05' } },
+  { selector: '.cluster-3', style: { 'background-color': '#EA4335' } },
+  { selector: '.cluster-4', style: { 'background-color': '#8F44AD' } },
+];
 
-    ['filter-relation','filter-organization','filter-department','filter-frequency','filter-format']
-      .forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
+function prepareElements(data) {
+  const nodes = new Map();
+  const edges = [];
 
-    // ── Zoom & layout controls ─────────────────────────────────────────────
-    document.getElementById('zoom-in').addEventListener('click', () => {
-      if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 1.2, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } });
-    });
-    document.getElementById('zoom-out').addEventListener('click', () => {
-      if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 0.8, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } });
-    });
-    document.getElementById('zoom-reset').addEventListener('click', () => {
-      if (networkChart) { networkChart.fit(); networkChart.center(); }
-    });
-    document.getElementById('reset-layout').addEventListener('click', () => {
-      if (networkChart) networkChart.layout(COSE_LAYOUT).run();
-    });
+  data.forEach(row => {
+    if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
 
-    // ── Fullscreen ─────────────────────────────────────────────────────────
-    document.getElementById('fullscreen-btn').addEventListener('click', () => {
-      const viz = document.getElementById('network-visualization');
-      if (viz.classList.contains('fullscreen')) return;
+    if (!nodes.has(row.Quelle)) nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '', out: 0, inn: 0 });
+    nodes.get(row.Quelle).out++;
 
-      viz.classList.add('fullscreen');
-      const exitBtn = document.createElement('button');
-      exitBtn.textContent = '✕';
-      exitBtn.title = 'Vollbildmodus beenden';
-      exitBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:10001;padding:6px 12px;';
-      exitBtn.addEventListener('click', () => {
-        viz.classList.remove('fullscreen');
-        exitBtn.remove();
-        setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);
+    if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { dept: '', org: '', out: 0, inn: 0 });
+    nodes.get(row.Ziel).inn++;
+
+    edges.push(row);
+  });
+
+  const elements = [];
+  nodes.forEach((n, id) => {
+    elements.push({ data: { id, dept: n.dept, org: n.org, size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
+  });
+  edges.forEach((row, i) => {
+    elements.push({ data: { id: `e${i}`, source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: REL_COLORS_HEX[row.Beziehung] || '#999' } });
+  });
+  return elements;
+}
+
+function renderNetwork(data) {
+  const container = document.getElementById('network-container');
+  container.innerHTML = '';
+  if (!data.length) return;
+
+  networkChart = cytoscape({ container, elements: prepareElements(data), style: CY_STYLE, layout: COSE_OPTS });
+
+  networkChart.on('tap', 'node', evt => {
+    const node = evt.target;
+    networkChart.elements().removeClass('highlighted faded');
+    const edges = node.connectedEdges();
+    const nbrs  = edges.connectedNodes();
+    networkChart.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
+    node.union(edges).union(nbrs).addClass('highlighted');
+  });
+  networkChart.on('tap', evt => {
+    if (evt.target === networkChart) networkChart.elements().removeClass('highlighted faded');
+  });
+}
+
+// ── Insights / Analytics ─────────────────────────────────────────────────────
+function renderInsights(data) {
+  const grid = document.getElementById('insights-grid');
+  if (!data.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📊</div><p>Keine Daten für Analyse vorhanden.</p></div>';
+    return;
+  }
+
+  // Build adjacency data
+  const outDeg = {}, inDeg = {}, nodes = new Set();
+  const adj = {}; // adj[u][v] = 1
+
+  data.forEach(row => {
+    if (!row.Quelle || !row.Ziel) return;
+    nodes.add(row.Quelle); nodes.add(row.Ziel);
+    outDeg[row.Quelle] = (outDeg[row.Quelle] || 0) + 1;
+    inDeg[row.Ziel]    = (inDeg[row.Ziel]    || 0) + 1;
+    if (!adj[row.Quelle]) adj[row.Quelle] = {};
+    adj[row.Quelle][row.Ziel] = 1;
+  });
+
+  const nodeArr = [...nodes];
+
+  // Betweenness centrality (Brandes algorithm, unweighted)
+  const bc = betweennessCentrality(nodeArr, adj);
+
+  // Community detection (label propagation)
+  const clusters = labelPropagation(nodeArr, adj);
+
+  // Top producers (out-degree)
+  const producers = nodeArr.map(n => ({ name: n, val: outDeg[n] || 0 })).sort((a,b) => b.val - a.val).slice(0, 7);
+  const maxProd = producers[0]?.val || 1;
+
+  // Top consumers (in-degree)
+  const consumers = nodeArr.map(n => ({ name: n, val: inDeg[n] || 0 })).sort((a,b) => b.val - a.val).slice(0, 7);
+  const maxCons = consumers[0]?.val || 1;
+
+  // Top bottlenecks
+  const bottlenecks = nodeArr.map(n => ({ name: n, val: Math.round(bc[n] || 0) })).sort((a,b) => b.val - a.val).slice(0, 7);
+  const maxBc = bottlenecks[0]?.val || 1;
+
+  grid.innerHTML = `
+    ${insightCard('📤', 'Top Datenproduzenten', 'Höchster Ausgangsgrad (Out-Degree)', rankListHTML(producers, maxProd))}
+    ${insightCard('📥', 'Top Datensammler', 'Höchster Eingangsgrad (In-Degree)', rankListHTML(consumers, maxCons))}
+    ${insightCard('🔀', 'Flaschenhälse / Gatekeeper', 'Betweenness Centrality', rankListHTML(bottlenecks, maxBc))}
+    ${insightCard('🏘', 'Datensilos / Cluster', 'Label-Propagation Community Detection', clustersHTML(clusters))}
+    ${insightCard('🔒', 'Schutzbedarf-Verteilung', 'Anzahl Datenflüsse je Schutzstufe', pieHTML(data, 'Schutzbedarf', SCHUTZ_OPTS))}
+    ${insightCard('⚙️', 'Erfassungsart-Verteilung', 'Manuelle vs. automatisierte Flüsse', pieHTML(data, 'Erfassungsart', ERFASSUNG_OPTS))}
+  `;
+}
+
+function insightCard(icon, title, subtitle, body) {
+  return `<div class="insight-card">
+    <div class="insight-card-header"><span class="insight-card-icon">${icon}</span><div><div>${title}</div><div style="font-size:10px;font-weight:400;color:var(--c-muted)">${subtitle}</div></div></div>
+    <div class="insight-card-body">${body}</div>
+  </div>`;
+}
+
+function rankListHTML(items, maxVal) {
+  if (!items.length) return '<p class="insight-empty">Keine Daten</p>';
+  return `<ul class="rank-list">${items.map((item, i) => `
+    <li class="rank-item">
+      <span class="rank-pos">${i + 1}</span>
+      <span class="rank-name" title="${esc(item.name)}">${esc(item.name)}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round((item.val / maxVal) * 100)}%"></div></div>
+      <span class="rank-value">${item.val}</span>
+    </li>`).join('')}</ul>`;
+}
+
+function clustersHTML(clusters) {
+  if (!clusters.length) return '<p class="insight-empty">Keine Cluster erkannt</p>';
+  const CLUSTER_COLORS = ['#4285F4','#34A853','#FBBC05','#EA4335','#8F44AD','#00ACC1','#FF7043'];
+  return `<div class="cluster-list">${clusters.slice(0, 6).map((c, i) => `
+    <div class="cluster-item">
+      <div class="cluster-title" style="color:${CLUSTER_COLORS[i % CLUSTER_COLORS.length]}">Cluster ${i + 1} (${c.length} Akteure)</div>
+      <div class="cluster-nodes">${c.slice(0, 5).map(n => esc(n)).join(', ')}${c.length > 5 ? ` +${c.length - 5} weitere` : ''}</div>
+    </div>`).join('')}</div>`;
+}
+
+function pieHTML(data, field, opts) {
+  const counts = {};
+  opts.forEach(o => counts[o] = 0);
+  data.forEach(r => { if (r[field] && counts[r[field]] !== undefined) counts[r[field]]++; });
+  const total = data.length || 1;
+  const COLORS = { 'DSGVO-relevant': '#EA4335', 'Intern': '#e67e22', 'Öffentlich': '#34A853', 'Manuell': '#8F44AD', 'Automatisiert': '#4285F4' };
+  return `<ul class="rank-list">${opts.map(opt => `
+    <li class="rank-item">
+      <span class="rank-pos" style="background:${COLORS[opt] || '#ccc'};color:#fff;font-size:9px">${counts[opt]}</span>
+      <span class="rank-name">${esc(opt)}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round((counts[opt]/total)*100)}%;background:${COLORS[opt] || '#999'}"></div></div>
+      <span class="rank-value">${Math.round((counts[opt]/total)*100)}%</span>
+    </li>`).join('')}</ul>`;
+}
+
+// ── Graph algorithms ──────────────────────────────────────────────────────────
+function betweennessCentrality(nodes, adj) {
+  const bc = {};
+  nodes.forEach(n => bc[n] = 0);
+
+  nodes.forEach(s => {
+    const stack = [], pred = {}, sigma = {}, dist = {}, delta = {};
+    nodes.forEach(n => { pred[n] = []; sigma[n] = 0; dist[n] = -1; delta[n] = 0; });
+    sigma[s] = 1; dist[s] = 0;
+    const queue = [s];
+    while (queue.length) {
+      const v = queue.shift();
+      stack.push(v);
+      const neighbors = Object.keys(adj[v] || {});
+      neighbors.forEach(w => {
+        if (dist[w] < 0) { queue.push(w); dist[w] = dist[v] + 1; }
+        if (dist[w] === dist[v] + 1) { sigma[w] += sigma[v]; pred[w].push(v); }
       });
-      document.body.appendChild(exitBtn);
-      setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);
-    });
+    }
+    while (stack.length) {
+      const w = stack.pop();
+      pred[w].forEach(v => { delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w]); });
+      if (w !== s) bc[w] += delta[w];
+    }
+  });
 
-    // ── Auto-visualize on load ─────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('visualize-btn-paste').click();
+  return bc;
+}
+
+function labelPropagation(nodes, adj) {
+  if (!nodes.length) return [];
+  const labels = {};
+  nodes.forEach((n, i) => labels[n] = i);
+
+  // Build undirected adjacency for community detection
+  const uAdj = {};
+  nodes.forEach(n => uAdj[n] = new Set());
+  nodes.forEach(n => {
+    Object.keys(adj[n] || {}).forEach(m => {
+      uAdj[n].add(m);
+      if (!uAdj[m]) uAdj[m] = new Set();
+      uAdj[m].add(n);
     });
-  </script>
+  });
+
+  // Iterate
+  for (let iter = 0; iter < 10; iter++) {
+    let changed = false;
+    const shuffled = [...nodes].sort(() => Math.random() - .5);
+    shuffled.forEach(n => {
+      const nbrs = [...uAdj[n]];
+      if (!nbrs.length) return;
+      const freq = {};
+      nbrs.forEach(m => { freq[labels[m]] = (freq[labels[m]] || 0) + 1; });
+      const maxFreq = Math.max(...Object.values(freq));
+      const candidates = Object.keys(freq).filter(k => freq[k] === maxFreq);
+      const best = parseInt(candidates[Math.floor(Math.random() * candidates.length)]);
+      if (labels[n] !== best) { labels[n] = best; changed = true; }
+    });
+    if (!changed) break;
+  }
+
+  // Group by label
+  const groups = {};
+  nodes.forEach(n => {
+    const l = labels[n];
+    if (!groups[l]) groups[l] = [];
+    groups[l].push(n);
+  });
+
+  return Object.values(groups).sort((a, b) => b.length - a.length);
+}
+
+// ── Wizard ────────────────────────────────────────────────────────────────────
+const WIZARD_STEPS = [
+  {
+    id: 'source',
+    label: 'Quelle',
+    hint: 'Schritt 1 von 4',
+    render: () => `
+      <div class="form-row"><label>Name des Akteurs *</label><input type="text" name="Quelle" placeholder="z. B. Fachbereich 432" required></div>
+      <div class="form-row-cols">
+        <div class="form-row"><label>Abteilung</label><input type="text" name="QuelleAbteilung" placeholder="z. B. Controlling"></div>
+        <div class="form-row"><label>Organisation</label><input type="text" name="QuelleOrganisation" placeholder="z. B. LBV.SH"></div>
+      </div>
+      <div class="form-row"><label>Bereich</label><input type="text" name="QuelleBereich" placeholder="z. B. GB 4 Betrieb"></div>
+      <div class="form-row"><label>Rolle</label>
+        <select name="QuelleRolle">${ROLLEN_OPTS.map(r => `<option>${r}</option>`).join('')}</select>
+      </div>
+    `
+  },
+  {
+    id: 'target',
+    label: 'Ziel',
+    hint: 'Schritt 2 von 4',
+    render: () => `
+      <div class="form-row"><label>Name des Ziel-Akteurs *</label><input type="text" name="Ziel" placeholder="z. B. Dezernat 10" required></div>
+      <div class="form-row"><label>Art der Beziehung *</label>
+        <select name="Beziehung">${BEZIEHUNG_OPTS.map(b => `<option>${b}</option>`).join('')}</select>
+      </div>
+      <div class="form-row"><label>Datentyp</label><input type="text" name="Datentyp" placeholder="z. B. Finanzmittel"></div>
+      <div class="form-row"><label>Anmerkungen</label><textarea name="Anmerkungen" placeholder="Optionale Anmerkungen…"></textarea></div>
+    `
+  },
+  {
+    id: 'format',
+    label: 'Format & Häufigkeit',
+    hint: 'Schritt 3 von 4',
+    render: () => `
+      <div class="form-row"><label>Format</label><input type="text" name="Format" placeholder="z. B. Excel, PDF, WFS"></div>
+      <div class="form-row"><label>Häufigkeit</label>
+        <select name="Häufigkeit">
+          <option value="">– wählen –</option>
+          ${['täglich','wöchentlich','monatlich','quartalsweise','halbjährlich','jährlich','regelmäßig','unregelmäßig','auf Anfrage','bei Bedarf','immer'].map(f => `<option>${f}</option>`).join('')}
+        </select>
+      </div>
+    `
+  },
+  {
+    id: 'protection',
+    label: 'Schutz & Erfassung',
+    hint: 'Schritt 4 von 4',
+    render: () => `
+      <div class="form-row">
+        <label>Schutzbedarf</label>
+        <div class="radio-group">
+          ${[
+            { val: 'DSGVO-relevant', desc: 'Personenbezogene oder besonders schützenswerte Daten (Art. 9 DSGVO)' },
+            { val: 'Intern', desc: 'Daten für den internen Gebrauch, nicht öffentlich zugänglich' },
+            { val: 'Öffentlich', desc: 'Daten, die ohne Einschränkung veröffentlicht werden können' }
+          ].map(opt => `
+            <label class="radio-option">
+              <input type="radio" name="Schutzbedarf" value="${opt.val}">
+              <div><div class="radio-option-label">${opt.val}</div><div class="radio-option-desc">${opt.desc}</div></div>
+            </label>`).join('')}
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:14px">
+        <label>Erfassungsart</label>
+        <div class="radio-group">
+          ${[
+            { val: 'Manuell', desc: 'Daten werden durch menschliches Eingreifen erfasst oder übertragen' },
+            { val: 'Automatisiert', desc: 'Daten fließen automatisch über Schnittstellen oder Batch-Prozesse' }
+          ].map(opt => `
+            <label class="radio-option">
+              <input type="radio" name="Erfassungsart" value="${opt.val}">
+              <div><div class="radio-option-label">${opt.val}</div><div class="radio-option-desc">${opt.desc}</div></div>
+            </label>`).join('')}
+        </div>
+      </div>
+    `
+  }
+];
+
+let wizardStep = 0;
+let wizardData = {};
+
+function openWizard(prefill = {}) {
+  wizardStep = 0;
+  wizardData = { ...prefill };
+  document.getElementById('wizard-backdrop').classList.remove('hidden');
+  renderWizardStep();
+}
+
+function closeWizard() {
+  document.getElementById('wizard-backdrop').classList.add('hidden');
+  wizardData = {};
+}
+
+function renderWizardStep() {
+  const step = WIZARD_STEPS[wizardStep];
+
+  // Step indicators
+  const indEl = document.getElementById('step-indicators');
+  indEl.innerHTML = WIZARD_STEPS.map((s, i) => {
+    const cls = i < wizardStep ? 'done' : i === wizardStep ? 'active' : '';
+    const line = i < WIZARD_STEPS.length - 1 ? `<div class="step-line ${i < wizardStep ? 'done' : ''}"></div>` : '';
+    return `<div class="step-indicator">
+      <div class="step-dot ${cls}">${i < wizardStep ? '✓' : i + 1}</div>
+      <span class="step-label ${i === wizardStep ? 'active' : ''}">${s.label}</span>
+    </div>${line}`;
+  }).join('');
+
+  // Body
+  document.getElementById('wizard-body').innerHTML = `<form id="wizard-form">${step.render()}</form>`;
+
+  // Restore saved values
+  const form = document.getElementById('wizard-form');
+  Object.entries(wizardData).forEach(([k, v]) => {
+    const el = form.querySelector(`[name="${k}"]`);
+    if (!el) return;
+    if (el.type === 'radio') {
+      const radio = form.querySelector(`[name="${k}"][value="${v}"]`);
+      if (radio) { radio.checked = true; radio.closest('.radio-option')?.classList.add('selected'); }
+    } else { el.value = v; }
+  });
+
+  // Radio option visual feedback
+  form.querySelectorAll('.radio-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      form.querySelectorAll(`.radio-option input[name="${radio.name}"]`).forEach(r => r.closest('.radio-option').classList.remove('selected'));
+      radio.closest('.radio-option').classList.add('selected');
+    });
+  });
+
+  document.getElementById('wizard-hint').textContent = step.hint;
+  document.getElementById('wizard-back').style.display = wizardStep === 0 ? 'none' : '';
+  document.getElementById('wizard-next').textContent = wizardStep === WIZARD_STEPS.length - 1 ? '✓ Speichern' : 'Weiter →';
+}
+
+function collectWizardStep() {
+  const form = document.getElementById('wizard-form');
+  if (!form.reportValidity()) return false;
+  new FormData(form).forEach((v, k) => { wizardData[k] = v; });
+  return true;
+}
+
+document.getElementById('wizard-next').addEventListener('click', () => {
+  if (!collectWizardStep()) return;
+  if (wizardStep < WIZARD_STEPS.length - 1) {
+    wizardStep++;
+    renderWizardStep();
+  } else {
+    allData.push({ ...wizardData });
+    buildSidebarFilters();
+    applyFilters();
+    closeWizard();
+    setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" gespeichert.`, 'success');
+  }
+});
+
+document.getElementById('wizard-back').addEventListener('click', () => {
+  collectWizardStep();
+  wizardStep--;
+  renderWizardStep();
+});
+
+document.getElementById('wizard-cancel').addEventListener('click', closeWizard);
+document.getElementById('wizard-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeWizard(); });
+document.getElementById('open-wizard-btn').addEventListener('click', () => openWizard());
+
+// ── Import panel ─────────────────────────────────────────────────────────────
+const importToggle = document.getElementById('import-toggle');
+const importBody   = document.getElementById('import-body');
+const importLabel  = document.getElementById('import-toggle-label');
+importToggle.addEventListener('click', () => {
+  const open = importBody.classList.toggle('open');
+  importToggle.classList.toggle('open', open);
+  importLabel.textContent = open ? '▲ schließen' : '▼ öffnen';
+});
+
+// Open by default on first load
+importBody.classList.add('open');
+importToggle.classList.add('open');
+importLabel.textContent = '▲ schließen';
+
+document.querySelectorAll('.import-method-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.import-method-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.import-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('import-' + btn.dataset.import).classList.add('active');
+  });
+});
+
+function getCSVText() {
+  const active = document.querySelector('.import-method-tab.active')?.dataset.import;
+  if (active === 'paste') return Promise.resolve(document.getElementById('csv-input').value.trim());
+  if (active === 'url') {
+    const url = document.getElementById('csv-url').value.trim();
+    if (!url) return Promise.reject(new Error('Bitte eine URL eingeben.'));
+    setStatus('Lade…', 'loading');
+    return fetch(url).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); });
+  }
+  if (active === 'file') {
+    if (!pendingFileText) return Promise.reject(new Error('Bitte zuerst eine Datei auswählen.'));
+    return Promise.resolve(pendingFileText);
+  }
+  return Promise.reject(new Error('Unbekannter Import-Modus.'));
+}
+
+document.getElementById('btn-visualize').addEventListener('click', () => {
+  getCSVText().then(text => {
+    if (!text) { setStatus('Keine Daten.', 'error'); return; }
+    allData = parseCSV(text);
+    buildSidebarFilters();
+    applyFilters();
+    setStatus(`${allData.length} Zeilen geladen.`, 'success');
+  }).catch(e => setStatus(e.message, 'error'));
+});
+
+document.getElementById('btn-append').addEventListener('click', () => {
+  getCSVText().then(text => {
+    if (!text) { setStatus('Keine Daten.', 'error'); return; }
+    const newRows = parseCSV(text);
+    allData = [...allData, ...newRows];
+    buildSidebarFilters();
+    applyFilters();
+    setStatus(`${newRows.length} Zeilen hinzugefügt (gesamt: ${allData.length}).`, 'success');
+  }).catch(e => setStatus(e.message, 'error'));
+});
+
+document.getElementById('btn-url-load').addEventListener('click', () => {
+  document.getElementById('btn-visualize').click();
+});
+
+// File upload
+const fileInput = document.getElementById('csv-file');
+const dropZone  = document.getElementById('drop-zone');
+fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); loadFile(e.dataTransfer.files[0]); });
+
+function loadFile(file) {
+  if (!file) return;
+  document.getElementById('file-name-display').textContent = file.name;
+  const r = new FileReader();
+  r.onload = e => { pendingFileText = e.target.result; setStatus('Datei bereit.', 'success'); };
+  r.onerror = () => setStatus('Fehler beim Lesen.', 'error');
+  r.readAsText(file);
+}
+
+function setStatus(msg, type = '') {
+  const el = document.getElementById('status-message');
+  el.textContent = msg;
+  el.className = type;
+}
+
+// ── View tabs ─────────────────────────────────────────────────────────────────
+document.querySelectorAll('.topbar-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.topbar-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'network' && networkChart) {
+      setTimeout(() => { networkChart.resize(); networkChart.fit(); }, 50);
+    }
+  });
+});
+
+// ── Sidebar toggles ───────────────────────────────────────────────────────────
+document.getElementById('sidebar-toggle-btn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+
+document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+
+document.getElementById('filter-organization').addEventListener('change', e => { activeFilters.organization = e.target.value; applyFilters(); });
+document.getElementById('filter-department').addEventListener('change', e => { activeFilters.department = e.target.value; applyFilters(); });
+document.getElementById('filter-frequency').addEventListener('change', e => { activeFilters.frequency = e.target.value; applyFilters(); });
+document.getElementById('filter-format').addEventListener('change', e => { activeFilters.format = e.target.value; applyFilters(); });
+document.getElementById('filter-search').addEventListener('input', e => { activeFilters.search = e.target.value.trim(); applyFilters(); });
+
+// ── Network controls ──────────────────────────────────────────────────────────
+document.getElementById('btn-reset-layout').addEventListener('click', () => { if (networkChart) networkChart.layout(COSE_OPTS).run(); });
+document.getElementById('btn-zoom-in').addEventListener('click', () => {
+  if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 1.2, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } });
+});
+document.getElementById('btn-zoom-out').addEventListener('click', () => {
+  if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 0.8, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } });
+});
+document.getElementById('btn-zoom-fit').addEventListener('click', () => { if (networkChart) { networkChart.fit(); networkChart.center(); } });
+
+document.getElementById('btn-fullscreen').addEventListener('click', () => {
+  const wrap = document.getElementById('panel-network');
+  wrap.classList.toggle('fullscreen');
+  setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);
+});
+
+// ── LocalStorage ──────────────────────────────────────────────────────────────
+document.getElementById('save-local-btn').addEventListener('click', () => {
+  localStorage.setItem(LS_KEY, JSON.stringify(allData));
+  setStatus(`${allData.length} Einträge gespeichert.`, 'success');
+});
+
+document.getElementById('load-local-btn').addEventListener('click', () => {
+  const saved = localStorage.getItem(LS_KEY);
+  if (!saved) { setStatus('Keine gespeicherten Daten gefunden.', 'error'); return; }
+  allData = JSON.parse(saved);
+  buildSidebarFilters();
+  applyFilters();
+  setStatus(`${allData.length} Einträge geladen.`, 'success');
+});
+
+// ── CSV Export ────────────────────────────────────────────────────────────────
+document.getElementById('export-csv-btn').addEventListener('click', () => {
+  if (!allData.length) { setStatus('Keine Daten zum Exportieren.', 'error'); return; }
+  const blob = new Blob([toCSV(allData)], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `datengraf_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ── Default sample data ───────────────────────────────────────────────────────
+const SAMPLE_CSV = `Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
+Grunderwerb,Dezernat 14,GB 1 Verwaltung,LBV.SH,Datenverarbeiter,übergibt,Straßenverwaltung,Eigentumsverhältnisse von Grundstücken,auf Anfrage,"Text, Mail",DSGVO-relevant,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Grunderwerb,Eigentumsverhältnisse von Grundstücken,auf Anfrage,Text,DSGVO-relevant,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenersteller,erstellt,Allgemein,Vereinbarung,unregelmäßig,pdf,Intern,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Vereinbarung,unregelmäßig,pdf,Intern,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Entwurf,unregelmäßig,pdf,Intern,Manuell,
+Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Vereinbarung,unregelmäßig,pdf,Intern,Manuell,
+Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,Intern,Manuell,
+Ing.-Büro,Extern,Extern,,Datenersteller,übergibt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,Intern,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 441,Verkehrszahlen,auf Anfrage,"Mail, Excel",Öffentlich,Manuell,
+MWVATT VII41,Ministerium,VII 41,MWVATT,Datenverwalter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,empfängt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,nur Ablage
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 452,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 454,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 462,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 464,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,
+Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Straßenlängen,jährlich,SIB Datenbank,Öffentlich,Automatisiert,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,verarbeitet,Fachbereiche Betrieb,UI-Personalbemessung,jährlich,Excel,Intern,Manuell,Die Straßenlängen dienen der Personalbemessung
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,wöchentlich,SAP Datenbank,Intern,Automatisiert,Bewirtschaftung der Finanzmittel
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Straßenlängen,jährlich,SIB Datenbank,Öffentlich,Automatisiert,
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,monatlich,SAP Datenbank,Intern,Automatisiert,Haushaltsmittel
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 11,Fehlzeiten,bei Bedarf,KOPERS,DSGVO-relevant,Manuell,Krankendaten
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,übergibt,Dezernat 41,Erfassung Tagesdaten UI Personal,täglich,PRO-UI,DSGVO-relevant,Automatisiert,Tagesdaten
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 20,Straßennetz/Bestandsdaten,Bei Bedarf,shape,Öffentlich,Automatisiert,Lärmkataster
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 23,Straßennetz/Bestandsdaten,regelmäßig,"wfs, gml",Öffentlich,Automatisiert,DA-Nord
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 40,Straßennetz/Bestandsdaten,regelmäßig,"ESS, Schnittstelle TT-SIB",Öffentlich,Automatisiert,"Infosys, Baumkataster"
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 42,Straßennetz,täglich,Abgleich über Schnittstelle,Öffentlich,Automatisiert,
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,empfängt,Dezernat 42,Bauwerke,täglich,Abgleich über Schnittstelle,Intern,Automatisiert,
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,MWVATT,Straßennetz/Bestandsdaten,Bei Bedarf,"shape, gml",Öffentlich,Manuell,RIS-SH
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,LvermGeo,Straßennetz,halbjährlich,int. Wfs,Öffentlich,Automatisiert,Datendienst für Inspire
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,übergibt,BMDV,Bisstra-Datenlieferung,quartalsweise,"OKSTRA, ESS-Format",Öffentlich,Automatisiert,`;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+allData = parseCSV(SAMPLE_CSV);
+buildSidebarFilters();
+applyFilters();
+</script>
 </body>
 </html>
