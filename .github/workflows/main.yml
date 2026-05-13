@@ -22,8 +22,6 @@ jobs:
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        server: ${{ a2ea9.netcup.net }}
-        username: ${{ ftp_paderta }}
-        password: ${{ jn59E_1d }}
+       
         local-dir: ./dist/ # Dein lokaler Build-Ordner
         server-dir: ./code.nozilla.net/httpdocs/datengraf # Dein Zielordner auf dem Server
