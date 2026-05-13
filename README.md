@@ -1,4 +1,4 @@
-# DatenGraf — der Datenökosystem-Mapper
+# DatenGraf - der Datenökosystem-Mapper
 
 **DatenGraf** ist ein browserbasiertes, datenbankfreies Werkzeug zur interaktiven Kartierung und Analyse von Datenflüssen innerhalb von Organisationen. Es unterstützt Datenschutzbeauftragte, Architekten und Analysten dabei, Datenökosysteme sichtbar zu machen – ohne Server, ohne Login, ohne Cloud. Die moderne Benutzeroberfläche mit Glasmorphismus-Design und eleganten Animationen macht die Analyse intuitiv und angenehm.
 
