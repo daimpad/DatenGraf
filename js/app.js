@@ -71,7 +71,13 @@ function unquote(s) {
 function toCSV(data) {
   const headers = ['Quelle','QuelleAbteilung','QuelleBereich','QuelleOrganisation','QuelleRolle',
     'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen'];
-  const escape = v => (v && v.includes(',')) ? `"${v}"` : (v || '');
+  const escape = v => {
+    if (!v) return '';
+    if (v.includes(',') || v.includes('"') || v.includes('\n')) {
+      return `"${v.replace(/"/g, '""')}"`;
+    }
+    return v;
+  };
   return [headers.join(','), ...data.map(r => headers.map(h => escape(r[h] || '')).join(','))].join('\n');
 }
 
@@ -692,10 +698,14 @@ document.getElementById('save-local-btn').addEventListener('click', () => {
 document.getElementById('load-local-btn').addEventListener('click', () => {
   const saved = localStorage.getItem(LS_KEY);
   if (!saved) { setStatus('Keine gespeicherten Daten gefunden.', 'error'); return; }
-  allData = JSON.parse(saved);
-  buildSidebarFilters();
-  applyFilters();
-  setStatus(`${allData.length} Einträge geladen.`, 'success');
+  try {
+    allData = JSON.parse(saved);
+    buildSidebarFilters();
+    applyFilters();
+    setStatus(`${allData.length} Einträge geladen.`, 'success');
+  } catch (e) {
+    setStatus('Fehler beim Laden der Daten: Speicher beschädigt.', 'error');
+  }
 });
 
 // ── CSV Export ────────────────────────────────────────────────────────────────
