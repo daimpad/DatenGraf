@@ -1,0 +1,33 @@
+Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
+Grunderwerb,Dezernat 14,GB 1 Verwaltung,LBV.SH,Datenverarbeiter,übergibt,Straßenverwaltung,Eigentumsverhältnisse von Grundstücken,auf Anfrage,"Text, Mail",DSGVO-relevant,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Grunderwerb,Eigentumsverhältnisse von Grundstücken,auf Anfrage,Text,DSGVO-relevant,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenersteller,erstellt,Allgemein,Vereinbarung,unregelmäßig,pdf,Intern,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Vereinbarung,unregelmäßig,pdf,Intern,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Entwurf,unregelmäßig,pdf,Intern,Manuell,
+Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Vereinbarung,unregelmäßig,pdf,Intern,Manuell,
+Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,Intern,Manuell,
+Ing.-Büro,Extern,Extern,,Datenersteller,übergibt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,Intern,Manuell,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 441,Verkehrszahlen,auf Anfrage,"Mail, Excel",Öffentlich,Manuell,
+MWVATT VII41,Ministerium,VII 41,MWVATT,Datenverwalter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,empfängt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,nur Ablage
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 452,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 454,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 462,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 464,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,und Weiterleitung
+Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,
+Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",Intern,Manuell,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Straßenlängen,jährlich,SIB Datenbank,Öffentlich,Automatisiert,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,verarbeitet,Fachbereiche Betrieb,UI-Personalbemessung,jährlich,Excel,Intern,Manuell,Die Straßenlängen dienen der Personalbemessung
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,wöchentlich,SAP Datenbank,Intern,Automatisiert,Bewirtschaftung der Finanzmittel
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Straßenlängen,jährlich,SIB Datenbank,Öffentlich,Automatisiert,
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,monatlich,SAP Datenbank,Intern,Automatisiert,Haushaltsmittel
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 11,Fehlzeiten,bei Bedarf,KOPERS,DSGVO-relevant,Manuell,Krankendaten
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,übergibt,Dezernat 41,Erfassung Tagesdaten UI Personal,täglich,PRO-UI,DSGVO-relevant,Automatisiert,Tagesdaten
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 20,Straßennetz/Bestandsdaten,Bei Bedarf,shape,Öffentlich,Automatisiert,Lärmkataster
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 23,Straßennetz/Bestandsdaten,regelmäßig,"wfs, gml",Öffentlich,Automatisiert,DA-Nord
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 40,Straßennetz/Bestandsdaten,regelmäßig,"ESS, Schnittstelle TT-SIB",Öffentlich,Automatisiert,"Infosys, Baumkataster"
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 42,Straßennetz,täglich,Abgleich über Schnittstelle,Öffentlich,Automatisiert,
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,empfängt,Dezernat 42,Bauwerke,täglich,Abgleich über Schnittstelle,Intern,Automatisiert,
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,MWVATT,Straßennetz/Bestandsdaten,Bei Bedarf,"shape, gml",Öffentlich,Manuell,RIS-SH
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,LvermGeo,Straßennetz,halbjährlich,int. Wfs,Öffentlich,Automatisiert,Datendienst für Inspire
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,übergibt,BMDV,Bisstra-Datenlieferung,quartalsweise,"OKSTRA, ESS-Format",Öffentlich,Automatisiert,
