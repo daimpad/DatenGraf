@@ -58,40 +58,81 @@ Alle globalen Designwerte sind als Custom Properties in `:root` definiert:
 
 | Token | Wert | Verwendung |
 |---|---|---|
-| `--c-bg` | `#f0f2f5` | Seitenhintergrund |
-| `--c-surface` | `#ffffff` | Karten, Sidebar, Topbar |
-| `--c-accent` | `#1a1a1a` | Primär-Buttons, aktive Tabs |
-| `--c-accent-h` | `#3b78e7` | Hover-Zustand für Buttons |
-| `--c-danger` | `#c0392b` | Fehlermeldungen |
-| `--c-success` | `#27ae60` | Erfolgsmeldungen |
+| `--c-accent` | `#420093` | Primär-Buttons, Akzente, violettes Brand-Element |
+| `--c-accent-h` | `#000000` | Hover-Zustand für Buttons (sehr dunkel) |
+| `--c-surface` | `rgba(255, 255, 255, 0.72)` | Halbdurchsichtige Karten, Sidebar, Topbar (Glasmorphismus) |
+| `--c-border` | `rgba(255, 255, 255, 0.4)` | Subtile Grenzen für Glasmorphismus-Effekte |
 | `--sidebar-w` | `280px` | Sidebar-Breite |
-| `--radius` | `6px` | Einheitlicher Border-Radius |
-| `--rel-übergibt` | `#4285F4` | Kantenfarbe „übergibt" |
-| `--rel-nutzt` | `#34A853` | Kantenfarbe „nutzt" |
-| `--rel-erstellt` | `#FBBC05` | Kantenfarbe „erstellt" |
-| `--rel-empfängt` | `#EA4335` | Kantenfarbe „empfängt" |
-| `--rel-verarbeitet` | `#8F44AD` | Kantenfarbe „verarbeitet" |
-| `--schutz-dsgvo` | `#EA4335` | Badge DSGVO-relevant |
-| `--schutz-intern` | `#e67e22` | Badge Intern |
-| `--schutz-oeffentlich` | `#34A853` | Badge Öffentlich |
+| `--radius` | `10px` | Einheitlicher Border-Radius für moderne Ästhetik |
+| `--rel-übergibt` | `#6c8ebf` | Kantenfarbe „übergibt" (gedämpftes Blau) |
+| `--rel-nutzt` | `#5fa878` | Kantenfarbe „nutzt" (gedämpftes Grün) |
+| `--rel-erstellt` | `#c4a23a` | Kantenfarbe „erstellt" (gedämpftes Gold) |
+| `--rel-empfängt` | `#bf6c6c` | Kantenfarbe „empfängt" (gedämpftes Rot) |
+| `--rel-verarbeitet` | `#9b72b8` | Kantenfarbe „verarbeitet" (gedämpftes Violett) |
+| `--schutz-dsgvo` | `#bf6c6c` | Badge DSGVO-relevant (gedämpftes Rot) |
+| `--schutz-intern` | `#c4a23a` | Badge Intern (gedämpftes Gold) |
+| `--schutz-oeffentlich` | `#5fa878` | Badge Öffentlich (gedämpftes Grün) |
+| `--shadow-sm` | `0 2px 8px rgba(66, 0, 147, 0.06)` | Zarte Schatten (Accent-Farbe-basiert) |
+| `--shadow-md` | `0 4px 24px rgba(66, 0, 147, 0.10)` | Mittlere Schatten für Elevation |
+| `--shadow-lg` | `0 8px 40px rgba(66, 0, 147, 0.14)` | Große Schatten für Hervorhebung |
+| `--ease-fluid` | `cubic-bezier(0.25, 1, 0.5, 1)` | Flüssige Easing-Funktion für Animationen |
+
+### Glasmorphismus und visuelle Effekte
+
+Die Benutzeroberfläche verwendet **Glasmorphismus** für moderne Ästhetik:
+
+```css
+backdrop-filter: blur(20px);
+background-color: rgba(255, 255, 255, 0.72);
+border: 1px solid rgba(255, 255, 255, 0.4);
+```
+
+Diese Effekte werden auf folgende Elemente angewendet:
+- **Sidebar**: Einklappbare Filterpanel mit Glasmorphismus-Hintergrund
+- **Topbar**: Sticky Header mit Brand und Navigations-Tabs
+- **Import-Panel**: CSV-Import Bereich
+- **Insight-Cards**: Dashboard-Karten im Insights-Tab
+
+Die **Hero-Sektion** erscheint beim Start (wenn `allData.length === 0`) und wird ausgeblendet, sobald Daten geladen werden. Sie enthält eine Willkommensbotschaft mit drei Feature-Karten, die mit staggered Animation (`animation-delay`) in die Seite fahren.
+
+Der **Seitenhintergrund** ist ein festes Lavender-Grau-Gradient:
+```css
+background: linear-gradient(135deg, #f5f3f9 0%, #e8e3f0 100%);
+background-attachment: fixed;
+```
 
 ### Layout
 
-Das Haupt-Layout ist ein flexibler Zweispalter:
+Das Haupt-Layout ist ein flexibler Zweispalter mit **einklappbarer Sidebar**:
 
 ```
-┌──────────────┬──────────────────────────────────────┐
-│   Sidebar    │  Topbar (sticky)                      │
-│   (280px)    ├──────────────────────────────────────┤
-│              │  Content                              │
-│              │  ┌─────────────────┐                 │
-│              │  │  Import-Panel   │                 │
+┌──────────────────────────────────────────────────────┐
+│  Topbar (sticky) mit Menu-Button (☰) und Brand     │
+├──────────────┬──────────────────────────────────────┤
+│   Sidebar    │  Content                              │
+│   (280px)    │  ┌─────────────────┐                 │
+│   versteckt  │  │  Hero-Sektion   │                 │
+│   per        │  └─────────────────┘                 │
+│   default    │  ┌─────────────────┐                 │
+│   .collapsed │  │  Import-Panel   │                 │
 │              │  └─────────────────┘                 │
 │              │  ┌──────────────────────────────────┐ │
 │              │  │  Tab: Liste / Netzwerk / Insights │ │
 │              │  └──────────────────────────────────┘ │
 └──────────────┴──────────────────────────────────────┘
 ```
+
+**Sidebar-Verhalten:**
+- Standardmäßig versteckt (Klasse `.collapsed` auf `<aside>`)
+- Wird über das Menu-Symbol (☰) in der Topbar umgeschaltet
+- Filtert Daten in Echtzeit: Änderungen in Chips, Dropdowns oder Suchfeld triggern `applyFilters()` und Re-Rendering
+- Über "Zurücksetzen"-Button können alle Filter gleichzeitig zurückgesetzt werden
+
+**Topbar-Elemente:**
+- Menu-Toggle Button (☰) zum Öffnen/Schließen der Sidebar
+- **DatenGraf**-Brand als Klickfläche (nutzer können die Seite neu laden)
+- Tab-Navigation (Listenansicht, Netzwerkkarte, Netzwerk-Insights)
+- "Datenfluss erfassen"-Button für Wizard
 
 ---
 
@@ -114,17 +155,19 @@ let activeFilters = {
 
 | Funktion | Beschreibung |
 |---|---|
-| `parseCSV(csv)` | Parst CSV-Text inkl. Anführungszeichen-Escaping |
+| `parseCSV(csv)` | Parst CSV-Text inkl. Anführungszeichen-Escaping und Validierung |
 | `toCSV(data)` | Serialisiert `allData` zurück zu CSV |
 | `applyFilters()` | Filtert `allData` → `filteredData`, triggert `renderAll()` |
 | `buildSidebarFilters()` | Befüllt Chips und Dropdowns aus `allData` |
-| `renderList(data)` | Rendert Listenansicht als DOM-Elemente |
-| `renderNetwork(data)` | Erstellt Cytoscape-Instanz mit COSE-Layout |
-| `renderInsights(data)` | Berechnet Metriken und rendert Dashboard-Karten |
-| `betweennessCentrality(nodes, adj)` | Brandes-Algorithmus (O(V·E)) |
-| `labelPropagation(nodes, adj)` | Community Detection, max. 10 Iterationen |
-| `openWizard(prefill)` | Öffnet den 4-Schritt-Wizard |
-| `renderWizardStep()` | Rendert den aktuellen Wizard-Schritt |
+| `renderList(data)` | Rendert Listenansicht als DOM-Elemente mit Header-Info |
+| `renderNetwork(data)` | Erstellt Cytoscape-Instanz mit COSE-Layout und abgestimmten Farben |
+| `renderInsights(data)` | Berechnet Metriken und rendert Dashboard-Karten mit Echtzeit-Werten |
+| `betweennessCentrality(nodes, adj)` | Brandes-Algorithmus (O(V·E)) zur Identifikation von Gatekeepern |
+| `labelPropagation(nodes, adj)` | Community Detection, max. 10 Iterationen zur Erkennung von Silos |
+| `updateHeroVisibility()` | Zeigt/versteckt Hero-Sektion basierend auf `allData.length > 0` |
+| `openWizard(prefill)` | Öffnet den 4-Schritt-Wizard für neue Datenflüsse |
+| `renderWizardStep()` | Rendert den aktuellen Wizard-Schritt mit Validierung |
+| `esc(str)` | XSS-Schutz: escaped HTML-Sonderzeichen für sichere DOM-Einfügung |
 
 ### CSV-Schema
 

@@ -1,6 +1,6 @@
-# Datengraf — der Datenökosystem-Mapper
+# DatenGraf — der Datenökosystem-Mapper
 
-**Datengraf** ist ein browserbasiertes, datenbankfreies Werkzeug zur interaktiven Kartierung und Analyse von Datenflüssen innerhalb von Organisationen. Es unterstützt Datenschutzbeauftragte, Architekten und Analysten dabei, Datenökosysteme sichtbar zu machen – ohne Server, ohne Login, ohne Cloud.
+**DatenGraf** ist ein browserbasiertes, datenbankfreies Werkzeug zur interaktiven Kartierung und Analyse von Datenflüssen innerhalb von Organisationen. Es unterstützt Datenschutzbeauftragte, Architekten und Analysten dabei, Datenökosysteme sichtbar zu machen – ohne Server, ohne Login, ohne Cloud. Die moderne Benutzeroberfläche mit Glasmorphismus-Design und eleganten Animationen macht die Analyse intuitiv und angenehm.
 
 [![HTML/JS](https://img.shields.io/badge/stack-HTML%20%2F%20JS-informational?logo=javascript)](https://github.com/daimpad/datengraf)
 [![Lizenz](https://img.shields.io/badge/Lizenz-GPL--3.0-blue)](LICENSE)
@@ -13,13 +13,14 @@
 
 | Feature | Beschreibung |
 |---|---|
+| **Moderne UI** | Elegantes Glasmorphismus-Design mit Violett-Accent (#420093), Inter-Schriftart und weichen Schatten für professionelle Ästhetik |
 | **Schritt-für-Schritt-Wizard** | Strukturierte Erfassung neuer Datenflüsse in 4 geführten Schritten inkl. DSGVO-Schutzbedarf und Erfassungsart |
-| **Netzwerkkarte** | Interaktive Graphvisualisierung mit Cytoscape.js – zoom, pan, Knoten-Highlight, Vollbild |
-| **Netzwerk-Insights** | Automatische Berechnung von Out-/In-Degree, Betweenness Centrality und Community Clusters |
-| **Filter-Sidebar** | Dynamisches Filtern nach Beziehungstyp, Schutzbedarf, Erfassungsart, Organisation, Häufigkeit u. v. m. |
+| **Netzwerkkarte** | Interaktive Graphvisualisierung mit Cytoscape.js – zoom, pan, Knoten-Highlight, Vollbild mit abgestimmten Farbtönen |
+| **Netzwerk-Insights** | Automatische Berechnung von Out-/In-Degree, Betweenness Centrality und Community Clusters mit Echtzeit-Metriken |
+| **Filter-Sidebar** | Einklappbar versteckt, dynamisches Filtern nach Beziehungstyp, Schutzbedarf, Erfassungsart, Organisation, Häufigkeit u. v. m. |
 | **Flexibler CSV-Import** | Einfügen per Paste, Laden per URL (z. B. `raw.githubusercontent.com`) oder lokaler Dateiupload mit Drag & Drop |
 | **Local-First / No-Database** | Alle Daten bleiben im Browser (LocalStorage) – kein Backend, kein Account erforderlich |
-| **CSV-Export** | Alle erfassten Datenflüsse jederzeit als CSV herunterladen |
+| **CSV-Export** | Alle erfassten Datenflüsse jederzeit als CSV herunterladen oder im Browser speichern |
 | **Datenschutz-Dimensionen** | Jeder Datenfluss trägt Schutzbedarf (DSGVO-relevant / Intern / Öffentlich) und Erfassungsart (Manuell / Automatisiert) |
 
 ---
@@ -34,7 +35,7 @@
 https://daimpad.github.io/datengraf
 ```
 
-Beim Start ist die App leer. Klicken Sie auf **Beispieldaten laden**, um den enthaltenen Datensatz zu importieren.
+Beim Start wird eine elegante Hero-Sektion angezeigt. Klicken Sie auf **Beispieldaten laden**, um den enthaltenen Datensatz zu importieren, oder nutzen Sie **Datenfluss erfassen**, um manuelle Einträge zu erfassen. Die Sidebar mit Filtern ist standardmäßig versteckt – öffnen Sie sie über das Menu-Symbol oben links.
 
 ### Option B – lokal ausführen
 
@@ -64,12 +65,15 @@ Importieren Sie Ihre Datei über den **CSV-Import-Bereich** (Einfügen / URL / D
 
 | Technologie | Zweck |
 |---|---|
-| **[Cytoscape.js](https://cytoscape.org/)** v3.23 | Graphvisualisierung und Netzwerkrendering |
+| **[Cytoscape.js](https://cytoscape.org/)** v3.23 | Graphvisualisierung und Netzwerkrendering mit abgestimmtem Farbschema |
 | **Vanilla JS** (ES2020+) | Gesamte Anwendungslogik ohne Framework |
-| **CSS Custom Properties** | Design-System mit Tokens für Farben, Abstände, Radien |
+| **CSS Custom Properties** | Design-System mit Tokens für Farben, Abstände, Radien, Schatten und Glasmorphismus-Effekte |
+| **[Inter Font](https://fonts.google.com/specimen/Inter)** (Google Fonts) | Moderne, lesbare Schriftart für professionelle Benutzeroberfläche |
+| **Glasmorphismus** (`backdrop-filter: blur()`) | Moderne visuelle Effekte auf Sidebar, Topbar und Panels |
 | **FileReader API** | Lokaler Dateiimport ohne Upload |
 | **LocalStorage API** | Persistenz ohne Backend |
 | **Fetch API** | CSV-Import per URL |
+| **Font Awesome 6.4.0** | Professionelle Icon-Library für UI-Icons |
 
 Keine Build-Tools, keine npm-Abhängigkeiten, keine Transpiler – das gesamte Projekt besteht aus einer HTML-Seite plus CSS und JS.
 

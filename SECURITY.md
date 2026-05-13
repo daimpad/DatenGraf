@@ -1,12 +1,12 @@
-# Security Policy
+# Security Policy – DatenGraf
 
 ## Datenschutz-Grundsatz: Local-First
 
-Datengraf ist eine **vollständig browserbasierte Anwendung ohne Backend**. Das hat direkte Sicherheitsimplikationen:
+**DatenGraf** ist eine **vollständig browserbasierte Anwendung ohne Backend**. Das hat direkte Sicherheitsimplikationen:
 
 - **Keine Daten verlassen Ihr Gerät.** Alle importierten CSV-Daten, alle über den Wizard erfassten Einträge und alle gespeicherten Zustände verbleiben ausschließlich im Browser (LocalStorage des Nutzers).
 - **Kein Server, keine Datenbank, kein Account.** Es existiert keine serverseitige Komponente, die Nutzerdaten empfangen oder speichern könnte.
-- **Kein Tracking, keine Telemetrie.** Die Anwendung sendet keinerlei Anfragen an Dritte – mit Ausnahme des CDN-Aufrufs für Cytoscape.js (`cdnjs.cloudflare.com`) beim ersten Laden.
+- **Kein Tracking, keine Telemetrie.** Die Anwendung sendet keinerlei Anfragen an Dritte – mit Ausnahme des CDN-Aufrufs für Cytoscape.js (`cdnjs.cloudflare.com`), Font Awesome Icons und Google Fonts beim ersten Laden.
 - **CSV per URL-Import.** Wenn der Nutzer aktiv eine externe URL eingibt, wird diese per `fetch()` geladen. Die Anfrage geht vom Browser des Nutzers aus – nicht von einem Server.
 
 ---
