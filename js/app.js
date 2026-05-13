@@ -752,5 +752,8 @@ document.getElementById('btn-load-sample').addEventListener('click', () => {
 document.getElementById('hero-wizard-btn').addEventListener('click', () => openWizard());
 document.getElementById('hero-sample-btn').addEventListener('click', () => document.getElementById('btn-load-sample').click());
 
+// ── Page Navigation ────────────────────────────────────────────────────────────
+document.getElementById('topbar-brand-link').addEventListener('click', () => location.reload());
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 renderAll();

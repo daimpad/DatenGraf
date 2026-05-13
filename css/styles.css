@@ -364,7 +364,7 @@ textarea.csv-textarea:focus {
 .btn-danger:hover { background: #a93226; }
 
 .btn-sm  { padding: 5px 12px; font-size: 12px; }
-.btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 8px; }
+.btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: var(--radius); }
 
 .btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
 
