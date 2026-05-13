@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datengraf – Datenfluss-Visualisierung</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1, h2 { color: #333; }
+
+    /* ── Import Panel ─────────────────────────────────────────── */
+    .import-panel {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+
+    .import-panel h2 { margin-top: 0; }
+
+    .import-method-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0;
+    }
+
+    .import-method-tab {
+      padding: 8px 18px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+      transition: color .15s, border-color .15s;
+    }
+
+    .import-method-tab:hover { color: #333; }
+
+    .import-method-tab.active {
+      color: #000;
+      border-bottom-color: #000;
+      font-weight: 700;
+    }
+
+    .import-section { display: none; }
+    .import-section.active { display: block; }
+
+    /* URL import */
+    .url-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .url-row input[type="text"] {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .url-row input[type="text"]:focus {
+      outline: none;
+      border-color: #000;
+    }
+
+    /* File upload */
+    .file-drop-zone {
+      border: 2px dashed #bbb;
+      border-radius: 6px;
+      padding: 32px;
+      text-align: center;
+      color: #777;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+
+    .file-drop-zone:hover,
+    .file-drop-zone.drag-over {
+      border-color: #000;
+      background: #f8f8f8;
+    }
+
+    .file-drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .file-drop-zone .drop-label { font-size: 15px; }
+    .file-drop-zone .drop-sub { font-size: 12px; margin-top: 6px; }
+    #file-name-display { margin-top: 10px; font-size: 13px; color: #444; min-height: 18px; }
+
+    /* Textarea / paste */
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 13px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+    }
+
+    textarea:focus { outline: none; border-color: #000; }
+
+    .helper-text { font-size: 12px; color: #888; margin-bottom: 8px; }
+
+    /* ── Buttons ──────────────────────────────────────────────── */
+    button {
+      padding: 8px 16px;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background .15s;
+    }
+
+    button:hover { background: #3b78e7; }
+
+    #status-message {
+      margin-top: 10px;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    #status-message.error { color: #c0392b; }
+    #status-message.success { color: #27ae60; }
+    #status-message.loading { color: #888; }
+
+    /* ── Legend ───────────────────────────────────────────────── */
+    .legend {
+      margin: 0 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* ── View tabs ────────────────────────────────────────────── */
+    .view-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 0;
+    }
+
+    .view-tab {
+      padding: 9px 20px;
+      cursor: pointer;
+      background: #848484;
+      color: #fff;
+      border: none;
+      border-radius: 4px 4px 0 0;
+      font-size: 14px;
+    }
+
+    .view-tab.active {
+      background: #000;
+      font-weight: 700;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── List view ────────────────────────────────────────────── */
+    #list-visualization {
+      overflow: auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 0 4px 4px 4px;
+      background: #fafafa;
+      margin-bottom: 20px;
+    }
+
+    .rel-node {
+      padding: 8px 12px;
+      background: #848484;
+      color: #fff;
+      border-radius: 5px;
+      display: inline-block;
+      font-size: 13px;
+    }
+
+    .relationship {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border-left: 5px solid #4285F4;
+      background: #f0f0f0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .relationship-type { font-weight: bold; color: #333; font-size: 13px; }
+    .relationship-arrow { font-size: 18px; }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-data   { background: #FBBC05; color: #000; }
+    .badge-freq   { background: #34A853; color: #fff; }
+    .badge-format { background: #EA4335; color: #fff; }
+
+    /* ── Network view ─────────────────────────────────────────── */
+    #network-visualization {
+      border: 1px solid #ddd;
+      border-radius: 0 4px 4px 4px;
+      margin-bottom: 20px;
+      background: #fff;
+    }
+
+    .controls-bar {
+      padding: 10px 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .controls-bar select {
+      padding: 7px 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      font-size: 13px;
+    }
+
+    .zoom-controls {
+      display: flex;
+      gap: 3px;
+      margin-left: auto;
+    }
+
+    .zoom-controls button,
+    #fullscreen-btn {
+      width: 30px;
+      height: 30px;
+      font-size: 15px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #network-container {
+      height: 600px;
+    }
+
+    /* Fullscreen */
+    .fullscreen {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: #fff !important;
+      z-index: 9999 !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+    }
+
+    .fullscreen #network-container { height: calc(100vh - 60px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Datengraf</h1>
+
+    <!-- ── Import Panel ───────────────────────────────────────── -->
+    <div class="import-panel">
+      <h2>CSV-Daten importieren</h2>
+
+      <div class="import-method-tabs">
+        <button class="import-method-tab active" data-import="paste">Einfügen</button>
+        <button class="import-method-tab" data-import="url">URL</button>
+        <button class="import-method-tab" data-import="file">Datei</button>
+      </div>
+
+      <!-- Paste -->
+      <div class="import-section active" id="import-paste">
+        <p class="helper-text">CSV-Daten direkt einfügen (mit Kopfzeile):</p>
+        <textarea id="csv-input">Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Anmerkungen
+Grunderwerb,Dezernat 14,GB 1 Verwaltung,LBV.SH,Datenverarbeiter,übergibt,Straßenverwaltung,Eigentumsverhältnisse von Grundstücken,auf Anfrage,"Text, Mail",
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Grunderwerb,Eigentumsverhältnisse von Grundstücken,auf Anfrage,Text,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenersteller,erstellt,Allgemein,Vereinbarung,unregelmäßig,pdf,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Vereinbarung,unregelmäßig,pdf,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Straßenmeisterei,Entwurf,unregelmäßig,pdf,
+Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Vereinbarung,unregelmäßig,pdf,
+Straßenmeisterei,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,empfängt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,
+Ing.-Büro,Extern,Extern,,Datenersteller,übergibt,Straßenverwaltung,Entwurf,unregelmäßig,pdf,
+Straßenverwaltung FB 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 441,Verkehrszahlen,auf Anfrage,"Mail, Excel",
+MWVATT VII41,Ministerium,VII 41,MWVATT,Datenverwalter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,empfängt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 452,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 454,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 462,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
+Dezernat 41,Controlling,GB 4 Betrieb,LBV.SH,Datenverwalter,übergibt,Fachbereich 464,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",und Weiterleitung
+Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 452,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
+Fachbereich 454,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 454,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 454,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
+Fachbereich 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 462,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
+Fachbereich 464,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,empfängt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 464,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,MWVATT VII 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",
+Fachbereich 464,Fachbereich,GB 4 Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 41,Stellungnahmen Schutzbereiche,regelmäßig,"Mail, pdf",nur Ablage
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Sträßenlängen,jährlich,SIB Datenbank,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,verarbeitet,Fachbereiche Betrieb,UI-Personalbemessung,jährlich,Excel,Die Straßenlängen dienen der Personalbemessung
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,verarbeitet,Fachbereiche Betrieb,UI-Fahrzeugbemessung,jährlich,Excel,Die Straßenlängen dienen der Fahrzeugbemessung
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,wöchentlich,SAP Datenbank,Bewirtschaftung der Finanzmittel
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenersteller,erstellt,Dezernat 41,Finanzmittel (Bedarf),jährlich,Excel,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,nutzt,Straßenmeistereien,Bestandsdaten (Fahrzeuge u. Geräte),wöchentlich,ProUI Datenbank,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datennutzer,übergibt,Fachbereich 432,Sträßenlängen,jährlich,SIB Datenbank,
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,empfängt,Fachbereiche Betrieb,UI-Personalbemessung,jährlich,Excel,Die Straßenlängen dienen der Personalbemessung
+Fachbereich 401,Fachbereich,Betrieb Grundsatz,LBV.SH,Datenverarbeiter,empfängt,Fachbereiche Betrieb,UI-Fahrzeugbemessung,jährlich,Excel,Die Straßenlängen dienen der Fahrzeugbemessung
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Sträßenlängen,jährlich,SIB Datenbank,
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 432,Straßenbestanddaten,Bei Bedarf,SIB Datenbank,
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 451,VIS Akte,Bei Bedarf,E-Akte,Vergaben
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Fachbereich 452,VIS Akte,Bei Bedarf,E-Akte,"Anbau, Nutzungen"
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datennutzer,nutzt,Dezernat 10,Finanzmittel,monatlich,SAP Datenbank,Haushaltsmittel
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenverarbeiter,nutzt,Dezernat 10,Finanzmittel,täglich,SAP Datenbank,"Mittelbindungen, Reservierungen"
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenverarbeiter,übergibt,Dezernat 11,Fehlzeiten,bei Bedarf,KOPERS,Krankendaten
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,übergibt,Dezernat 41,Erfassung Tagesdaten UI Personal,täglich,PRO-UI,Tagesdaten
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,übergibt,Dezernat 42,Erfassung Schäden,bei Bedarf,PRO-UI,Schäden BLK
+SM 110,Straßenmeisterei,Betrieb,LBV.SH,Datenersteller,erstellt,Dezernat 11,Arbeitszeiten,täglich,PrimeWeb,Tagesdaten Verwaltung
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 20,Straßennetz/Bestandsdaten,Bei Bedarf,shape,Lärmkataster
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 23,Straßennetz/Bestandsdaten,regelmäßig,"wfs, gml",DA-Nord
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 23,Straßennetz/Bestandsdaten,Bei Bedarf,"Mail, pdf",Datenaufnahme
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 30,Straßennetz/Querschnitte/Aufbau,Bei Bedarf,"ESS, Schnittstelle TT-SIB",ZEB-Erfassung
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 30,Straßennetz/Querschnitte/Aufbau,Bei Bedarf,"ESS, Schnittstelle TT-SIB",ZEB-Erfassung
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 40,Straßennetz/Bestandsdaten,regelmäßig,"ESS, Schnittstelle TT-SIB","Infosys, Baumkataster"
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 40,Straßennetz/Bestandsdaten,Bei Bedarf,pdf,MapInfokarten
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 40,Straßennetz/Bestandsdaten,Bei Bedarf,Excel,Abfragen aus TT-SIB
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 41,Straßennetz/Bestandsdaten,Bei Bedarf,"Excel, pdf",Abfragen aus TT-SIB
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 42,Straßennetz,täglich,Abgleich über Schnittstelle,
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,empfängt,Dezernat 42,Bauwerke,täglich,Abgleich über Schnittstelle,
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 43,Straßennetz,quartalsweise,OKSTRA,INS / Vemags
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 43,Straßennetz,Bei Bedarf,"Mail, pdf","Netzänderungen (z.B. Baulast, OD-Bescheide)"
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 44,Straßennetz/Verkehrsmengen,regelmäßig,"Excel, int. wfs Dienst",
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 44,Verkehrsmengen,Bei Bedarf,"Excel, dbf",
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 45,Straßennetz/Bestandsdaten,regelmäßig,Webanwendung,Infosys
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 45,Straßennetz/Bestandsdaten,Bei Bedarf,pdf,MapInfokarten
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 45,Straßennetz/Bestandsdaten,Bei Bedarf,Excel,Abfragen aus TT-SIB
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 45,Bestandsdaten,unregelmäßig,"excel, pdf",Datenaufnahme durch SM
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,Dezernat 46,Straßennetz/Bestandsdaten,regelmäßig,Webanwendung,Infosys
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 46,Straßennetz/Bestandsdaten,Bei Bedarf,pdf,MapInfokarten
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenersteller,erstellt,Dezernat 46,Straßennetz/Bestandsdaten,Bei Bedarf,Excel,Abfragen aus TT-SIB
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,Dezernat 46,Bestandsdaten,unregelmäßig,"excel, pdf",Datenaufnahme durch SM
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,LBV-SH,Straßennetz/Bestandsdaten,immer,Webandwendung,Infosys für jeden verfügbar
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,S 3,Straßennetz/Bestandsdaten,regelmäßig,shape,LRVN
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,S 6,Straßennetz/Bestandsdaten,regelmäßig,"wfs, gml",Baustellkoordination
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,MWVATT,Straßennetz/Bestandsdaten,Bei Bedarf,"shape, gml",RIS-SH
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverwalter,übergibt,LvermGeo,Straßennetz,halbjährlich,int. Wfs,Datendienst für Inspire
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,verarbeitet,LvermGeo,Geobasisdaten,regelmäßig,"WMS, WFS",
+Fachbereich 432,Straßeninformationsbank,GB 4 Betrieb Straßennetz,LBV.SH,Datenverarbeiter,übergibt,BMDV,Bisstra-Datenlieferung,quartalsweise,"OKSTRA, ESS-Format",</textarea>
+        <br>
+        <button id="visualize-btn-paste">Visualisieren</button>
+      </div>
+
+      <!-- URL -->
+      <div class="import-section" id="import-url">
+        <p class="helper-text">CSV-Datei über URL laden (z. B. raw.githubusercontent.com):</p>
+        <div class="url-row">
+          <input type="text" id="csv-url" placeholder="https://raw.githubusercontent.com/…/data.csv">
+          <button id="visualize-btn-url">Laden &amp; Visualisieren</button>
+        </div>
+      </div>
+
+      <!-- File -->
+      <div class="import-section" id="import-file">
+        <p class="helper-text">Lokale CSV-Datei auswählen oder hierher ziehen:</p>
+        <div class="file-drop-zone" id="drop-zone">
+          <input type="file" id="csv-file" accept=".csv">
+          <div class="drop-label">CSV-Datei auswählen</div>
+          <div class="drop-sub">oder hierher ziehen</div>
+        </div>
+        <div id="file-name-display"></div>
+        <br>
+        <button id="visualize-btn-file">Visualisieren</button>
+      </div>
+
+      <div id="status-message"></div>
+    </div>
+
+    <!-- ── Legend ──────────────────────────────────────────────── -->
+    <div class="legend">
+      <strong>Farbkodierung:</strong>
+      <div class="legend-item"><div class="legend-color" style="background:#4285F4"></div><span>übergibt</span></div>
+      <div class="legend-item"><div class="legend-color" style="background:#34A853"></div><span>nutzt</span></div>
+      <div class="legend-item"><div class="legend-color" style="background:#FBBC05"></div><span>erstellt</span></div>
+      <div class="legend-item"><div class="legend-color" style="background:#EA4335"></div><span>empfängt</span></div>
+      <div class="legend-item"><div class="legend-color" style="background:#8F44AD"></div><span>verarbeitet</span></div>
+    </div>
+
+    <!-- ── View Tabs ───────────────────────────────────────────── -->
+    <div class="view-tabs">
+      <button class="view-tab active" data-tab="list">Listenansicht</button>
+      <button class="view-tab" data-tab="network">Netzwerkkarte</button>
+    </div>
+
+    <div id="list-visualization" class="tab-content active"></div>
+
+    <div id="network-visualization" class="tab-content">
+      <div class="controls-bar">
+        <select id="filter-relation"><option value="all">Alle Beziehungen</option></select>
+        <select id="filter-organization"><option value="all">Alle Organisationen</option></select>
+        <select id="filter-department"><option value="all">Alle Abteilungen</option></select>
+        <select id="filter-frequency"><option value="all">Alle Häufigkeiten</option></select>
+        <select id="filter-format"><option value="all">Alle Formate</option></select>
+        <button id="reset-layout">Layout zurücksetzen</button>
+        <div class="zoom-controls">
+          <button id="zoom-in" title="Vergrößern">+</button>
+          <button id="zoom-out" title="Verkleinern">−</button>
+          <button id="zoom-reset" title="Anpassen">=</button>
+          <button id="fullscreen-btn" title="Vollbild">⛶</button>
+        </div>
+      </div>
+      <div id="network-container"></div>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────────────────
+    let parsedData = [];
+    let networkChart = null;
+    let pendingFileText = null;
+
+    const relationshipColors = {
+      'übergibt':   '#4285F4',
+      'nutzt':      '#34A853',
+      'erstellt':   '#FBBC05',
+      'empfängt':   '#EA4335',
+      'verarbeitet':'#8F44AD'
+    };
+
+    // ── Import-method tab switching ────────────────────────────────────────
+    document.querySelectorAll('.import-method-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.import-method-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.import-section').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('import-' + btn.dataset.import).classList.add('active');
+        setStatus('');
+      });
+    });
+
+    // ── View-tab switching ─────────────────────────────────────────────────
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(tab.dataset.tab + '-visualization').classList.add('active');
+        if (tab.dataset.tab === 'network' && networkChart) {
+          networkChart.resize();
+          networkChart.fit();
+        }
+      });
+    });
+
+    // ── Status helper ──────────────────────────────────────────────────────
+    function setStatus(msg, type = '') {
+      const el = document.getElementById('status-message');
+      el.textContent = msg;
+      el.className = type;
+    }
+
+    // ── CSV parser ─────────────────────────────────────────────────────────
+    function parseCSV(csv) {
+      const lines = csv.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim());
+      const result = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+
+        let inQuotes = false, temp = '', values = [];
+        for (const ch of lines[i]) {
+          if (ch === '"') { inQuotes = !inQuotes; }
+          else if (ch === ',' && !inQuotes) { values.push(temp); temp = ''; }
+          else { temp += ch; }
+        }
+        values.push(temp);
+
+        values = values.map(v =>
+          (v.startsWith('"') && v.endsWith('"')) ? v.slice(1, -1) : v
+        );
+
+        const obj = {};
+        headers.forEach((h, j) => { obj[h] = values[j] ?? ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    // ── Visualize entry point ──────────────────────────────────────────────
+    function visualize(csvText) {
+      try {
+        parsedData = parseCSV(csvText);
+        visualizeList(parsedData);
+        visualizeNetwork(parsedData);
+        setStatus(`${parsedData.length} Zeilen geladen.`, 'success');
+      } catch (err) {
+        setStatus('Fehler beim Parsen: ' + err.message, 'error');
+      }
+    }
+
+    // ── Paste ──────────────────────────────────────────────────────────────
+    document.getElementById('visualize-btn-paste').addEventListener('click', () => {
+      const text = document.getElementById('csv-input').value.trim();
+      if (!text) { setStatus('Bitte CSV-Daten eingeben.', 'error'); return; }
+      visualize(text);
+    });
+
+    // ── URL ────────────────────────────────────────────────────────────────
+    document.getElementById('visualize-btn-url').addEventListener('click', async () => {
+      const url = document.getElementById('csv-url').value.trim();
+      if (!url) { setStatus('Bitte eine URL eingeben.', 'error'); return; }
+      setStatus('Lade Daten…', 'loading');
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        const text = await res.text();
+        visualize(text);
+      } catch (err) {
+        setStatus('Fehler beim Laden: ' + err.message, 'error');
+      }
+    });
+
+    // ── File upload ────────────────────────────────────────────────────────
+    const fileInput  = document.getElementById('csv-file');
+    const dropZone   = document.getElementById('drop-zone');
+    const fileNameEl = document.getElementById('file-name-display');
+
+    function readFile(file) {
+      if (!file) return;
+      fileNameEl.textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = e => { pendingFileText = e.target.result; setStatus('Datei bereit – klicken Sie auf „Visualisieren".', 'success'); };
+      reader.onerror = () => setStatus('Fehler beim Lesen der Datei.', 'error');
+      reader.readAsText(file);
+    }
+
+    fileInput.addEventListener('change', () => readFile(fileInput.files[0]));
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) readFile(file);
+    });
+
+    document.getElementById('visualize-btn-file').addEventListener('click', () => {
+      if (!pendingFileText) { setStatus('Bitte zuerst eine CSV-Datei auswählen.', 'error'); return; }
+      visualize(pendingFileText);
+    });
+
+    // ── List visualization ─────────────────────────────────────────────────
+    function visualizeList(data) {
+      const container = document.getElementById('list-visualization');
+      container.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p>Keine Daten zum Anzeigen.</p>';
+        return;
+      }
+
+      const nodes = new Set();
+      data.forEach(r => { if (r.Quelle) nodes.add(r.Quelle); if (r.Ziel) nodes.add(r.Ziel); });
+
+      const stats = document.createElement('p');
+      stats.innerHTML = `<strong>Statistik:</strong> ${nodes.size} Knoten, ${data.length} Verbindungen`;
+      container.appendChild(stats);
+
+      data.forEach(row => {
+        if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
+
+        const div = document.createElement('div');
+        div.className = 'relationship';
+        div.style.borderLeftColor = relationshipColors[row.Beziehung] || '#4285F4';
+
+        const src = document.createElement('div');
+        src.className = 'rel-node';
+        src.textContent = row.Quelle;
+        if (row.QuelleAbteilung) src.title = `Abteilung: ${row.QuelleAbteilung}\nOrganisation: ${row.QuelleOrganisation || ''}`;
+
+        const relType = document.createElement('div');
+        relType.className = 'relationship-type';
+        relType.textContent = row.Beziehung;
+
+        const arrow = document.createElement('div');
+        arrow.className = 'relationship-arrow';
+        arrow.textContent = '→';
+
+        const tgt = document.createElement('div');
+        tgt.className = 'rel-node';
+        tgt.textContent = row.Ziel;
+
+        const badges = document.createElement('div');
+        badges.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+
+        if (row.Datentyp) {
+          const b = document.createElement('span');
+          b.className = 'badge badge-data';
+          b.textContent = row.Datentyp;
+          badges.appendChild(b);
+        }
+        if (row.Häufigkeit) {
+          const b = document.createElement('span');
+          b.className = 'badge badge-freq';
+          b.textContent = row.Häufigkeit;
+          badges.appendChild(b);
+        }
+        if (row.Format) {
+          const b = document.createElement('span');
+          b.className = 'badge badge-format';
+          b.textContent = row.Format;
+          badges.appendChild(b);
+        }
+
+        div.append(src, relType, arrow, tgt, badges);
+        container.appendChild(div);
+      });
+    }
+
+    // ── Network visualization ──────────────────────────────────────────────
+    const COSE_LAYOUT = {
+      name: 'cose',
+      idealEdgeLength: 100, nodeOverlap: 20, refresh: 20,
+      fit: true, padding: 30, randomize: false,
+      componentSpacing: 100, nodeRepulsion: 400000,
+      edgeElasticity: 100, nestingFactor: 5, gravity: 80,
+      numIter: 1000, initialTemp: 200, coolingFactor: 0.95, minTemp: 1.0
+    };
+
+    const NODE_STYLE = [
+      {
+        selector: 'node',
+        style: {
+          'label': 'data(id)', 'text-valign': 'center', 'text-halign': 'center',
+          'background-color': '#848484', 'color': 'black', 'font-size': '12px',
+          'text-outline-width': 1, 'text-outline-color': '#fff',
+          'width': 'data(size)', 'height': 'data(size)'
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 2, 'line-color': 'data(color)',
+          'target-arrow-color': 'data(color)', 'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier', 'opacity': 0.8,
+          'label': 'data(type)', 'font-size': '10px',
+          'text-rotation': 'autorotate',
+          'text-background-color': 'white', 'text-background-opacity': 0.7,
+          'text-background-padding': '2px'
+        }
+      }
+    ];
+
+    function prepareNetworkData(data) {
+      const nodes = new Map();
+      const edges = [];
+
+      data.forEach(row => {
+        if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
+
+        if (!nodes.has(row.Quelle)) nodes.set(row.Quelle, { department: row.QuelleAbteilung || '', organization: row.QuelleOrganisation || '', connections: 0 });
+        nodes.get(row.Quelle).connections++;
+
+        if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { department: '', organization: '', connections: 0 });
+        nodes.get(row.Ziel).connections++;
+
+        edges.push({ source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: relationshipColors[row.Beziehung] || '#999', dataType: row.Datentyp || '', frequency: row.Häufigkeit || '', format: row.Format || '' });
+      });
+
+      const elements = [];
+      nodes.forEach((node, id) => {
+        elements.push({ data: { id, department: node.department, organization: node.organization, size: 20 + Math.min(30, node.connections * 5) } });
+      });
+      edges.forEach((edge, i) => {
+        elements.push({ data: { id: `e${i}`, source: edge.source, target: edge.target, type: edge.type, color: edge.color, dataType: edge.dataType, frequency: edge.frequency, format: edge.format } });
+      });
+
+      return elements;
+    }
+
+    function buildCytoscape(container, data) {
+      const cy = cytoscape({ container, elements: prepareNetworkData(data), style: NODE_STYLE, layout: COSE_LAYOUT });
+
+      cy.style()
+        .selector('.highlighted').style({ 'background-color': '#ff5722', 'line-color': '#ff5722', 'target-arrow-color': '#ff5722', opacity: 1, 'z-index': 999 })
+        .selector('.faded').style({ opacity: 0.3, 'z-index': 0 })
+        .update();
+
+      cy.on('tap', 'node', evt => {
+        const node = evt.target;
+        cy.elements().removeClass('highlighted faded');
+        const edges = node.connectedEdges();
+        const nbrs  = edges.connectedNodes();
+        cy.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
+        node.addClass('highlighted');
+        edges.addClass('highlighted');
+        nbrs.addClass('highlighted');
+      });
+
+      cy.on('tap', evt => {
+        if (evt.target === cy) cy.elements().removeClass('highlighted faded');
+      });
+
+      return cy;
+    }
+
+    function visualizeNetwork(data) {
+      if (!data || data.length === 0) {
+        document.getElementById('network-container').innerHTML = '<p>Keine Daten zum Anzeigen.</p>';
+        return;
+      }
+
+      const relationships = new Set(), organizations = new Set(), departments = new Set(), frequencies = new Set(), formats = new Set();
+      data.forEach(r => {
+        if (r.Beziehung) relationships.add(r.Beziehung);
+        if (r.QuelleOrganisation) organizations.add(r.QuelleOrganisation);
+        if (r.QuelleAbteilung) departments.add(r.QuelleAbteilung);
+        if (r.Häufigkeit) frequencies.add(r.Häufigkeit);
+        if (r.Format) formats.add(r.Format);
+      });
+
+      updateFilterOptions('filter-relation', [...relationships]);
+      updateFilterOptions('filter-organization', [...organizations]);
+      updateFilterOptions('filter-department', [...departments]);
+      updateFilterOptions('filter-frequency', [...frequencies]);
+      updateFilterOptions('filter-format', [...formats]);
+
+      const container = document.getElementById('network-container');
+      container.innerHTML = '';
+      networkChart = buildCytoscape(container, data);
+    }
+
+    function updateFilterOptions(selectId, options) {
+      const select = document.getElementById(selectId);
+      while (select.options.length > 1) select.options.remove(1);
+      options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        select.appendChild(o);
+      });
+    }
+
+    // ── Filters ────────────────────────────────────────────────────────────
+    function applyFilters() {
+      const rel  = document.getElementById('filter-relation').value;
+      const org  = document.getElementById('filter-organization').value;
+      const dep  = document.getElementById('filter-department').value;
+      const freq = document.getElementById('filter-frequency').value;
+      const fmt  = document.getElementById('filter-format').value;
+
+      const filtered = parsedData.filter(r =>
+        (rel  === 'all' || r.Beziehung          === rel)  &&
+        (org  === 'all' || r.QuelleOrganisation  === org)  &&
+        (dep  === 'all' || r.QuelleAbteilung     === dep)  &&
+        (freq === 'all' || r.Häufigkeit          === freq) &&
+        (fmt  === 'all' || r.Format              === fmt)
+      );
+
+      const container = document.getElementById('network-container');
+      container.innerHTML = '';
+      if (filtered.length > 0) {
+        networkChart = buildCytoscape(container, filtered);
+      } else {
+        container.innerHTML = '<p>Keine Daten für die ausgewählten Filter.</p>';
+      }
+    }
+
+    ['filter-relation','filter-organization','filter-department','filter-frequency','filter-format']
+      .forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
+
+    // ── Zoom & layout controls ─────────────────────────────────────────────
+    document.getElementById('zoom-in').addEventListener('click', () => {
+      if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 1.2, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } });
+    });
+    document.getElementById('zoom-out').addEventListener('click', () => {
+      if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 0.8, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } });
+    });
+    document.getElementById('zoom-reset').addEventListener('click', () => {
+      if (networkChart) { networkChart.fit(); networkChart.center(); }
+    });
+    document.getElementById('reset-layout').addEventListener('click', () => {
+      if (networkChart) networkChart.layout(COSE_LAYOUT).run();
+    });
+
+    // ── Fullscreen ─────────────────────────────────────────────────────────
+    document.getElementById('fullscreen-btn').addEventListener('click', () => {
+      const viz = document.getElementById('network-visualization');
+      if (viz.classList.contains('fullscreen')) return;
+
+      viz.classList.add('fullscreen');
+      const exitBtn = document.createElement('button');
+      exitBtn.textContent = '✕';
+      exitBtn.title = 'Vollbildmodus beenden';
+      exitBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:10001;padding:6px 12px;';
+      exitBtn.addEventListener('click', () => {
+        viz.classList.remove('fullscreen');
+        exitBtn.remove();
+        setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);
+      });
+      document.body.appendChild(exitBtn);
+      setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);
+    });
+
+    // ── Auto-visualize on load ─────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('visualize-btn-paste').click();
+    });
+  </script>
+</body>
+</html>
