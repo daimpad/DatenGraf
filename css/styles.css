@@ -878,6 +878,49 @@ textarea.csv-textarea:focus {
 
 #sidebar-toggle-btn { font-size: 18px; line-height: 1; }
 
+/* ── Footer ──────────────────────────────────────────────────── */
+.site-footer {
+  background: #ffffff;
+  border-top: 1px solid rgba(66, 0, 147, 0.10);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--c-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.footer-links a:hover { color: var(--c-accent-h); text-decoration: underline; }
+
+.footer-links .fab.fa-github { font-size: 16px; }
+
+.footer-sep { color: var(--c-muted); user-select: none; }
+
+.footer-brand {
+  color: var(--c-accent);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.footer-brand:hover { color: var(--c-accent-h); text-decoration: underline; }
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar { position: fixed; z-index: 200; height: 100vh; }
