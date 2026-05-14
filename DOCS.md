@@ -10,7 +10,7 @@ datengraf/
 ├── js/
 │   └── app.js          # Gesamte Anwendungslogik
 ├── data/
-│   └── sample.csv      # Beispieldatensatz (32 Datenflüsse, LBV.SH-Demo)
+│   └── sample.csv      # Beispieldatensatz (32 Datenflüsse, Behörde 3-Demo)
 ├── .github/
 │   └── CONTRIBUTING.md # Beitragsrichtlinien
 ├── DOCS.md             # Diese Datei
@@ -177,7 +177,7 @@ Spalte            Typ       Beschreibung
 Quelle            string    Name des sendenden Akteurs
 QuelleAbteilung   string    Organisationseinheit des Akteurs
 QuelleBereich     string    Übergeordneter Bereich
-QuelleOrganisation string   Organisation (z. B. LBV.SH)
+QuelleOrganisation string   Organisation (z. B. Behörde 3)
 QuelleRolle       enum      Datenproduzent | Datenkonsument | …
 Beziehung         enum      übergibt | nutzt | erstellt | empfängt | verarbeitet
 Ziel              string    Name des empfangenden Akteurs
