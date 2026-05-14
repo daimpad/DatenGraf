@@ -173,9 +173,14 @@ body {
 }
 
 .topbar-brand {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.topbar-brand-text {
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.6px;
@@ -186,7 +191,7 @@ body {
 }
 
 .topbar-logo {
-  height: 28px;
+  height: 36px;
   width: auto;
   flex-shrink: 0;
 }
@@ -744,7 +749,8 @@ textarea.csv-textarea:focus {
 }
 
 .hero-logo {
-  width: 160px;
+  max-width: 400px;
+  width: 38%;
   height: auto;
   flex-shrink: 0;
 }
@@ -756,7 +762,10 @@ textarea.csv-textarea:focus {
   font-weight: 800;
   letter-spacing: -1.5px;
   margin-bottom: 18px;
-  color: var(--c-text);
+  background: linear-gradient(135deg, #420093 0%, #6c4ebf 30%, #9b72b8 60%, #c4a23a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   line-height: 1.15;
 }
 
