@@ -173,9 +173,14 @@ body {
 }
 
 .topbar-brand {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.topbar-brand-text {
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.6px;
@@ -186,7 +191,7 @@ body {
 }
 
 .topbar-logo {
-  height: 28px;
+  height: 36px;
   width: auto;
   flex-shrink: 0;
 }
@@ -744,7 +749,8 @@ textarea.csv-textarea:focus {
 }
 
 .hero-logo {
-  width: 160px;
+  max-width: 400px;
+  width: 38%;
   height: auto;
   flex-shrink: 0;
 }
