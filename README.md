@@ -13,15 +13,14 @@
 
 | Feature | Beschreibung |
 |---|---|
-| **Moderne UI** | Elegantes Glasmorphismus-Design mit Violett-Accent (#420093), Inter-Schriftart und weichen Schatten für professionelle Ästhetik |
 | **Schritt-für-Schritt-Wizard** | Strukturierte Erfassung neuer Datenflüsse in 4 geführten Schritten inkl. DSGVO-Schutzbedarf und Erfassungsart |
 | **Netzwerkkarte** | Interaktive Graphvisualisierung mit Cytoscape.js – zoom, pan, Knoten-Highlight, Vollbild mit abgestimmten Farbtönen |
 | **Netzwerk-Insights** | Automatische Berechnung von Out-/In-Degree, Betweenness Centrality und Community Clusters mit Echtzeit-Metriken |
 | **Filter-Sidebar** | Einklappbar versteckt, dynamisches Filtern nach Beziehungstyp, Schutzbedarf, Erfassungsart, Organisation, Häufigkeit u. v. m. |
 | **Flexibler CSV-Import** | Einfügen per Paste, Laden per URL (z. B. `raw.githubusercontent.com`) oder lokaler Dateiupload mit Drag & Drop |
-| **Local-First / No-Database** | Alle Daten bleiben im Browser (LocalStorage) – kein Backend, kein Account erforderlich |
 | **CSV-Export** | Alle erfassten Datenflüsse jederzeit als CSV herunterladen oder im Browser speichern |
 | **Datenschutz-Dimensionen** | Jeder Datenfluss trägt Schutzbedarf (DSGVO-relevant / Intern / Öffentlich) und Erfassungsart (Manuell / Automatisiert) |
+| **Local-First / No-Database** | Alle Daten bleiben im Browser (LocalStorage) – kein Backend, kein Account erforderlich |
 
 ---
 
@@ -35,7 +34,7 @@
 https://daimpad.github.io/datengraf
 ```
 
-Beim Start wird eine elegante Hero-Sektion angezeigt. Klicken Sie auf **Beispieldaten laden**, um den enthaltenen Datensatz zu importieren, oder nutzen Sie **Datenfluss erfassen**, um manuelle Einträge zu erfassen. Die Sidebar mit Filtern ist standardmäßig versteckt – öffnen Sie sie über das Menu-Symbol oben links.
+Klicken Sie auf **Beispieldaten laden**, um den enthaltenen Datensatz zu importieren, oder nutzen Sie **Datenfluss erfassen**, um manuelle Einträge zu erfassen. Die Sidebar mit Filtern ist standardmäßig versteckt – öffnen Sie sie über das Menu-Symbol oben links.
 
 ### Option B – lokal ausführen
 
@@ -68,8 +67,6 @@ Importieren Sie Ihre Datei über den **CSV-Import-Bereich** (Einfügen / URL / D
 | **[Cytoscape.js](https://cytoscape.org/)** v3.23 | Graphvisualisierung und Netzwerkrendering mit abgestimmtem Farbschema |
 | **Vanilla JS** (ES2020+) | Gesamte Anwendungslogik ohne Framework |
 | **CSS Custom Properties** | Design-System mit Tokens für Farben, Abstände, Radien, Schatten und Glasmorphismus-Effekte |
-| **[Inter Font](https://fonts.google.com/specimen/Inter)** (Google Fonts) | Moderne, lesbare Schriftart für professionelle Benutzeroberfläche |
-| **Glasmorphismus** (`backdrop-filter: blur()`) | Moderne visuelle Effekte auf Sidebar, Topbar und Panels |
 | **FileReader API** | Lokaler Dateiimport ohne Upload |
 | **LocalStorage API** | Persistenz ohne Backend |
 | **Fetch API** | CSV-Import per URL |
@@ -83,7 +80,7 @@ Keine Build-Tools, keine npm-Abhängigkeiten, keine Transpiler – das gesamte P
 
 ### Netzwerktopologie
 
-Datengraf modelliert Organisationen als gerichtete Graphen *G = (V, E)*, wobei Knoten *V* Akteure (Systeme, Abteilungen, Personen) und Kanten *E* Datenflüsse repräsentieren. Diese Darstellung ermöglicht es, strukturelle Eigenschaften des Datenökosystems sichtbar zu machen.
+DatenGraf modelliert Organisationen als gerichtete Graphen *G = (V, E)*, wobei Knoten *V* Akteure (Systeme, Abteilungen, Personen) und Kanten *E* Datenflüsse repräsentieren. Diese Darstellung ermöglicht es, strukturelle Eigenschaften des Datenökosystems sichtbar zu machen.
 
 ### Gradzentralität (Degree Centrality)
 
