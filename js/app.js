@@ -447,7 +447,7 @@ const WIZARD_STEPS = [
       <div class="form-row"><label>Name des Akteurs *</label><input type="text" name="Quelle" placeholder="z. B. Fachbereich 432" required></div>
       <div class="form-row-cols">
         <div class="form-row"><label>Abteilung</label><input type="text" name="QuelleAbteilung" placeholder="z. B. Controlling"></div>
-        <div class="form-row"><label>Organisation</label><input type="text" name="QuelleOrganisation" placeholder="z. B. LBV.SH"></div>
+        <div class="form-row"><label>Organisation</label><input type="text" name="QuelleOrganisation" placeholder="z. B. Behörde 3"></div>
       </div>
       <div class="form-row"><label>Bereich</label><input type="text" name="QuelleBereich" placeholder="z. B. GB 4 Betrieb"></div>
       <div class="form-row"><label>Rolle</label>
