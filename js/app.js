@@ -674,14 +674,44 @@ function setStatus(msg, type = '') {
 }
 
 // ── View tabs ─────────────────────────────────────────────────────────────────
+function switchTab(tabName) {
+  document.querySelectorAll('.topbar-tab, .mobile-nav-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tabName)
+  );
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tabName).classList.add('active');
+  if (tabName === 'network' && networkChart) setTimeout(() => { networkChart.resize(); networkChart.fit(); }, 50);
+}
+
 document.querySelectorAll('.topbar-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+});
+
+// ── Mobile navigation ─────────────────────────────────────────────────────────
+const mobileNavBtn = document.getElementById('mobile-nav-btn');
+const mobileNav    = document.getElementById('mobile-nav');
+
+mobileNavBtn.addEventListener('click', e => { e.stopPropagation(); mobileNav.classList.toggle('hidden'); });
+document.addEventListener('click', () => mobileNav.classList.add('hidden'));
+mobileNav.addEventListener('click', e => e.stopPropagation());
+
+document.querySelectorAll('.mobile-nav-tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.topbar-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-    if (tab.dataset.tab === 'network' && networkChart) setTimeout(() => { networkChart.resize(); networkChart.fit(); }, 50);
+    switchTab(tab.dataset.tab);
+    mobileNav.classList.add('hidden');
   });
+});
+
+document.getElementById('mobile-wizard-btn').addEventListener('click', () => {
+  mobileNav.classList.add('hidden');
+  openWizard();
+});
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.add('collapsed');
+    mobileNav.classList.add('hidden');
+  }
 });
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
