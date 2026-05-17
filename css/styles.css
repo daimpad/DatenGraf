@@ -216,6 +216,50 @@ body {
 
 .topbar-spacer { flex: 1; }
 
+/* ── Mobile Navigation ───────────────────────────────────────── */
+.mobile-nav-btn { display: none; }
+
+.mobile-nav {
+  position: fixed;
+  top: 56px;
+  right: 0;
+  width: 220px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 0 0 0 var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 4px;
+}
+.mobile-nav.hidden { display: none; }
+
+.mobile-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--c-text);
+  text-align: left;
+  transition: background 0.2s;
+}
+.mobile-nav-tab:hover { background: rgba(66,0,147,0.07); color: var(--c-accent); }
+.mobile-nav-tab.active { background: var(--c-accent); color: #fff; }
+
+.mobile-nav-divider { border: none; border-top: 1px solid var(--c-border-s); margin: 4px 0; }
+.mobile-nav-wizard { width: 100%; justify-content: center; margin-top: 4px; }
+
 .content { flex: 1; padding: 28px; overflow: auto; }
 
 /* ── Import panel ────────────────────────────────────────────── */
@@ -957,6 +1001,9 @@ textarea.csv-textarea:focus {
   .sidebar { position: fixed; z-index: 200; height: 100vh; }
   .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
   .insights-grid { grid-template-columns: 1fr; }
+  .topbar-tabs { display: none; }
+  #open-wizard-btn { display: none; }
+  .mobile-nav-btn { display: flex; }
 
   .content { padding: 16px; }
 
