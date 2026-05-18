@@ -780,5 +780,11 @@ document.getElementById('hero-sample-btn').addEventListener('click', () => docum
 // ── Page Navigation ────────────────────────────────────────────────────────────
 document.getElementById('topbar-brand-link').addEventListener('click', () => location.reload());
 
+// ── Theory Modal ──────────────────────────────────────────────────────────────
+const theoryBackdrop = document.getElementById('theory-backdrop');
+document.getElementById('open-theory-btn').addEventListener('click', () => theoryBackdrop.classList.remove('hidden'));
+document.getElementById('theory-close').addEventListener('click',    () => theoryBackdrop.classList.add('hidden'));
+theoryBackdrop.addEventListener('click', e => { if (e.target === theoryBackdrop) theoryBackdrop.classList.add('hidden'); });
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 renderAll();

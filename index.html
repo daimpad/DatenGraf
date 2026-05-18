@@ -301,6 +301,67 @@
   </div><!-- /main -->
 </div><!-- /app-shell -->
 
+<!-- ── CTA Section ────────────────────────────────────────────── -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-text">
+      <h2 class="cta-headline">Was steckt hinter Netzwerkanalysen?</h2>
+      <p class="cta-sub">Erfahre, wie Graphentheorie, Betweenness Centrality und Community Detection Datenflüsse in Organisationen sichtbar und analysierbar machen.</p>
+    </div>
+    <button class="btn btn-primary btn-lg cta-btn" id="open-theory-btn">
+      <i class="fas fa-book-open"></i> Hintergrund lesen
+    </button>
+  </div>
+</section>
+
+<!-- ── Theory Modal ───────────────────────────────────────────── -->
+<div class="modal-backdrop hidden" id="theory-backdrop">
+  <div class="theory-modal" role="dialog" aria-modal="true" aria-labelledby="theory-title">
+    <div class="theory-modal-header">
+      <h2 id="theory-title"><i class="fas fa-circle-nodes"></i> Datenflüsse verstehen &amp; analysieren</h2>
+      <button class="theory-close" id="theory-close" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="theory-modal-body">
+
+      <h3>Was sind Datenflüsse?</h3>
+      <p>In jeder Organisation bewegen sich Daten zwischen Akteuren: Abteilungen übergeben Berichte, Systeme liefern automatisiert Kennzahlen, Personen erfassen und weiterleiten manuell. Diese Bewegungen sind oft unsichtbar – in E-Mails, Absprachen oder gewachsenen Prozessen vergraben. DatenGraf macht sie explizit und analysierbar.</p>
+
+      <h3>Graphentheorie als Grundlage</h3>
+      <p>DatenGraf modelliert Organisationen als <strong>gerichtete Graphen G = (V, E)</strong>: Knoten <em>V</em> repräsentieren Akteure (Systeme, Abteilungen, Personen), Kanten <em>E</em> repräsentieren Datenflüsse zwischen ihnen. Diese mathematische Darstellung erlaubt es, strukturelle Eigenschaften des Datenökosystems präzise zu messen – unabhängig von der Größe der Organisation.</p>
+
+      <h3>Gradzentralität – Wer sendet, wer empfängt?</h3>
+      <p>Der <strong>Out-Degree</strong> eines Knotens gibt an, wie viele Datenflüsse von ihm ausgehen – ein Maß für seine Rolle als Datenproduzent. Der <strong>In-Degree</strong> misst eingehende Flüsse und identifiziert Datensammler. Die normalisierte Gradzentralität setzt diesen Wert ins Verhältnis zur Gesamtgröße des Netzwerks:</p>
+      <div class="theory-formula">C<sub>D</sub>(v) = deg(v) / (|V| − 1)</div>
+      <p>Akteure mit hohem Out-Degree sind kritische Informationsquellen. Fallen sie aus, reißen Informationsketten ab.</p>
+
+      <h3>Betweenness Centrality – Gatekeeper erkennen</h3>
+      <p>Manche Akteure stehen auf fast jedem Informationsweg zwischen zwei anderen – sie sind <strong>Gatekeeper</strong> oder <strong>Flaschenhälse</strong>. Die Betweenness Centrality nach Brandes (2001) misst, wie häufig ein Knoten <em>v</em> auf dem kürzesten Pfad zwischen zwei anderen Knoten <em>s</em> und <em>t</em> liegt:</p>
+      <div class="theory-formula">C<sub>B</sub>(v) = Σ (σ<sub>st</sub>(v) / σ<sub>st</sub>) &nbsp; für alle s ≠ v ≠ t</div>
+      <p>Knoten mit hoher Betweenness sind strukturell wichtig, aber auch verletzbar: Ihre Überlastung oder ihr Ausfall kann das gesamte Ökosystem lahmlegen. Sie sind die erste Adresse für Optimierungsmaßnahmen.</p>
+
+      <h3>Community Detection – Datensilos aufdecken</h3>
+      <p>Nicht alle Teile einer Organisation tauschen gleichmäßig Daten aus. Der <strong>Label-Propagation-Algorithmus</strong> (Raghavan et al., 2007) erkennt automatisch Gruppen von Akteuren, die überwiegend untereinander kommunizieren – sogenannte <strong>Datensilos</strong>. Jeder Knoten übernimmt iterativ das häufigste Label seiner Nachbarn, bis das Netzwerk in stabile Gemeinschaften konvergiert.</p>
+      <p>Datensilos sind nicht automatisch schlecht – manchmal sind sie gewollt. Aber ungewollte Silos verhindern abteilungsübergreifendes Lernen, erzeugen redundante Datenhaltung und erschweren DSGVO-konforme Übersicht.</p>
+
+      <h3>DSGVO und Schutzbedarf</h3>
+      <p>Jeder Datenfluss in DatenGraf trägt einen <strong>Schutzbedarf</strong>: DSGVO-relevant, Intern oder Öffentlich. Die Kartierung macht unmittelbar sichtbar, wo personenbezogene Daten fließen, welche Akteure darauf Zugriff haben und ob Datenminimierung möglich ist. Das unterstützt Datenschutzfolgenabschätzungen und TOMs direkt aus der Visualisierung heraus.</p>
+
+      <h3>Warum browserbasiert?</h3>
+      <p>Datenflüsse sind oft sensibel. DatenGraf läuft vollständig im Browser – keine Daten verlassen das Gerät, es gibt keinen Server und keine Datenbank. Das senkt die Hürde für den Einsatz in sicherheitskritischen Umgebungen erheblich und entspricht dem Prinzip der Datensparsamkeit.</p>
+
+      <div class="theory-refs">
+        <strong>Referenzen</strong>
+        <ul>
+          <li>Brandes, U. (2001). A faster algorithm for betweenness centrality. <em>Journal of Mathematical Sociology</em>, 25(2), 163–177.</li>
+          <li>Raghavan, U. N., Albert, R., &amp; Kumara, S. (2007). Near linear time algorithm to detect community structures in large-scale networks. <em>Physical Review E</em>, 76(3).</li>
+          <li>Newman, M. E. J. (2010). <em>Networks: An Introduction.</em> Oxford University Press.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- ── Footer ─────────────────────────────────────────────────── -->
 <footer class="site-footer">
   <nav class="footer-links">

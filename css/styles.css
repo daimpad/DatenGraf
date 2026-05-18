@@ -1038,6 +1038,159 @@ textarea.csv-textarea:focus {
 
 #sidebar-toggle-btn { font-size: 18px; line-height: 1; }
 
+/* ── CTA Section ─────────────────────────────────────────────── */
+.cta-section {
+  background: linear-gradient(135deg, #420093 0%, #6c2fbf 100%);
+  padding: 48px 40px;
+}
+
+.cta-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.cta-headline {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: -0.4px;
+}
+
+.cta-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.65;
+  max-width: 520px;
+}
+
+.cta-btn {
+  background: #fff;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.cta-btn:hover {
+  background: rgba(255,255,255,0.9);
+  color: var(--c-accent-h);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+}
+
+/* ── Theory Modal ─────────────────────────────────────────────── */
+.theory-modal {
+  background: #fff;
+  border-radius: 18px;
+  width: min(720px, 94vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.theory-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--c-border-s);
+  flex-shrink: 0;
+}
+
+.theory-modal-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--c-accent);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.3px;
+}
+
+.theory-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(66,0,147,0.07);
+  color: var(--c-accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.theory-close:hover { background: rgba(66,0,147,0.15); }
+
+.theory-modal-body {
+  padding: 28px;
+  overflow-y: auto;
+  line-height: 1.75;
+  font-size: 14px;
+  color: var(--c-text);
+}
+
+.theory-modal-body h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-accent);
+  margin: 28px 0 8px;
+  letter-spacing: -0.1px;
+}
+
+.theory-modal-body h3:first-child { margin-top: 0; }
+
+.theory-modal-body p {
+  color: var(--c-muted);
+  margin-bottom: 0;
+}
+
+.theory-formula {
+  background: rgba(66,0,147,0.05);
+  border-left: 3px solid var(--c-accent);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--c-accent);
+  margin: 12px 0;
+}
+
+.theory-refs {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--c-border-s);
+  font-size: 12px;
+  color: var(--c-muted);
+}
+
+.theory-refs strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--c-text);
+  font-size: 13px;
+}
+
+.theory-refs ul {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.theory-refs li { line-height: 1.55; }
+
 /* ── Footer ──────────────────────────────────────────────────── */
 .site-footer {
   background: #ffffff;
