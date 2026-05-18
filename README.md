@@ -39,7 +39,7 @@
 ### Option A – direkt im Browser
 
 ```
-https://daimpad.github.io/datengraf
+https://datengraf.nozilla.net
 ```
 
 Klicken Sie auf **Beispieldaten laden**, um den enthaltenen Datensatz zu importieren, oder nutzen Sie **Datenfluss erfassen**, um manuelle Einträge zu erfassen. Die Sidebar mit Filtern ist standardmäßig versteckt – öffnen Sie sie über das Menü-Symbol oben links.
