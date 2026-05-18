@@ -196,25 +196,57 @@ body {
   flex-shrink: 0;
 }
 
-.topbar-tabs { display: flex; gap: 4px; margin-left: 20px; }
+.topbar-spacer { flex: 1; }
 
-.topbar-tab {
-  padding: 7px 16px;
+/* ── View Switcher ───────────────────────────────────────────── */
+.view-switcher {
+  background: rgba(66,0,147,0.04);
+  border: 1px solid rgba(66,0,147,0.12);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.view-switcher.hidden { display: none; }
+
+.view-switcher-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-accent);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.view-switcher-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
   border-radius: 20px;
-  border: none;
-  background: none;
+  border: 1.5px solid rgba(66,0,147,0.2);
+  background: #fff;
   cursor: pointer;
   font-size: 13px;
   font-family: inherit;
   font-weight: 500;
   color: var(--c-muted);
-  transition: all 0.4s var(--ease-fluid);
+  transition: all 0.25s var(--ease-fluid);
 }
 
-.topbar-tab:hover { background: rgba(66,0,147,0.07); color: var(--c-accent); }
-.topbar-tab.active { background: var(--c-accent); color: #fff; }
-
-.topbar-spacer { flex: 1; }
+.view-tab:hover { border-color: var(--c-accent); color: var(--c-accent); background: rgba(66,0,147,0.05); }
+.view-tab.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }
 
 /* ── Mobile Navigation ───────────────────────────────────────── */
 #mobile-nav-btn { display: none; }
@@ -1239,7 +1271,6 @@ textarea.csv-textarea:focus {
   .sidebar { position: fixed; z-index: 200; height: 100vh; }
   .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
   .insights-grid { grid-template-columns: 1fr; }
-  .topbar-tabs { display: none; }
   #open-wizard-btn { display: none; }
   #mobile-nav-btn { display: flex; }
   .mobile-nav:not(.hidden) { display: flex; }

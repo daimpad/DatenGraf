@@ -156,8 +156,13 @@ function updateHeroVisibility() {
   // Hero is always visible
 }
 
+function updateViewSwitcher() {
+  document.getElementById('view-switcher').classList.toggle('hidden', allData.length === 0);
+}
+
 function renderAll() {
   updateHeroVisibility();
+  updateViewSwitcher();
   renderList(filteredData);
   renderNetwork(filteredData);
   renderInsights(filteredData);
@@ -670,7 +675,7 @@ function setStatus(msg, type = '') {
 
 // ── View tabs ─────────────────────────────────────────────────────────────────
 function switchTab(tabName) {
-  document.querySelectorAll('.topbar-tab, .mobile-nav-tab').forEach(t =>
+  document.querySelectorAll('.view-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabName)
   );
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -678,7 +683,7 @@ function switchTab(tabName) {
   if (tabName === 'network' && networkChart) setTimeout(() => { networkChart.resize(); networkChart.fit(); }, 50);
 }
 
-document.querySelectorAll('.topbar-tab').forEach(tab => {
+document.querySelectorAll('.view-tab').forEach(tab => {
   tab.addEventListener('click', () => switchTab(tab.dataset.tab));
 });
 
@@ -689,13 +694,6 @@ const mobileNav    = document.getElementById('mobile-nav');
 mobileNavBtn.addEventListener('click', e => { e.stopPropagation(); mobileNav.classList.toggle('hidden'); });
 document.addEventListener('click', () => mobileNav.classList.add('hidden'));
 mobileNav.addEventListener('click', e => e.stopPropagation());
-
-document.querySelectorAll('.mobile-nav-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    switchTab(tab.dataset.tab);
-    mobileNav.classList.add('hidden');
-  });
-});
 
 document.getElementById('mobile-wizard-btn').addEventListener('click', () => {
   mobileNav.classList.add('hidden');

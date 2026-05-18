@@ -127,21 +127,12 @@
         <img src="logo.svg" alt="" class="topbar-logo" aria-hidden="true">
         <span class="topbar-brand-text">DatenGraf</span>
       </div>
-      <nav class="topbar-tabs">
-        <button class="topbar-tab active" data-tab="list">Listenansicht</button>
-        <button class="topbar-tab" data-tab="network">Netzwerkkarte</button>
-        <button class="topbar-tab" data-tab="insights">Netzwerk-Insights</button>
-      </nav>
       <div class="topbar-spacer"></div>
       <button class="btn btn-primary btn-sm" id="open-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
       <button class="btn btn-secondary btn-icon mobile-nav-btn" id="mobile-nav-btn" aria-label="Navigation öffnen"><i class="fas fa-ellipsis-vertical"></i></button>
     </div>
 
     <div class="mobile-nav hidden" id="mobile-nav">
-      <button class="mobile-nav-tab active" data-tab="list"><i class="fas fa-list fa-fw"></i> Listenansicht</button>
-      <button class="mobile-nav-tab" data-tab="network"><i class="fas fa-circle-nodes fa-fw"></i> Netzwerkkarte</button>
-      <button class="mobile-nav-tab" data-tab="insights"><i class="fas fa-chart-bar fa-fw"></i> Netzwerk-Insights</button>
-      <hr class="mobile-nav-divider">
       <button class="btn btn-primary btn-sm mobile-nav-wizard" id="mobile-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
     </div>
 
@@ -258,6 +249,16 @@
             <button class="btn btn-secondary btn-sm" id="btn-load-sample"><i class="fas fa-table"></i> Beispieldaten laden</button>
           </div>
           <div id="status-message"></div>
+        </div>
+      </div>
+
+      <!-- View Switcher – nur sichtbar wenn Daten geladen -->
+      <div class="view-switcher hidden" id="view-switcher">
+        <div class="view-switcher-label"><i class="fas fa-circle-check"></i> Daten geladen – Ansicht wählen:</div>
+        <div class="view-switcher-tabs">
+          <button class="view-tab active" data-tab="list"><i class="fas fa-list fa-fw"></i> Listenansicht</button>
+          <button class="view-tab" data-tab="network"><i class="fas fa-circle-nodes fa-fw"></i> Netzwerkkarte</button>
+          <button class="view-tab" data-tab="insights"><i class="fas fa-chart-bar fa-fw"></i> Netzwerk-Insights</button>
         </div>
       </div>
 
