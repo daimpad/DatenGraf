@@ -806,13 +806,10 @@ textarea.csv-textarea:focus {
 
 .hero-headline {
   font-size: 40px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: -1.5px;
   margin-bottom: 18px;
-  background: linear-gradient(135deg, #420093 0%, #6c4ebf 30%, #9b72b8 60%, #c4a23a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--c-text);
   line-height: 1.15;
 }
 
@@ -922,6 +919,94 @@ textarea.csv-textarea:focus {
 
 .hero.hidden { display: none; }
 
+/* ── Hero Steps ──────────────────────────────────────────────── */
+.hero-steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-top: 40px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-step {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.hero-step-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(66,0,147,0.25);
+}
+
+.hero-step-body { flex: 1; }
+
+.hero-step-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--c-text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-step-title i { color: var(--c-accent); }
+
+.hero-step-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hero-step-details li {
+  font-size: 12px;
+  color: var(--c-muted);
+  line-height: 1.55;
+  padding-left: 14px;
+  position: relative;
+}
+
+.hero-step-details li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--c-accent);
+  font-size: 11px;
+}
+
+.hero-step-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  padding-top: 8px;
+  color: var(--c-accent);
+  font-size: 18px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
 /* ── Legend ──────────────────────────────────────────────────── */
 .legend {
   display: flex;
@@ -1017,4 +1102,6 @@ textarea.csv-textarea:focus {
   .btn-lg { width: 100%; justify-content: center; padding: 13px 24px; }
   .hero-cards { grid-template-columns: 1fr; gap: 14px; }
   .hero-card { padding: 24px 20px; }
+  .hero-steps { flex-direction: column; gap: 16px; padding: 20px 16px; }
+  .hero-step-arrow { padding: 0; transform: rotate(90deg); align-self: center; }
 }
