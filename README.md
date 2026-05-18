@@ -13,7 +13,7 @@
 
 <br>
 
-[**→ Jetzt starten**](https://daimpad.github.io/datengraf](https://datengraf.nozilla.net/) · [Wiki / Docs](docs/Home.md) · [Sicherheit](SECURITY.md) · [Mitmachen](.github/CONTRIBUTING.md)
+[**→ Jetzt starten**]([https://daimpad.github.io/datengraf](https://datengraf.nozilla.net)] · [Wiki / Docs](docs/Home.md) · [Sicherheit](SECURITY.md) · [Mitmachen](.github/CONTRIBUTING.md)
 
 </div>
 
