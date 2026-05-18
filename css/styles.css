@@ -809,7 +809,7 @@ textarea.csv-textarea:focus {
   font-weight: 900;
   letter-spacing: -1.5px;
   margin-bottom: 18px;
-  color: var(--c-text);
+  color: var(--c-accent);
   line-height: 1.15;
 }
 

@@ -153,12 +153,7 @@ function updateSelectFilter(id, options) {
 
 // ── Render dispatcher ─────────────────────────────────────────────────────────
 function updateHeroVisibility() {
-  const hero = document.getElementById('hero-section');
-  if (allData.length > 0) {
-    hero.classList.add('hidden');
-  } else {
-    hero.classList.remove('hidden');
-  }
+  // Hero is always visible
 }
 
 function renderAll() {
