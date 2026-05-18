@@ -1266,10 +1266,19 @@ textarea.csv-textarea:focus {
 
 .footer-brand:hover { color: var(--c-accent-h); text-decoration: underline; }
 
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: rgba(0,0,0,0.35);
+}
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar { position: fixed; z-index: 200; height: 100vh; }
   .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+  .sidebar-overlay.active { display: block; }
   .insights-grid { grid-template-columns: 1fr; }
   #open-wizard-btn { display: none; }
   #mobile-nav-btn { display: flex; }

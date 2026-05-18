@@ -702,13 +702,23 @@ document.getElementById('mobile-wizard-btn').addEventListener('click', () => {
 
 window.addEventListener('resize', () => {
   if (window.innerWidth <= 768) {
-    document.getElementById('sidebar').classList.add('collapsed');
+    toggleSidebar(true);
     mobileNav.classList.add('hidden');
   }
 });
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
-document.getElementById('sidebar-toggle-btn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('collapsed'));
+const sidebar        = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+function toggleSidebar(forceClose) {
+  const closing = forceClose || !sidebar.classList.contains('collapsed');
+  sidebar.classList.toggle('collapsed', closing);
+  sidebarOverlay.classList.toggle('active', !closing);
+}
+
+document.getElementById('sidebar-toggle-btn').addEventListener('click', () => toggleSidebar());
+sidebarOverlay.addEventListener('click', () => toggleSidebar(true));
 document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
 document.getElementById('filter-organization').addEventListener('change', e => { activeFilters.organization = e.target.value; applyFilters(); });
 document.getElementById('filter-department').addEventListener('change',   e => { activeFilters.department   = e.target.value; applyFilters(); });
