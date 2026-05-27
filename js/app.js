@@ -152,16 +152,11 @@ function updateSelectFilter(id, options) {
 }
 
 // ── Render dispatcher ─────────────────────────────────────────────────────────
-function updateHeroVisibility() {
-  // Hero is always visible
-}
-
 function updateViewSwitcher() {
   document.getElementById('view-switcher').classList.toggle('hidden', allData.length === 0);
 }
 
 function renderAll() {
-  updateHeroVisibility();
   updateViewSwitcher();
   renderList(filteredData);
   renderNetwork(filteredData);
@@ -219,7 +214,9 @@ function renderList(data) {
 
   contentEl.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', () => {
-      allData.splice(allData.indexOf(filteredData[parseInt(btn.dataset.del)]), 1);
+      const row = filteredData[parseInt(btn.dataset.del)];
+      const idx = allData.indexOf(row);
+      if (idx !== -1) allData.splice(idx, 1);
       applyFilters();
       buildSidebarFilters();
     });
@@ -405,7 +402,7 @@ function betweennessCentrality(nodes, adj) {
     }
     while (stack.length) {
       const w = stack.pop();
-      pred[w].forEach(v => { delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w]); });
+      pred[w].forEach(v => { if (sigma[w] > 0) delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w]); });
       if (w !== s) bc[w] += delta[w];
     }
   });
@@ -416,7 +413,7 @@ function labelPropagation(nodes, adj) {
   if (!nodes.length) return [];
   const labels = Object.fromEntries(nodes.map((n, i) => [n, i]));
   const uAdj   = Object.fromEntries(nodes.map(n => [n, new Set()]));
-  nodes.forEach(n => Object.keys(adj[n] || {}).forEach(m => { uAdj[n].add(m); if (!uAdj[m]) uAdj[m] = new Set(); uAdj[m].add(n); }));
+  nodes.forEach(n => Object.keys(adj[n] || {}).forEach(m => { uAdj[n].add(m); if (uAdj[m]) uAdj[m].add(n); }));
 
   for (let iter = 0; iter < 10; iter++) {
     let changed = false;
