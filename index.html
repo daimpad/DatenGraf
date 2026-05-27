@@ -325,39 +325,141 @@
     </div>
     <div class="theory-modal-body">
 
-      <h3>Was sind Datenflüsse?</h3>
-      <p>In jeder Organisation bewegen sich Daten zwischen Akteuren: Abteilungen übergeben Berichte, Systeme liefern automatisiert Kennzahlen, Personen erfassen und weiterleiten manuell. Diese Bewegungen sind oft unsichtbar – in E-Mails, Absprachen oder gewachsenen Prozessen vergraben. DatenGraf macht sie explizit und analysierbar.</p>
+      <p class="theory-intro">Das Netzwerkdiagramm zeigt Akteure (Systeme, Abteilungen, Personen) als Knoten und Datenflüsse als gerichtete Pfeile. Die folgenden Beispiele zeigen, wie typische Muster in der Praxis zu lesen sind.</p>
 
-      <h3>Graphentheorie als Grundlage</h3>
-      <p>DatenGraf modelliert Organisationen als <strong>gerichtete Graphen G = (V, E)</strong>: Knoten <em>V</em> repräsentieren Akteure (Systeme, Abteilungen, Personen), Kanten <em>E</em> repräsentieren Datenflüsse zwischen ihnen. Diese mathematische Darstellung erlaubt es, strukturelle Eigenschaften des Datenökosystems präzise zu messen – unabhängig von der Größe der Organisation.</p>
+      <!-- Legende -->
+      <div class="theory-legend">
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent)"></span> Knoten = Akteur (System, Abteilung, Person)</div>
+        <div class="theory-legend-item"><span class="theory-legend-arrow">→</span> Pfeil = Datenfluss (Richtung des Datentransfers)</div>
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#e53e3e"></span> Rot = DSGVO-relevant</div>
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#d97706"></span> Orange = Intern</div>
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#38a169"></span> Grün = Öffentlich</div>
+      </div>
 
-      <h3>Gradzentralität – Wer sendet, wer empfängt?</h3>
-      <p>Der <strong>Out-Degree</strong> eines Knotens gibt an, wie viele Datenflüsse von ihm ausgehen – ein Maß für seine Rolle als Datenproduzent. Der <strong>In-Degree</strong> misst eingehende Flüsse und identifiziert Datensammler. Die normalisierte Gradzentralität setzt diesen Wert ins Verhältnis zur Gesamtgröße des Netzwerks:</p>
-      <div class="theory-formula">C<sub>D</sub>(v) = deg(v) / (|V| − 1)</div>
-      <p>Akteure mit hohem Out-Degree sind kritische Informationsquellen. Fallen sie aus, reißen Informationsketten ab.</p>
+      <!-- Beispiel 1 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 1</span>
+          <h3>Der zentrale Datenproduzent – HR-System als Hub</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-node theory-node-hub">HR-System</div>
+          <div class="theory-arrows-out">
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Lohnbuchhaltung</div></div>
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Zugangsverwaltung</div></div>
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Mitarbeiterverzeichnis</div></div>
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Reporting</div></div>
+          </div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Ein Knoten mit vielen ausgehenden Pfeilen (hoher Out-Degree). Im Insights-Panel erscheint dieser Akteur ganz oben in der „Top Datenproduzenten"-Liste.</p>
+        <p><strong>Was es bedeutet:</strong> Das HR-System ist eine kritische Datenquelle. Fällt es aus oder liefert fehlerhafte Daten, sind sofort vier nachgelagerte Prozesse betroffen. Das ist ein starkes Argument für hohe Verfügbarkeit und Datenqualitätskontrollen an diesem Knoten.</p>
+        <p><strong>Handlungsempfehlung:</strong> Prüfen, ob alle vier Abnehmer wirklich Rohdaten benötigen oder ob ein gemeinsamer Zwischendienst Redundanz reduzieren könnte.</p>
+      </div>
 
-      <h3>Betweenness Centrality – Gatekeeper erkennen</h3>
-      <p>Manche Akteure stehen auf fast jedem Informationsweg zwischen zwei anderen – sie sind <strong>Gatekeeper</strong> oder <strong>Flaschenhälse</strong>. Die Betweenness Centrality nach Brandes (2001) misst, wie häufig ein Knoten <em>v</em> auf dem kürzesten Pfad zwischen zwei anderen Knoten <em>s</em> und <em>t</em> liegt:</p>
-      <div class="theory-formula">C<sub>B</sub>(v) = Σ (σ<sub>st</sub>(v) / σ<sub>st</sub>) &nbsp; für alle s ≠ v ≠ t</div>
-      <p>Knoten mit hoher Betweenness sind strukturell wichtig, aber auch verletzbar: Ihre Überlastung oder ihr Ausfall kann das gesamte Ökosystem lahmlegen. Sie sind die erste Adresse für Optimierungsmaßnahmen.</p>
+      <!-- Beispiel 2 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 2</span>
+          <h3>Der Flaschenhals – Controlling als Gatekeeper</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-node">Vertrieb</div><span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">Controlling</div><span class="theory-arrow">→</span>
+          <div class="theory-node">Geschäftsführung</div>
+          <div class="theory-diagram-row-2">
+            <div class="theory-node">Produktion</div><span class="theory-arrow">→</span>
+            <div class="theory-node theory-node-hub" style="opacity:0.3">Controlling</div>
+            <div class="theory-node">Aufsichtsrat</div><span class="theory-arrow-rev">←</span><div class="theory-node theory-node-hub" style="opacity:0.3">Controlling</div>
+          </div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Ein Knoten liegt auf nahezu jedem Pfad zwischen anderen Gruppen – hohe Betweenness Centrality. Im Insights-Panel erscheint er prominent in der „Gatekeeper"-Karte.</p>
+        <p><strong>Was es bedeutet:</strong> Controlling empfängt Rohdaten aus allen Bereichen, verarbeitet sie und ist die einzige Brücke zur Unternehmensleitung. Ist diese Person krank, im Urlaub oder überlastet, stockt der gesamte Berichtsfluss.</p>
+        <p><strong>Handlungsempfehlung:</strong> Stellvertretungsregelung einführen, Automatisierungsgrad der Aufbereitungsschritte erhöhen oder direkte Lesezugriffe für die Geschäftsführung prüfen.</p>
+      </div>
 
-      <h3>Community Detection – Datensilos aufdecken</h3>
-      <p>Nicht alle Teile einer Organisation tauschen gleichmäßig Daten aus. Der <strong>Label-Propagation-Algorithmus</strong> (Raghavan et al., 2007) erkennt automatisch Gruppen von Akteuren, die überwiegend untereinander kommunizieren – sogenannte <strong>Datensilos</strong>. Jeder Knoten übernimmt iterativ das häufigste Label seiner Nachbarn, bis das Netzwerk in stabile Gemeinschaften konvergiert.</p>
-      <p>Datensilos sind nicht automatisch schlecht – manchmal sind sie gewollt. Aber ungewollte Silos verhindern abteilungsübergreifendes Lernen, erzeugen redundante Datenhaltung und erschweren DSGVO-konforme Übersicht.</p>
+      <!-- Beispiel 3 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 3</span>
+          <h3>Das Datensilo – IT und Fachbereich ohne Verbindung</h3>
+        </div>
+        <div class="theory-example-diagram theory-example-diagram--clusters">
+          <div class="theory-cluster">
+            <div class="theory-cluster-label">Cluster A – IT</div>
+            <div class="theory-node">Ticketsystem</div><span class="theory-arrow">→</span>
+            <div class="theory-node">Monitoring</div>
+            <div class="theory-arrow-down">↕</div>
+            <div class="theory-node">Deployments</div>
+          </div>
+          <div class="theory-cluster-bridge">⟵ einzige Verbindung ⟶</div>
+          <div class="theory-cluster">
+            <div class="theory-cluster-label">Cluster B – Fachbereich</div>
+            <div class="theory-node">CRM</div><span class="theory-arrow">→</span>
+            <div class="theory-node">ERP</div>
+            <div class="theory-arrow-down">↕</div>
+            <div class="theory-node">Reporting</div>
+          </div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Zwei dicht verbundene Gruppen mit nur einer schwachen Kante dazwischen. Die Community Detection färbt beide Cluster unterschiedlich ein.</p>
+        <p><strong>Was es bedeutet:</strong> IT und Fachbereich arbeiten größtenteils in eigenen Datenwelten. Das kann gewollt sein (Sicherheitszonentrennung), ist aber häufig historisch gewachsen – mit Folge: doppelte Datenhaltung, manuelle Übertragungen per Excel und fehlende Transparenz über IT-Vorfälle im Fachbereich.</p>
+        <p><strong>Handlungsempfehlung:</strong> Die einzige Brückenverbindung identifizieren und bewusst stärken oder durch eine definierte Schnittstelle (API, Datenpipeline) ersetzen.</p>
+      </div>
 
-      <h3>DSGVO und Schutzbedarf</h3>
-      <p>Jeder Datenfluss in DatenGraf trägt einen <strong>Schutzbedarf</strong>: DSGVO-relevant, Intern oder Öffentlich. Die Kartierung macht unmittelbar sichtbar, wo personenbezogene Daten fließen, welche Akteure darauf Zugriff haben und ob Datenminimierung möglich ist. Das unterstützt Datenschutzfolgenabschätzungen und TOMs direkt aus der Visualisierung heraus.</p>
+      <!-- Beispiel 4 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 4</span>
+          <h3>Der Datensauger – Data Warehouse als Endpunkt</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-arrows-in">
+            <div class="theory-arrow-row"><div class="theory-node">CRM</div><span class="theory-arrow">→</span></div>
+            <div class="theory-arrow-row"><div class="theory-node">ERP</div><span class="theory-arrow">→</span></div>
+            <div class="theory-arrow-row"><div class="theory-node">Ticketsystem</div><span class="theory-arrow">→</span></div>
+            <div class="theory-arrow-row"><div class="theory-node">HR-System</div><span class="theory-arrow">→</span></div>
+          </div>
+          <div class="theory-node theory-node-hub">Data Warehouse</div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Viele eingehende Pfeile auf einen Knoten, kaum ausgehende – hoher In-Degree. Im Insights-Panel erscheint dieser Akteur oben in der „Top Datenempfänger"-Liste.</p>
+        <p><strong>Was es bedeutet:</strong> Das Data Warehouse ist das zentrale Gedächtnis der Organisation. Aus DSGVO-Sicht ist das ein kritischer Punkt: Hier laufen personenbezogene Daten aus vielen Quellen zusammen. Wer hat Zugriff? Wie lange werden Daten gespeichert? Gibt es eine Löschstrategie?</p>
+        <p><strong>Handlungsempfehlung:</strong> Schutzbedarf aller eingehenden Flüsse prüfen – enthält einer davon DSGVO-relevante Daten, muss das Warehouse in der Datenschutzfolgenabschätzung berücksichtigt werden.</p>
+      </div>
 
-      <h3>Warum browserbasiert?</h3>
-      <p>Datenflüsse sind oft sensibel. DatenGraf läuft vollständig im Browser – keine Daten verlassen das Gerät, es gibt keinen Server und keine Datenbank. Das senkt die Hürde für den Einsatz in sicherheitskritischen Umgebungen erheblich und entspricht dem Prinzip der Datensparsamkeit.</p>
+      <!-- Beispiel 5 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 5</span>
+          <h3>Der DSGVO-Pfad – personenbezogene Daten verfolgen</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-node theory-node-dsgvo">Bewerbungsformular</div>
+          <span class="theory-arrow theory-arrow-dsgvo">→</span>
+          <div class="theory-node theory-node-dsgvo">HR-System</div>
+          <span class="theory-arrow theory-arrow-dsgvo">→</span>
+          <div class="theory-node theory-node-dsgvo">Lohnbuchhaltung</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node">Steuerberater</div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Eine Kette von Knoten, bei denen die Kanten als „DSGVO-relevant" markiert sind. Durch den Schutzbedarf-Filter in der Sidebar lässt sich genau dieser Pfad isoliert darstellen.</p>
+        <p><strong>Was es bedeutet:</strong> Personenbezogene Bewerbungsdaten wandern vom Formular ins HR-System, von dort in die Lohnbuchhaltung und schließlich zum Steuerberater. Jede dieser Übergaben muss rechtlich abgesichert sein – Auftragsverarbeitung, Löschfristen, technische Schutzmaßnahmen.</p>
+        <p><strong>Handlungsempfehlung:</strong> Den Filter „DSGVO-relevant" aktivieren und prüfen, ob für alle markierten Flüsse ein Verarbeitungsverzeichniseintrag existiert und ob Datenminimierung möglich ist.</p>
+      </div>
 
-      <div class="theory-refs">
-        <strong>Referenzen</strong>
-        <ul>
-          <li>Brandes, U. (2001). A faster algorithm for betweenness centrality. <em>Journal of Mathematical Sociology</em>, 25(2), 163–177.</li>
-          <li>Raghavan, U. N., Albert, R., &amp; Kumara, S. (2007). Near linear time algorithm to detect community structures in large-scale networks. <em>Physical Review E</em>, 76(3).</li>
-          <li>Newman, M. E. J. (2010). <em>Networks: An Introduction.</em> Oxford University Press.</li>
-        </ul>
+      <!-- Beispiel 6 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 6</span>
+          <h3>Die verwaiste Insel – Akteur ohne Verbindung</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-node">Vertrieb</div><span class="theory-arrow">→</span>
+          <div class="theory-node">CRM</div><span class="theory-arrow">→</span>
+          <div class="theory-node">Reporting</div>
+          <div class="theory-node theory-node-isolated" style="margin-top: 16px; margin-left: 40px;">Legacy-System</div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Ein Knoten ohne eingehende oder ausgehende Kanten – er steht allein im Diagramm. Degree = 0, Betweenness = 0.</p>
+        <p><strong>Was es bedeutet:</strong> Entweder wurde dieser Akteur noch nicht vollständig erfasst (fehlende Datenflüsse) – oder er ist tatsächlich isoliert. Legacy-Systeme, die niemand mehr anbindet, aber deren Daten dennoch existieren, sind ein häufiger Befund.</p>
+        <p><strong>Handlungsempfehlung:</strong> Klären, ob das System noch aktiv ist. Falls ja: fehlende Verbindungen nacherfassen. Falls nein: Außerbetriebnahme und Datenlöschung prüfen.</p>
       </div>
 
     </div>

@@ -1162,6 +1162,7 @@ textarea.csv-textarea:focus {
 }
 
 .theory-modal-body h3:first-child { margin-top: 0; }
+.theory-modal-body > p:first-child { margin-top: 0; }
 
 .theory-modal-body p {
   color: var(--c-muted);
@@ -1179,29 +1180,151 @@ textarea.csv-textarea:focus {
   margin: 12px 0;
 }
 
-.theory-refs {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid var(--c-border-s);
-  font-size: 12px;
+.theory-intro {
+  color: var(--c-muted);
+  margin-bottom: 20px;
+  line-height: 1.7;
+}
+
+/* Legende */
+.theory-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  background: rgba(66,0,147,0.04);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 28px;
+  font-size: 13px;
   color: var(--c-muted);
 }
-
-.theory-refs strong {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--c-text);
-  font-size: 13px;
+.theory-legend-item { display: flex; align-items: center; gap: 7px; }
+.theory-legend-dot {
+  width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
 }
+.theory-legend-arrow { font-size: 15px; color: var(--c-accent); font-weight: 700; }
 
-.theory-refs ul {
-  padding-left: 18px;
+/* Beispiel-Karten */
+.theory-example {
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.5);
+}
+.theory-example-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.theory-example-header h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-accent);
+  margin: 0 !important;
+}
+.theory-example-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--c-accent);
+  color: #fff;
+  border-radius: 30px;
+  padding: 2px 9px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.theory-example p {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--c-muted);
+  line-height: 1.65;
+}
+.theory-example p strong { color: var(--c-text); }
+
+/* Diagram-Visualisierungen */
+.theory-example-diagram {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: rgba(66,0,147,0.03);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+.theory-node {
+  background: var(--glass-bg);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-text);
+  white-space: nowrap;
+}
+.theory-node-hub {
+  border-color: var(--c-accent);
+  background: rgba(66,0,147,0.07);
+  color: var(--c-accent);
+  font-weight: 700;
+}
+.theory-node-dsgvo {
+  border-color: #e53e3e;
+  background: rgba(229,62,62,0.06);
+  color: #c53030;
+  font-weight: 600;
+}
+.theory-node-isolated {
+  border: 1.5px dashed var(--c-border-s);
+  color: var(--c-muted);
+  opacity: 0.7;
+}
+.theory-arrow { color: var(--c-accent); font-size: 16px; font-weight: 700; }
+.theory-arrow-dsgvo { color: #e53e3e; font-size: 16px; font-weight: 700; }
+.theory-arrow-rev { color: var(--c-accent); font-size: 16px; font-weight: 700; }
+.theory-arrow-down { color: var(--c-accent); font-size: 14px; text-align: center; width: 100%; }
+.theory-arrows-out { display: flex; flex-direction: column; gap: 5px; }
+.theory-arrows-in  { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+.theory-arrow-row  { display: flex; align-items: center; gap: 6px; }
+
+/* Cluster-Darstellung Beispiel 3 */
+.theory-example-diagram--clusters {
+  justify-content: center;
+  gap: 12px;
+}
+.theory-cluster {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 5px;
+  border: 1.5px solid var(--c-accent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(66,0,147,0.04);
 }
-
-.theory-refs li { line-height: 1.55; }
+.theory-cluster-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+.theory-cluster-bridge {
+  font-size: 11px;
+  color: var(--c-muted);
+  text-align: center;
+  align-self: center;
+  padding: 0 4px;
+}
+.theory-diagram-row-2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
 
 /* ── Footer ──────────────────────────────────────────────────── */
 .site-footer {
