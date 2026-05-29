@@ -325,15 +325,14 @@
     </div>
     <div class="theory-modal-body">
 
-      <p class="theory-intro">Das Netzwerkdiagramm zeigt Akteure (Systeme, Abteilungen, Personen) als Knoten und Datenflüsse als gerichtete Pfeile. Die folgenden Beispiele zeigen, wie typische Muster in der Praxis zu lesen sind.</p>
+      <p class="theory-intro">Das Netzwerkdiagramm zeigt Akteure (Systeme, Abteilungen, Personen) als Knoten und Datenflüsse als gerichtete Pfeile. Die folgenden Beispiele zeigen, wie typische Muster erkannt und gezielt verbessert werden können.</p>
 
       <!-- Legende -->
       <div class="theory-legend">
         <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent)"></span> Knoten = Akteur (System, Abteilung, Person)</div>
-        <div class="theory-legend-item"><span class="theory-legend-arrow">→</span> Pfeil = Datenfluss (Richtung des Datentransfers)</div>
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#e53e3e"></span> Rot = DSGVO-relevant</div>
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#d97706"></span> Orange = Intern</div>
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#38a169"></span> Grün = Öffentlich</div>
+        <div class="theory-legend-item"><span class="theory-legend-arrow">→</span> Pfeil = Datenfluss (Richtung des Transfers)</div>
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent); opacity:0.9"></span> Lila Rahmen = hohe Zentralität (Hub / Gatekeeper)</div>
+        <div class="theory-legend-item"><span class="theory-legend-arrow" style="font-size:13px">⇄</span> Doppelpfeil = bidirektionaler Fluss</div>
       </div>
 
       <!-- Beispiel 1 -->
@@ -429,37 +428,48 @@
       <div class="theory-example">
         <div class="theory-example-header">
           <span class="theory-example-badge">Beispiel 5</span>
-          <h3>Der DSGVO-Pfad – personenbezogene Daten verfolgen</h3>
+          <h3>Die überlange Kette – Felddaten auf dem Umweg (NGO)</h3>
         </div>
         <div class="theory-example-diagram">
-          <div class="theory-node theory-node-dsgvo">Bewerbungsformular</div>
-          <span class="theory-arrow theory-arrow-dsgvo">→</span>
-          <div class="theory-node theory-node-dsgvo">HR-System</div>
-          <span class="theory-arrow theory-arrow-dsgvo">→</span>
-          <div class="theory-node theory-node-dsgvo">Lohnbuchhaltung</div>
+          <div class="theory-node">Feldteam</div>
           <span class="theory-arrow">→</span>
-          <div class="theory-node">Steuerberater</div>
+          <div class="theory-node theory-node-hub">Regionalkoord.</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">Landesbüro</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">M&amp;E-Abt.</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node">Geschäftsführung</div>
         </div>
-        <p><strong>Was zu sehen ist:</strong> Eine Kette von Knoten, bei denen die Kanten als „DSGVO-relevant" markiert sind. Durch den Schutzbedarf-Filter in der Sidebar lässt sich genau dieser Pfad isoliert darstellen.</p>
-        <p><strong>Was es bedeutet:</strong> Personenbezogene Bewerbungsdaten wandern vom Formular ins HR-System, von dort in die Lohnbuchhaltung und schließlich zum Steuerberater. Jede dieser Übergaben muss rechtlich abgesichert sein – Auftragsverarbeitung, Löschfristen, technische Schutzmaßnahmen.</p>
-        <p><strong>Handlungsempfehlung:</strong> Den Filter „DSGVO-relevant" aktivieren und prüfen, ob für alle markierten Flüsse ein Verarbeitungsverzeichniseintrag existiert und ob Datenminimierung möglich ist.</p>
+        <p><strong>Was zu sehen ist:</strong> Eine lineare Kette mit vier Hops – jede Zwischenstation hat hohe Betweenness Centrality, obwohl sie keine eigene inhaltliche Leistung erbringt. Im Insights-Panel erscheinen Regionalkoordination, Landesbüro und M&amp;E gleichauf als „Gatekeeper".</p>
+        <p><strong>Was es bedeutet:</strong> In der NGO erfassen Feldteams Projektdaten auf Papier, tippen sie lokal ab, schicken sie per E-Mail ans Landesbüro, das sie erneut in ein anderes Format überträgt. An jeder Station entstehen Verzögerungen von mehreren Tagen, Übertragungsfehler und Informationsverluste. Die Geschäftsführung sieht Felddaten im Schnitt drei Wochen nach der Erhebung.</p>
+        <p><strong>Verbesserungspotenzial:</strong> Pfadlänge aktiv reduzieren: eine gemeinsame Eingabeplattform direkt für Feldteams verkürzt die Kette auf einen Hop. Die Betweenness-Werte der Zwischenstationen sinken auf null – ein messbares Zeichen für schlanker gewordene Datenflüsse.</p>
       </div>
 
       <!-- Beispiel 6 -->
       <div class="theory-example">
         <div class="theory-example-header">
           <span class="theory-example-badge">Beispiel 6</span>
-          <h3>Die verwaiste Insel – Akteur ohne Verbindung</h3>
+          <h3>Das Spinnennetz – organisch gewachsene Vernetzung ohne Struktur</h3>
         </div>
-        <div class="theory-example-diagram">
-          <div class="theory-node">Vertrieb</div><span class="theory-arrow">→</span>
-          <div class="theory-node">CRM</div><span class="theory-arrow">→</span>
-          <div class="theory-node">Reporting</div>
-          <div class="theory-node theory-node-isolated" style="margin-top: 16px; margin-left: 40px;">Legacy-System</div>
+        <div class="theory-example-diagram theory-example-diagram--clusters">
+          <div class="theory-cluster" style="flex-direction: row; flex-wrap: wrap; max-width: 300px; border-color: var(--c-border-s);">
+            <div class="theory-node">Team A</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team B</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team C</div>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:6px">
+              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
+              <div class="theory-node theory-node-hub" style="margin:0 8px">Koordination</div>
+              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
+            </div>
+            <div class="theory-node">Team D</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team E</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team F</div>
+          </div>
         </div>
-        <p><strong>Was zu sehen ist:</strong> Ein Knoten ohne eingehende oder ausgehende Kanten – er steht allein im Diagramm. Degree = 0, Betweenness = 0.</p>
-        <p><strong>Was es bedeutet:</strong> Entweder wurde dieser Akteur noch nicht vollständig erfasst (fehlende Datenflüsse) – oder er ist tatsächlich isoliert. Legacy-Systeme, die niemand mehr anbindet, aber deren Daten dennoch existieren, sind ein häufiger Befund.</p>
-        <p><strong>Handlungsempfehlung:</strong> Klären, ob das System noch aktiv ist. Falls ja: fehlende Verbindungen nacherfassen. Falls nein: Außerbetriebnahme und Datenlöschung prüfen.</p>
+        <p><strong>Was zu sehen ist:</strong> Ein sehr dichter Graph – fast jeder Knoten ist mit jedem anderen verbunden, überwiegend bidirektional. Die Kantendichte liegt weit über dem Durchschnitt vergleichbarer Netzwerke. Community Detection findet keine stabilen Cluster, weil die Grenzen ständig fließen.</p>
+        <p><strong>Was es bedeutet:</strong> In einer gewachsenen Organisation (häufig bei NGOs, Vereinen oder Start-ups) hat jedes Team direkte Absprachen mit jedem anderen entwickelt – per E-Mail, geteilte Tabellen, mündlich. Es gibt keine klare Dateneigentümerschaft: dieselbe Information existiert in fünf Versionen, niemand weiß, welche aktuell ist. Hohe Verbundenheit klingt gut, bedeutet hier aber vor allem: hohe Redundanz und hoher Abstimmungsaufwand.</p>
+        <p><strong>Verbesserungspotenzial:</strong> Kantenzahl aktiv reduzieren. Im gemeinsamen Workshop lässt sich mit dem Netzwerkdiagramm sichtbar machen, welche Verbindungen inhaltlich notwendig sind und welche durch eine klare Dateneigentümerschaft ersetzt werden können. Ziel: ein schlankes Netz mit weniger, aber definierten Flüssen – sichtbar als deutlich aufgeräumteres Diagramm nach der Überarbeitung.</p>
       </div>
 
     </div>
