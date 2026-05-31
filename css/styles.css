@@ -805,7 +805,7 @@ textarea.csv-textarea:focus {
 }
 
 .hero-logo {
-  max-width: 400px;
+  max-width: 250px;
   width: 38%;
   height: auto;
   flex-shrink: 0;
