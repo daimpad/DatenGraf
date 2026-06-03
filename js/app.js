@@ -791,6 +791,32 @@ const EXAMPLES = {
       { icon: 'fa-route',         label: 'Langer Pfad',      text: 'Ehrenamtsstunden → Regionalstelle → Bundesverband → Fördermittelmanagement: 3 manuelle Hops bis zum Verwendungsnachweis.' },
     ]
   },
+  wissenschaft: {
+    sector: 'Wissenschaft',
+    sectorClass: 'sample-card-sector--wissenschaft',
+    title: 'Institut für Klimaforschung',
+    subtitle: 'Forschungsinstitut · 3 Gruppen · 27 Datenflüsse',
+    file: 'data/sample-wissenschaft.csv',
+    context: 'Ein öffentlich gefördertes Forschungsinstitut mit drei Forschungsgruppen, zentralem Datenmanagement und Drittmittelverwaltung. Jede Gruppe arbeitet in eigenen Datensilos – obwohl alle drei auf denselben Messdaten aufbauen. Alle Außenkommunikation läuft zwingend durch die Drittmittelverwaltung.',
+    findings: [
+      { icon: 'fa-filter',        label: 'Engpass Verwaltung', text: 'Drittmittelverwaltung liegt auf jedem Pfad zum Fördergeber – höchste Betweenness, aber rein administrativ.' },
+      { icon: 'fa-scissors',      label: 'Parallelarbeit',     text: 'Alle drei Forschungsgruppen bereiten dieselben Rohdaten separat auf – kein Datenfluss zwischen ihnen.' },
+      { icon: 'fa-hand-paper',    label: 'Blocker-Knoten',     text: 'Ethikkommission hat Betweenness-Wert trotz nur 2 Verbindungen: Forschung wartet auf Votum, bevor sie starten kann.' },
+    ]
+  },
+  medien: {
+    sector: 'Medien',
+    sectorClass: 'sample-card-sector--medien',
+    title: 'Tagesblatt Regional GmbH',
+    subtitle: 'Regionalredaktion · digital & print · 28 Datenflüsse',
+    file: 'data/sample-medien.csv',
+    context: 'Eine Regionalzeitung im Transformationsprozess: Print und Digital laufen parallel, das CMS ist der zentrale Hub. Reichweiten- und Leserdaten werden erhoben, aber nie zur Redaktionsplanung genutzt. Zwischen Vertrieb und Redaktion gibt es keine Verbindung auf Inhaltsebene.',
+    findings: [
+      { icon: 'fa-arrows-to-dot', label: 'Hub CMS',            text: 'Das CMS bündelt alle Inhalte – aber als reiner Durchlaufknoten ohne Rückkopplung an die Redaktion.' },
+      { icon: 'fa-circle-xmark',  label: 'Fehlende Schleife',  text: 'Social-Media-Daten und Leserzahlen fließen nicht in die Themenplanung zurück – Redaktion arbeitet ohne Feedback-Loop.' },
+      { icon: 'fa-box-archive',   label: 'Archiv als Sackgasse', text: 'Das Archiv empfängt alles, sendet aber nur auf manuelle Anfrage – automatische Kontextualisierung fehlt.' },
+    ]
+  },
   verwaltung: {
     sector: 'Verwaltung',
     sectorClass: 'sample-card-sector--verwaltung',

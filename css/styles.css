@@ -252,9 +252,11 @@ body {
   border-radius: 20px;
   padding: 2px 8px;
 }
-.sample-card-sector--wirtschaft  { background: rgba(92,158,100,0.15); color: #2e7d32; }
+.sample-card-sector--wirtschaft  { background: rgba(92,158,100,0.15);  color: #2e7d32; }
 .sample-card-sector--zivi        { background: rgba(108,142,191,0.18); color: #1a5276; }
 .sample-card-sector--verwaltung  { background: rgba(195,150,60,0.18);  color: #7d5a00; }
+.sample-card-sector--wissenschaft{ background: rgba(120,80,180,0.15);  color: #5b2d8e; }
+.sample-card-sector--medien      { background: rgba(210,80,60,0.13);   color: #b03020; }
 .sample-card-title {
   font-size: 13px;
   font-weight: 600;
