@@ -764,23 +764,100 @@ document.getElementById('export-csv-btn').addEventListener('click', () => {
 });
 
 // ── Sample Data ───────────────────────────────────────────────────────────────
-document.getElementById('btn-load-sample').addEventListener('click', () => {
+const EXAMPLES = {
+  wirtschaft: {
+    sector: 'Wirtschaft',
+    sectorClass: 'sample-card-sector--wirtschaft',
+    title: 'Globex Handels GmbH',
+    subtitle: 'E-Commerce-Händler · ~180 MA · 28 Datenflüsse',
+    file: 'data/sample-wirtschaft.csv',
+    context: 'Ein mittelständischer Händler mit hybridem Online-/Stationärgeschäft. Alle Systeme sind über eine zentrale Warenwirtschaft verbunden – die aber historisch gewachsen ist und zunehmend zum Engpass wird. Marketing und Logistik haben sich weitgehend entkoppelt, obwohl ihre Planung voneinander abhängt.',
+    findings: [
+      { icon: 'fa-arrows-to-dot', label: 'Zentraler Hub',   text: 'Warenwirtschaft hat den höchsten Degree-Wert – kritischer Single Point of Failure mit 9 Verbindungen.' },
+      { icon: 'fa-scissors',      label: 'Datensilo',        text: 'Marketing und Logistik sind nicht direkt verbunden – Kampagnenplanung und Lieferzeiten werden nie abgeglichen.' },
+      { icon: 'fa-route',         label: 'Lange Kette',      text: 'Online-Bestellung → Warenwirtschaft → Logistik → Retouren → Buchhaltung: 4 Hops, zwei davon manuell.' },
+    ]
+  },
+  zivilgesellschaft: {
+    sector: 'Zivilgesellschaft',
+    sectorClass: 'sample-card-sector--zivi',
+    title: 'Nachbarschaftshilfe e.V.',
+    subtitle: 'Wohlfahrtsverband · 6 Gliederungen · 30 Datenflüsse',
+    file: 'data/sample-zivilgesellschaft.csv',
+    context: 'Ein bundesweit aktiver Wohlfahrtsverband mit Bundesverband, zwei Regionalstellen und drei Ortsgruppen. Datenflüsse sind historisch über E-Mails und Excel gewachsen – ohne einheitliche Struktur. Spendenverwaltung und Programmabteilungen arbeiten vollständig aneinander vorbei.',
+    findings: [
+      { icon: 'fa-spider',        label: 'Spinnennetz',      text: 'Hohe Kantendichte rund um die Koordinierungsstelle – viele Verbindungen, keine klare Eigentümerschaft.' },
+      { icon: 'fa-circle-xmark',  label: 'Isolation',        text: 'Spendenverwaltung und Sozialdienst sind kaum verbunden – Förderberichte können nicht mit Wirkungsdaten belegt werden.' },
+      { icon: 'fa-route',         label: 'Langer Pfad',      text: 'Ehrenamtsstunden → Regionalstelle → Bundesverband → Fördermittelmanagement: 3 manuelle Hops bis zum Verwendungsnachweis.' },
+    ]
+  },
+  verwaltung: {
+    sector: 'Verwaltung',
+    sectorClass: 'sample-card-sector--verwaltung',
+    title: 'Stadtverwaltung Musterstadt',
+    subtitle: 'Kommunalverwaltung · ~50.000 EW · 28 Datenflüsse',
+    file: 'data/sample-verwaltung.csv',
+    context: 'Stadtverwaltung einer Mittelstadt mit 12 Ämtern. Fast alle Informationsflüsse laufen hierarchisch zum Bürgermeisterbüro – aber nie zurück. Ämter kommunizieren kaum lateral miteinander, obwohl viele Fälle mehrere Stellen gleichzeitig betreffen.',
+    findings: [
+      { icon: 'fa-star',          label: 'Sterntopologie',   text: 'Bürgermeisterbüro hat In-Degree 8, Out-Degree 0 – reiner Empfänger, keine Rückkopplung von Entscheidungen.' },
+      { icon: 'fa-circle-xmark',  label: 'Fehlende Brücke',  text: 'Sozialamt und Jugendamt tauschen keine Daten aus – obwohl beide mit denselben Familien arbeiten.' },
+      { icon: 'fa-user-shield',   label: 'Passive Rolle',    text: 'IT- und Datenschutzbeauftragte erscheinen nur als Empfänger von Meldungen – ohne ausgehende Empfehlungen.' },
+    ]
+  }
+};
+
+function loadExample(key) {
+  const ex = EXAMPLES[key];
+  if (!ex) return;
   setStatus('Lade Beispieldaten…', 'loading');
-  fetch('data/sample.csv')
+  document.querySelectorAll('.sample-card').forEach(c =>
+    c.classList.toggle('active', c.dataset.sample === key)
+  );
+  fetch(ex.file)
     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
     .then(text => {
       if (!text) { setStatus('Beispieldaten leer.', 'error'); return; }
       allData = parseCSV(text);
       buildSidebarFilters();
       applyFilters();
-      setStatus(`${allData.length} Beispiel-Zeilen geladen.`, 'success');
+      setStatus(`${allData.length} Datenflüsse geladen.`, 'success');
+      showExampleInfo(ex);
     })
     .catch(e => setStatus(`Fehler beim Laden: ${e.message}`, 'error'));
+}
+
+function showExampleInfo(ex) {
+  const panel = document.getElementById('example-info');
+  document.getElementById('example-info-sector').textContent    = ex.sector;
+  document.getElementById('example-info-sector').className      = 'example-info-sector ' + ex.sectorClass;
+  document.getElementById('example-info-title').textContent     = ex.title;
+  document.getElementById('example-info-subtitle').textContent  = ex.subtitle;
+  document.getElementById('example-info-context').textContent   = ex.context;
+  document.getElementById('example-info-findings').innerHTML    = ex.findings.map(f => `
+    <div class="example-finding">
+      <div class="example-finding-icon"><i class="fas ${esc(f.icon)}"></i></div>
+      <div class="example-finding-body">
+        <strong>${esc(f.label)}</strong>
+        <span>${esc(f.text)}</span>
+      </div>
+    </div>`).join('');
+  panel.classList.remove('hidden');
+}
+
+document.querySelectorAll('.sample-card').forEach(card => {
+  card.addEventListener('click', () => loadExample(card.dataset.sample));
 });
 
 // ── Hero Section ───────────────────────────────────────────────────────────────
 document.getElementById('hero-wizard-btn').addEventListener('click', () => openWizard());
-document.getElementById('hero-sample-btn').addEventListener('click', () => document.getElementById('btn-load-sample').click());
+document.getElementById('hero-sample-btn').addEventListener('click', () => {
+  if (!importBody.classList.contains('open')) {
+    importBody.classList.add('open');
+    importToggle.classList.add('open');
+    importLabel.textContent = '▲ schließen';
+  }
+  document.querySelector('.sample-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
 
 // ── Page Navigation ────────────────────────────────────────────────────────────
 document.getElementById('topbar-brand-link').addEventListener('click', () => location.reload());

@@ -198,6 +198,156 @@ body {
 
 .topbar-spacer { flex: 1; }
 
+/* ── Sample Selector ─────────────────────────────────────────── */
+.sample-selector {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border-s);
+}
+.sample-selector-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sample-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sample-card {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--c-border-s);
+  background: rgba(255,255,255,0.6);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s var(--ease-fluid);
+  font-family: inherit;
+}
+.sample-card:hover {
+  border-color: var(--c-accent);
+  background: rgba(66,0,147,0.04);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.sample-card.active {
+  border-color: var(--c-accent);
+  background: rgba(66,0,147,0.06);
+}
+.sample-card-sector {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+.sample-card-sector--wirtschaft  { background: rgba(92,158,100,0.15); color: #2e7d32; }
+.sample-card-sector--zivi        { background: rgba(108,142,191,0.18); color: #1a5276; }
+.sample-card-sector--verwaltung  { background: rgba(195,150,60,0.18);  color: #7d5a00; }
+.sample-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+.sample-card-meta {
+  font-size: 11px;
+  color: var(--c-muted);
+}
+
+/* ── Example Info Panel ──────────────────────────────────────── */
+.example-info {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.example-info.hidden { display: none; }
+.example-info-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.example-info-sector {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.example-info-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0 0 2px;
+}
+.example-info-subtitle {
+  font-size: 12px;
+  color: var(--c-muted);
+  margin: 0;
+}
+.example-info-context {
+  font-size: 13px;
+  color: var(--c-muted);
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+.example-info-findings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.example-finding {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(66,0,147,0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.example-finding-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.example-finding-body strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-accent);
+  margin-bottom: 2px;
+}
+.example-finding-body span {
+  color: var(--c-muted);
+  line-height: 1.5;
+}
+
 /* ── View Switcher ───────────────────────────────────────────── */
 .view-switcher {
   background: rgba(66,0,147,0.04);
@@ -1401,6 +1551,10 @@ textarea.csv-textarea:focus {
   .hero-steps { flex-direction: column; gap: 16px; padding: 20px 16px; }
   .hero-step-arrow { padding: 0; transform: rotate(90deg); align-self: center; }
   .view-switcher { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .sample-cards { flex-direction: column; }
+  .sample-card { min-width: unset; width: 100%; }
+  .example-info-header { flex-direction: column; gap: 8px; }
+  .example-info-findings { gap: 6px; }
   .view-switcher-tabs { flex-direction: column; width: 100%; }
   .view-tab { width: 100%; justify-content: center; }
   .cta-inner { flex-direction: column; gap: 20px; }

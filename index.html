@@ -149,7 +149,7 @@
               <p class="hero-subheadline">Datenflüsse in Organisationen analysieren und verbessern.</p>
               <div class="hero-buttons">
                 <button class="btn btn-primary btn-lg" id="hero-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
-                <button class="btn btn-secondary btn-lg" id="hero-sample-btn"><i class="fas fa-vials"></i> Beispieldaten laden</button>
+                <button class="btn btn-secondary btn-lg" id="hero-sample-btn"><i class="fas fa-vials"></i> Beispieldaten entdecken</button>
               </div>
             </div>
           </div>
@@ -247,10 +247,45 @@
           <div class="btn-row">
             <button class="btn btn-primary btn-sm" id="btn-visualize">Visualisieren</button>
             <button class="btn btn-secondary btn-sm" id="btn-append">Zu vorhandenen Daten hinzufügen</button>
-            <button class="btn btn-secondary btn-sm" id="btn-load-sample"><i class="fas fa-table"></i> Beispieldaten laden</button>
           </div>
+
+          <!-- Beispieldaten Auswahl -->
+          <div class="sample-selector">
+            <div class="sample-selector-label"><i class="fas fa-vials"></i> Oder Beispieldaten laden:</div>
+            <div class="sample-cards">
+              <button class="sample-card" data-sample="wirtschaft">
+                <span class="sample-card-sector sample-card-sector--wirtschaft">Wirtschaft</span>
+                <span class="sample-card-title">Handelsunternehmen</span>
+                <span class="sample-card-meta">28 Datenflüsse · 12 Akteure</span>
+              </button>
+              <button class="sample-card" data-sample="zivilgesellschaft">
+                <span class="sample-card-sector sample-card-sector--zivi">Zivilgesellschaft</span>
+                <span class="sample-card-title">Wohlfahrtsverband</span>
+                <span class="sample-card-meta">30 Datenflüsse · 12 Akteure</span>
+              </button>
+              <button class="sample-card" data-sample="verwaltung">
+                <span class="sample-card-sector sample-card-sector--verwaltung">Verwaltung</span>
+                <span class="sample-card-title">Stadtverwaltung</span>
+                <span class="sample-card-meta">28 Datenflüsse · 12 Akteure</span>
+              </button>
+            </div>
+          </div>
+
           <div id="status-message"></div>
         </div>
+      </div>
+
+      <!-- Beispiel-Infopanel -->
+      <div class="example-info hidden" id="example-info">
+        <div class="example-info-header">
+          <span class="example-info-sector" id="example-info-sector"></span>
+          <div class="example-info-titles">
+            <h3 class="example-info-title" id="example-info-title"></h3>
+            <p class="example-info-subtitle" id="example-info-subtitle"></p>
+          </div>
+        </div>
+        <p class="example-info-context" id="example-info-context"></p>
+        <div class="example-info-findings" id="example-info-findings"></div>
       </div>
 
       <!-- View Switcher – nur sichtbar wenn Daten geladen -->
