@@ -848,6 +848,7 @@ function loadExample(key) {
       applyFilters();
       setStatus(`${allData.length} Datenflüsse geladen.`, 'success');
       showExampleInfo(ex);
+      switchTab('list');
     })
     .catch(e => setStatus(`Fehler beim Laden: ${e.message}`, 'error'));
 }
