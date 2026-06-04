@@ -752,7 +752,7 @@ textarea.csv-textarea:focus {
   border-radius: var(--radius);
   font-size: 13px;
   font-family: inherit;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.6);
   color: var(--c-text);
   min-width: 140px;
   cursor: pointer;
