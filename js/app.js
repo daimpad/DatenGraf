@@ -778,6 +778,27 @@ document.getElementById('btn-reset-layout').addEventListener('click', () => { if
 document.getElementById('btn-zoom-in').addEventListener('click',  () => { if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 1.2, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } }); });
 document.getElementById('btn-zoom-out').addEventListener('click', () => { if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 0.8, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } }); });
 document.getElementById('btn-zoom-fit').addEventListener('click', () => { if (networkChart) { networkChart.fit(); networkChart.center(); } });
+// ── Network Export ────────────────────────────────────────────────────────────
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('btn-export-png').addEventListener('click', () => {
+  if (!networkChart) return;
+  networkChart.png({ output: 'blob', full: true, scale: 2, bg: '#f0edf8' }, blob => downloadBlob(blob, 'datengraf-netzwerk.png'));
+});
+
+document.getElementById('btn-export-svg').addEventListener('click', () => {
+  if (!networkChart) return;
+  const svg  = networkChart.svg({ full: true });
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  downloadBlob(blob, 'datengraf-netzwerk.svg');
+});
+
 document.getElementById('nd-close').addEventListener('click', () => {
   document.getElementById('node-detail').classList.add('hidden');
   if (networkChart) networkChart.elements().removeClass('highlighted faded');

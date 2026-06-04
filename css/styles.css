@@ -722,6 +722,12 @@ textarea.csv-textarea:focus {
   align-items: center;
   box-shadow: var(--shadow-sm);
 }
+.network-toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--c-border-s);
+  margin: 0 2px;
+}
 
 #network-container {
   background: rgba(255,255,255,0.55);
