@@ -243,9 +243,9 @@ const CY_STYLE = [
     selector: 'node',
     style: {
       label: 'data(id)', 'text-valign': 'center', 'text-halign': 'center',
-      'background-color': '#7a6fa8', color: '#fff',
+      'background-color': 'data(orgColor)', color: '#fff',
       'font-size': '11px', 'font-family': 'Inter, sans-serif',
-      'text-outline-width': 1.5, 'text-outline-color': '#5c5080',
+      'text-outline-width': 1.5, 'text-outline-color': 'data(orgOutlineColor)',
       width: 'data(size)', height: 'data(size)',
       'text-wrap': 'wrap', 'text-max-width': '80px',
       'border-width': 2, 'border-color': 'rgba(255,255,255,0.4)',
@@ -284,7 +284,7 @@ function prepareElements(data) {
 
   const elements = [];
   nodes.forEach((n, id) => {
-    elements.push({ data: { id, dept: n.dept, org: n.org, size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
+    elements.push({ data: { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
   });
   edges.forEach((row, i) => {
     elements.push({ data: { id: `e${i}`, source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: REL_COLORS_HEX[row.Beziehung] || '#999' } });
@@ -298,9 +298,11 @@ function renderNetwork(data) {
   document.getElementById('pathfinder-bar').classList.add('hidden');
   document.getElementById('pathfinder-result').textContent = '';
   document.getElementById('pathfinder-result').className = 'pathfinder-result';
+  document.getElementById('org-legend').classList.add('hidden');
   if (!data.length) return;
 
   networkChart = cytoscape({ container, elements: prepareElements(data), style: CY_STYLE, layout: COSE_OPTS });
+  if (colorByOrg) applyOrgColors();
 
   networkChart.on('tap', 'node', evt => {
     const node  = evt.target;
@@ -554,6 +556,20 @@ let wizardStep = 0;
 let wizardData  = {};
 let editIndex   = -1;
 let wizardDuplicateConfirmed = false;
+let colorByOrg = false;
+
+const ORG_PALETTE = [
+  { bg: '#420093', outline: '#2d0066' },
+  { bg: '#2e9e60', outline: '#1a6640' },
+  { bg: '#d4820a', outline: '#a05f07' },
+  { bg: '#2980b9', outline: '#1c5e8c' },
+  { bg: '#c0392b', outline: '#8c2920' },
+  { bg: '#8e44ad', outline: '#5e2d75' },
+  { bg: '#16a085', outline: '#0d6b58' },
+  { bg: '#d35400', outline: '#922800' },
+  { bg: '#555b6e', outline: '#323740' },
+  { bg: '#1a6640', outline: '#0d3d22' },
+];
 
 function findDuplicate(data, candidate, skipIndex = -1) {
   return data.findIndex((row, i) =>
@@ -918,6 +934,46 @@ document.getElementById('btn-find-path').addEventListener('click', () => {
 });
 
 document.getElementById('btn-clear-path').addEventListener('click', clearPath);
+
+// ── Org-Farben ────────────────────────────────────────────────────────────────
+function buildOrgColorMap() {
+  if (!networkChart) return {};
+  const orgs = [...new Set(networkChart.nodes().map(n => n.data('org') || '—'))].sort((a, b) => a.localeCompare(b));
+  const map = {};
+  orgs.forEach((org, i) => { map[org] = ORG_PALETTE[i % ORG_PALETTE.length]; });
+  return map;
+}
+
+function applyOrgColors() {
+  if (!networkChart) return;
+  const map = buildOrgColorMap();
+  networkChart.nodes().forEach(node => {
+    const c = map[node.data('org') || '—'];
+    node.data('orgColor',        c.bg);
+    node.data('orgOutlineColor', c.outline);
+  });
+  const legendItems = document.getElementById('org-legend-items');
+  legendItems.innerHTML = Object.entries(map).map(([org, c]) =>
+    `<div class="org-legend-item"><span class="org-legend-dot" style="background:${c.bg}"></span><span>${esc(org)}</span></div>`
+  ).join('');
+  document.getElementById('org-legend').classList.remove('hidden');
+}
+
+function clearOrgColors() {
+  if (!networkChart) return;
+  networkChart.nodes().forEach(node => {
+    node.data('orgColor',        '#7a6fa8');
+    node.data('orgOutlineColor', '#5c5080');
+  });
+  document.getElementById('org-legend').classList.add('hidden');
+}
+
+document.getElementById('btn-color-by-org').addEventListener('click', () => {
+  colorByOrg = !colorByOrg;
+  document.getElementById('btn-color-by-org').classList.toggle('active', colorByOrg);
+  if (colorByOrg) applyOrgColors();
+  else clearOrgColors();
+});
 
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
   document.getElementById('panel-network').classList.toggle('fullscreen');
