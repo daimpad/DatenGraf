@@ -875,6 +875,26 @@ document.querySelectorAll('.sample-card').forEach(card => {
   card.addEventListener('click', () => loadExample(card.dataset.sample));
 });
 
+// ── Template Download ─────────────────────────────────────────────────────────
+document.getElementById('btn-download-template').addEventListener('click', () => {
+  fetch('data/template.csv')
+    .then(r => r.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'datengraf-vorlage.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    })
+    .catch(() => {
+      // Fallback: direkt navigieren
+      const a = document.createElement('a');
+      a.href = 'data/template.csv';
+      a.download = 'datengraf-vorlage.csv';
+      a.click();
+    });
+});
+
 // ── Hero Section ───────────────────────────────────────────────────────────────
 document.getElementById('hero-wizard-btn').addEventListener('click', () => openWizard());
 document.getElementById('hero-sample-btn').addEventListener('click', () => {

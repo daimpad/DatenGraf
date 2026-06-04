@@ -198,6 +198,41 @@ body {
 
 .topbar-spacer { flex: 1; }
 
+/* ── Template Hint ───────────────────────────────────────────── */
+.template-hint {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(66,0,147,0.04);
+  border: 1px solid rgba(66,0,147,0.1);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.template-hint-text {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--c-muted);
+  line-height: 1.55;
+}
+.template-hint-text i {
+  color: var(--c-accent);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.template-hint-text strong { color: var(--c-text); }
+.template-hint-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
 /* ── Sample Selector ─────────────────────────────────────────── */
 .sample-selector {
   margin-top: 16px;
