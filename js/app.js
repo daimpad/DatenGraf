@@ -206,11 +206,19 @@ function renderList(data) {
       ${schutzClass    ? `<span class="badge ${schutzClass}">${esc(row.Schutzbedarf)}</span>`   : ''}
       ${erfClass       ? `<span class="badge ${erfClass}">${esc(row.Erfassungsart)}</span>`     : ''}
       <div class="rel-card-actions" style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" data-dupe="${idx}" title="Duplizieren"><i class="fas fa-copy"></i></button>
         <button class="btn btn-secondary btn-sm" data-edit="${idx}" title="Bearbeiten"><i class="fas fa-pen"></i></button>
         <button class="btn btn-secondary btn-sm" data-del="${idx}"  title="Löschen">✕</button>
       </div>
     `;
     contentEl.appendChild(card);
+  });
+
+  contentEl.querySelectorAll('[data-dupe]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = filteredData[parseInt(btn.dataset.dupe)];
+      openWizard({ ...row });
+    });
   });
 
   contentEl.querySelectorAll('[data-edit]').forEach(btn => {
