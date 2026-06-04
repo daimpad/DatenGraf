@@ -205,11 +205,20 @@ function renderList(data) {
       ${row.Format     ? `<span class="badge badge-format">${esc(row.Format)}</span>`            : ''}
       ${schutzClass    ? `<span class="badge ${schutzClass}">${esc(row.Schutzbedarf)}</span>`   : ''}
       ${erfClass       ? `<span class="badge ${erfClass}">${esc(row.Erfassungsart)}</span>`     : ''}
-      <div class="rel-card-actions" style="margin-left:auto">
-        <button class="btn btn-secondary btn-sm" data-del="${idx}" title="Löschen">✕</button>
+      <div class="rel-card-actions" style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" data-edit="${idx}" title="Bearbeiten"><i class="fas fa-pen"></i></button>
+        <button class="btn btn-secondary btn-sm" data-del="${idx}"  title="Löschen">✕</button>
       </div>
     `;
     contentEl.appendChild(card);
+  });
+
+  contentEl.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = filteredData[parseInt(btn.dataset.edit)];
+      const idx = allData.indexOf(row);
+      openWizard({ ...row }, idx);
+    });
   });
 
   contentEl.querySelectorAll('[data-del]').forEach(btn => {
@@ -295,10 +304,38 @@ function renderNetwork(data) {
     networkChart.elements().removeClass('highlighted faded');
     networkChart.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
     node.union(edges).union(nbrs).addClass('highlighted');
+    showNodeDetail(node.id(), data);
   });
   networkChart.on('tap', evt => {
-    if (evt.target === networkChart) networkChart.elements().removeClass('highlighted faded');
+    if (evt.target === networkChart) {
+      networkChart.elements().removeClass('highlighted faded');
+      document.getElementById('node-detail').classList.add('hidden');
+    }
   });
+}
+
+function showNodeDetail(nodeId, data) {
+  const outFlows = data.filter(r => r.Quelle === nodeId);
+  const inFlows  = data.filter(r => r.Ziel   === nodeId);
+
+  document.getElementById('nd-name').textContent = nodeId;
+  document.getElementById('nd-metrics').innerHTML =
+    `<span class="nd-badge"><i class="fas fa-arrow-up-from-bracket" style="font-size:9px"></i> ${outFlows.length} ausgehend</span>` +
+    `<span class="nd-badge"><i class="fas fa-arrow-down-to-bracket" style="font-size:9px"></i> ${inFlows.length} eingehend</span>`;
+
+  const flowHtml = (flows, dir) => flows.map(r => `
+    <div class="nd-flow">
+      <span class="nd-flow-dir">${dir}</span>
+      <span class="nd-flow-node">${esc(dir === '→' ? r.Ziel : r.Quelle)}</span>
+      ${r.Beziehung ? `<span class="nd-flow-rel">${esc(r.Beziehung)}</span>` : ''}
+      ${r.Datentyp  ? `<span class="nd-flow-type">${esc(r.Datentyp)}</span>`  : ''}
+    </div>`).join('');
+
+  document.getElementById('nd-flows').innerHTML =
+    (outFlows.length ? `<div class="nd-section-label">Ausgehend</div>${flowHtml(outFlows, '→')}` : '') +
+    (inFlows.length  ? `<div class="nd-section-label">Eingehend</div>${flowHtml(inFlows,  '←')}` : '');
+
+  document.getElementById('node-detail').classList.remove('hidden');
 }
 
 // ── Insights ──────────────────────────────────────────────────────────────────
@@ -509,11 +546,14 @@ const WIZARD_STEPS = [
 ];
 
 let wizardStep = 0;
-let wizardData = {};
+let wizardData  = {};
+let editIndex   = -1;
 
-function openWizard(prefill = {}) {
+function openWizard(prefill = {}, editIdx = -1) {
+  editIndex  = editIdx;
   wizardStep = 0;
   wizardData = { ...prefill };
+  document.getElementById('wizard-title').textContent = editIdx >= 0 ? 'Datenfluss bearbeiten' : 'Neuen Datenfluss erfassen';
   document.getElementById('wizard-backdrop').classList.remove('hidden');
   renderWizardStep();
 }
@@ -521,6 +561,7 @@ function openWizard(prefill = {}) {
 function closeWizard() {
   document.getElementById('wizard-backdrop').classList.add('hidden');
   wizardData = {};
+  editIndex  = -1;
 }
 
 function renderWizardStep() {
@@ -557,7 +598,10 @@ function renderWizardStep() {
 
   document.getElementById('wizard-hint').textContent  = step.hint;
   document.getElementById('wizard-back').style.display = wizardStep === 0 ? 'none' : '';
-  document.getElementById('wizard-next').innerHTML   = wizardStep === WIZARD_STEPS.length - 1 ? '<i class="fas fa-check"></i> Speichern' : 'Weiter <i class="fas fa-arrow-right"></i>';
+  const isLast = wizardStep === WIZARD_STEPS.length - 1;
+  document.getElementById('wizard-next').innerHTML = isLast
+    ? `<i class="fas fa-check"></i> ${editIndex >= 0 ? 'Aktualisieren' : 'Speichern'}`
+    : 'Weiter <i class="fas fa-arrow-right"></i>';
 }
 
 function collectWizardStep() {
@@ -571,11 +615,17 @@ document.getElementById('wizard-next').addEventListener('click', () => {
   if (!collectWizardStep()) return;
   if (wizardStep < WIZARD_STEPS.length - 1) { wizardStep++; renderWizardStep(); }
   else {
-    allData.push({ ...wizardData });
+    if (editIndex >= 0) {
+      allData[editIndex] = { ...wizardData };
+      setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" aktualisiert.`, 'success');
+      editIndex = -1;
+    } else {
+      allData.push({ ...wizardData });
+      setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" gespeichert.`, 'success');
+    }
     buildSidebarFilters();
     applyFilters();
     closeWizard();
-    setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" gespeichert.`, 'success');
   }
 });
 
@@ -728,6 +778,11 @@ document.getElementById('btn-reset-layout').addEventListener('click', () => { if
 document.getElementById('btn-zoom-in').addEventListener('click',  () => { if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 1.2, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } }); });
 document.getElementById('btn-zoom-out').addEventListener('click', () => { if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 0.8, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } }); });
 document.getElementById('btn-zoom-fit').addEventListener('click', () => { if (networkChart) { networkChart.fit(); networkChart.center(); } });
+document.getElementById('nd-close').addEventListener('click', () => {
+  document.getElementById('node-detail').classList.add('hidden');
+  if (networkChart) networkChart.elements().removeClass('highlighted faded');
+});
+
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
   document.getElementById('panel-network').classList.toggle('fullscreen');
   setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);

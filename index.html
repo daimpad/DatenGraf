@@ -38,7 +38,7 @@
 <div class="modal-backdrop hidden" id="wizard-backdrop">
   <div class="wizard" role="dialog" aria-modal="true">
     <div class="wizard-header">
-      <div class="wizard-title">Neuen Datenfluss erfassen</div>
+      <div class="wizard-title" id="wizard-title">Neuen Datenfluss erfassen</div>
       <div class="step-indicators" id="step-indicators"></div>
     </div>
     <div class="wizard-body" id="wizard-body"></div>
@@ -349,6 +349,18 @@
           <button class="btn btn-icon btn-secondary" id="btn-fullscreen" title="Vollbild"><i class="fas fa-expand"></i></button>
         </div>
         <div id="network-container"></div>
+
+        <!-- Knoten-Detailpanel -->
+        <div class="node-detail hidden" id="node-detail" role="region" aria-label="Knotendetails">
+          <div class="node-detail-header">
+            <div>
+              <div class="node-detail-name" id="nd-name"></div>
+              <div class="node-detail-metrics" id="nd-metrics"></div>
+            </div>
+            <button class="node-detail-close" id="nd-close" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
+          </div>
+          <div class="node-detail-flows" id="nd-flows"></div>
+        </div>
       </div>
 
       <div class="tab-panel" id="panel-insights">
