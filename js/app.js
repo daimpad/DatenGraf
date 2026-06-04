@@ -1170,5 +1170,37 @@ document.getElementById('open-theory-btn').addEventListener('click', () => theor
 document.getElementById('theory-close').addEventListener('click',    () => theoryBackdrop.classList.add('hidden'));
 theoryBackdrop.addEventListener('click', e => { if (e.target === theoryBackdrop) theoryBackdrop.classList.add('hidden'); });
 
+// ── Share Link ────────────────────────────────────────────────────────────────
+document.getElementById('share-link-btn').addEventListener('click', () => {
+  if (!allData.length) { setStatus('Keine Daten zum Teilen.', 'error'); return; }
+  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(allData));
+  const url = `${location.origin}${location.pathname}#share=${compressed}`;
+  if (url.length > 15000) {
+    setStatus('Datensatz zu groß für einen Link – bitte CSV-Export verwenden.', 'error');
+    return;
+  }
+  navigator.clipboard.writeText(url)
+    .then(() => setStatus('Link kopiert! Einfach weiterschicken.', 'success'))
+    .catch(() => { prompt('Link kopieren:', url); });
+});
+
+function loadFromShareHash() {
+  const hash = location.hash;
+  if (!hash.startsWith('#share=')) return;
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(hash.slice(7));
+    const data = JSON.parse(json);
+    if (!Array.isArray(data) || !data.length) return;
+    allData = data;
+    buildSidebarFilters();
+    applyFilters();
+    setStatus(`${data.length} Datenflüsse aus geteiltem Link geladen.`, 'success');
+    history.replaceState(null, '', location.pathname);
+  } catch {
+    setStatus('Link-Daten konnten nicht geladen werden.', 'error');
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
+loadFromShareHash();
 renderAll();
