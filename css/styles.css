@@ -1085,6 +1085,21 @@ textarea.csv-textarea:focus {
 
 .wizard-footer .step-hint { font-size: 11px; color: var(--c-muted); }
 
+.wizard-dup-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff8e1;
+  border: 1px solid #f59e0b;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: #92400e;
+  margin-bottom: 8px;
+}
+.wizard-dup-warning i { color: #f59e0b; flex-shrink: 0; margin-top: 1px; }
+.wizard-dup-warning.hidden { display: none; }
+
 /* ── Hero Section ────────────────────────────────────────────── */
 @keyframes heroCardFadeIn {
   from { opacity: 0; transform: translateY(24px); }

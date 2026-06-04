@@ -43,6 +43,10 @@
     </div>
     <div class="wizard-body" id="wizard-body"></div>
     <div class="wizard-footer">
+      <div class="wizard-dup-warning hidden" id="wizard-dup-warning">
+        <i class="fas fa-triangle-exclamation"></i>
+        <span>Mögliches Duplikat: <strong id="wizard-dup-text"></strong> existiert bereits. Trotzdem speichern?</span>
+      </div>
       <span class="step-hint" id="wizard-hint"></span>
       <div class="btn-row" style="margin:0">
         <button class="btn btn-secondary btn-sm" id="wizard-cancel">Abbrechen</button>
@@ -561,6 +565,6 @@
   <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
 </footer>
 
-<script src="js/app.js?v=6"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>

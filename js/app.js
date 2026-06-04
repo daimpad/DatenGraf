@@ -548,6 +548,16 @@ const WIZARD_STEPS = [
 let wizardStep = 0;
 let wizardData  = {};
 let editIndex   = -1;
+let wizardDuplicateConfirmed = false;
+
+function findDuplicate(data, candidate, skipIndex = -1) {
+  return data.findIndex((row, i) =>
+    i !== skipIndex &&
+    row.Quelle    === candidate.Quelle &&
+    row.Ziel      === candidate.Ziel   &&
+    row.Datentyp  === candidate.Datentyp
+  );
+}
 
 function openWizard(prefill = {}, editIdx = -1) {
   editIndex  = editIdx;
@@ -560,8 +570,10 @@ function openWizard(prefill = {}, editIdx = -1) {
 
 function closeWizard() {
   document.getElementById('wizard-backdrop').classList.add('hidden');
+  document.getElementById('wizard-dup-warning').classList.add('hidden');
   wizardData = {};
   editIndex  = -1;
+  wizardDuplicateConfirmed = false;
 }
 
 function renderWizardStep() {
@@ -613,8 +625,22 @@ function collectWizardStep() {
 
 document.getElementById('wizard-next').addEventListener('click', () => {
   if (!collectWizardStep()) return;
-  if (wizardStep < WIZARD_STEPS.length - 1) { wizardStep++; renderWizardStep(); }
-  else {
+  if (wizardStep < WIZARD_STEPS.length - 1) {
+    wizardStep++;
+    wizardDuplicateConfirmed = false;
+    document.getElementById('wizard-dup-warning').classList.add('hidden');
+    renderWizardStep();
+  } else {
+    const dupIdx = findDuplicate(allData, wizardData, editIndex);
+    if (dupIdx !== -1 && !wizardDuplicateConfirmed) {
+      const dup = allData[dupIdx];
+      document.getElementById('wizard-dup-text').textContent =
+        `${esc(dup.Quelle)} → ${esc(dup.Ziel)} (${esc(dup.Datentyp)})`;
+      document.getElementById('wizard-dup-warning').classList.remove('hidden');
+      document.getElementById('wizard-next').innerHTML = '<i class="fas fa-triangle-exclamation"></i> Trotzdem speichern';
+      wizardDuplicateConfirmed = true;
+      return;
+    }
     if (editIndex >= 0) {
       allData[editIndex] = { ...wizardData };
       setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" aktualisiert.`, 'success');
@@ -623,13 +649,20 @@ document.getElementById('wizard-next').addEventListener('click', () => {
       allData.push({ ...wizardData });
       setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" gespeichert.`, 'success');
     }
+    wizardDuplicateConfirmed = false;
     buildSidebarFilters();
     applyFilters();
     closeWizard();
   }
 });
 
-document.getElementById('wizard-back').addEventListener('click', () => { collectWizardStep(); wizardStep--; renderWizardStep(); });
+document.getElementById('wizard-back').addEventListener('click', () => {
+  collectWizardStep();
+  wizardStep--;
+  wizardDuplicateConfirmed = false;
+  document.getElementById('wizard-dup-warning').classList.add('hidden');
+  renderWizardStep();
+});
 document.getElementById('wizard-cancel').addEventListener('click', closeWizard);
 document.getElementById('wizard-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeWizard(); });
 document.getElementById('open-wizard-btn').addEventListener('click', () => openWizard());
