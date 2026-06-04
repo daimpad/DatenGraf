@@ -354,6 +354,18 @@
           <div class="network-toolbar-sep"></div>
           <button class="btn btn-secondary btn-sm" id="btn-export-png" title="Als PNG herunterladen"><i class="fas fa-image"></i> PNG</button>
           <button class="btn btn-secondary btn-sm" id="btn-export-svg" title="Als SVG herunterladen"><i class="fas fa-vector-square"></i> SVG</button>
+          <div class="network-toolbar-sep"></div>
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-pathfinder" title="Kürzesten Pfad zwischen zwei Knoten suchen"><i class="fas fa-route"></i> Pfadfinder</button>
+        </div>
+        <div class="pathfinder-bar hidden" id="pathfinder-bar">
+          <span class="pathfinder-label"><i class="fas fa-route fa-fw"></i> Von</span>
+          <select id="path-from" class="pathfinder-select"><option value="">Knoten wählen…</option></select>
+          <i class="fas fa-arrow-right" style="color:var(--c-muted)"></i>
+          <span class="pathfinder-label">Nach</span>
+          <select id="path-to" class="pathfinder-select"><option value="">Knoten wählen…</option></select>
+          <button class="btn btn-primary btn-sm" id="btn-find-path"><i class="fas fa-magnifying-glass"></i> Suchen</button>
+          <button class="btn btn-secondary btn-sm btn-icon" id="btn-clear-path" title="Pfad zurücksetzen"><i class="fas fa-xmark"></i></button>
+          <span class="pathfinder-result" id="pathfinder-result"></span>
         </div>
         <div id="network-container"></div>
 
@@ -565,6 +577,6 @@
   <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
 </footer>
 
-<script src="js/app.js?v=7"></script>
+<script src="js/app.js?v=8"></script>
 </body>
 </html>

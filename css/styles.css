@@ -729,6 +729,33 @@ textarea.csv-textarea:focus {
   margin: 0 2px;
 }
 
+.pathfinder-bar {
+  background: rgba(66,0,147,0.04);
+  border: 1px solid rgba(66,0,147,0.15);
+  border-top: none;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pathfinder-bar.hidden { display: none; }
+.pathfinder-label { font-size: 13px; font-weight: 600; color: var(--c-accent); white-space: nowrap; }
+.pathfinder-select {
+  padding: 5px 10px;
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: inherit;
+  background: rgba(255,255,255,0.8);
+  color: var(--c-text);
+  min-width: 140px;
+  cursor: pointer;
+}
+.pathfinder-result { font-size: 12px; color: var(--c-muted); flex: 1; min-width: 100px; }
+.pathfinder-result.found { color: var(--c-success); font-weight: 500; }
+.pathfinder-result.not-found { color: var(--c-danger); }
+
 #network-container {
   background: rgba(255,255,255,0.55);
   backdrop-filter: blur(8px);

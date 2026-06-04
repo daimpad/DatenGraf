@@ -265,6 +265,8 @@ const CY_STYLE = [
   },
   { selector: '.highlighted', style: { 'background-color': '#420093', 'line-color': '#420093', 'target-arrow-color': '#420093', opacity: 1, 'z-index': 999, 'border-color': '#fff', 'border-width': 2 } },
   { selector: '.faded',       style: { opacity: 0.12, 'z-index': 0 } },
+  { selector: '.path-node',   style: { 'background-color': '#2e9e60', 'border-color': '#fff', 'border-width': 3, opacity: 1, 'z-index': 999, color: '#fff', 'text-outline-color': '#1a6640' } },
+  { selector: '.path-edge',   style: { 'line-color': '#2e9e60', 'target-arrow-color': '#2e9e60', width: 4, opacity: 1, 'z-index': 998 } },
 ];
 
 function prepareElements(data) {
@@ -293,6 +295,9 @@ function prepareElements(data) {
 function renderNetwork(data) {
   const container = document.getElementById('network-container');
   container.innerHTML = '';
+  document.getElementById('pathfinder-bar').classList.add('hidden');
+  document.getElementById('pathfinder-result').textContent = '';
+  document.getElementById('pathfinder-result').className = 'pathfinder-result';
   if (!data.length) return;
 
   networkChart = cytoscape({ container, elements: prepareElements(data), style: CY_STYLE, layout: COSE_OPTS });
@@ -836,6 +841,83 @@ document.getElementById('nd-close').addEventListener('click', () => {
   document.getElementById('node-detail').classList.add('hidden');
   if (networkChart) networkChart.elements().removeClass('highlighted faded');
 });
+
+// ── Pathfinder ────────────────────────────────────────────────────────────────
+function populatePathfinderSelects() {
+  if (!networkChart) return;
+  const nodes = networkChart.nodes().map(n => n.id()).sort((a, b) => a.localeCompare(b));
+  ['path-from', 'path-to'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Knoten wählen…</option>';
+    nodes.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    if (nodes.includes(cur)) sel.value = cur;
+  });
+}
+
+function clearPath() {
+  if (networkChart) networkChart.elements().removeClass('path-node path-edge faded highlighted');
+  const r = document.getElementById('pathfinder-result');
+  r.textContent = '';
+  r.className = 'pathfinder-result';
+}
+
+document.getElementById('btn-toggle-pathfinder').addEventListener('click', () => {
+  const bar = document.getElementById('pathfinder-bar');
+  bar.classList.toggle('hidden');
+  if (!bar.classList.contains('hidden')) {
+    populatePathfinderSelects();
+  } else {
+    clearPath();
+  }
+});
+
+document.getElementById('btn-find-path').addEventListener('click', () => {
+  if (!networkChart) return;
+  const from = document.getElementById('path-from').value;
+  const to   = document.getElementById('path-to').value;
+  const resultEl = document.getElementById('pathfinder-result');
+
+  if (!from || !to) {
+    resultEl.textContent = 'Bitte Von- und Nach-Knoten wählen.';
+    resultEl.className = 'pathfinder-result';
+    return;
+  }
+  if (from === to) {
+    resultEl.textContent = 'Von und Nach sind identisch.';
+    resultEl.className = 'pathfinder-result';
+    return;
+  }
+
+  networkChart.elements().removeClass('path-node path-edge faded highlighted');
+
+  const root = networkChart.$id(from);
+  const goal = networkChart.$id(to);
+  if (!root.length || !goal.length) return;
+
+  const result = networkChart.elements().aStar({ root, goal, directed: true });
+
+  if (result.found) {
+    networkChart.elements().difference(result.path).addClass('faded');
+    result.path.nodes().addClass('path-node');
+    result.path.edges().addClass('path-edge');
+    const nodeCount = result.path.nodes().length;
+    const edgeCount = result.path.edges().length;
+    const stepNames = result.path.nodes().map(n => n.id()).join(' → ');
+    resultEl.textContent = `${nodeCount} Knoten · ${edgeCount} Schritt${edgeCount !== 1 ? 'e' : ''}: ${stepNames}`;
+    resultEl.className = 'pathfinder-result found';
+    networkChart.fit(result.path, 80);
+  } else {
+    resultEl.textContent = `Kein Pfad von „${from}" nach „${to}" gefunden.`;
+    resultEl.className = 'pathfinder-result not-found';
+  }
+});
+
+document.getElementById('btn-clear-path').addEventListener('click', clearPath);
 
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
   document.getElementById('panel-network').classList.toggle('fullscreen');
