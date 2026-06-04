@@ -1170,6 +1170,114 @@ document.getElementById('open-theory-btn').addEventListener('click', () => theor
 document.getElementById('theory-close').addEventListener('click',    () => theoryBackdrop.classList.add('hidden'));
 theoryBackdrop.addEventListener('click', e => { if (e.target === theoryBackdrop) theoryBackdrop.classList.add('hidden'); });
 
+// ── PDF-Bericht ───────────────────────────────────────────────────────────────
+function buildReportHTML(networkImgUri) {
+  const data = filteredData.length ? filteredData : allData;
+  const isFiltered = filteredData.length !== allData.length && allData.length > 0;
+  const e = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const nodes = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean));
+  const dsgvoCount = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length;
+  const orgs = new Set(data.map(r => r.QuelleOrganisation).filter(Boolean));
+
+  const deg = {};
+  data.forEach(r => {
+    if (r.Quelle) { if (!deg[r.Quelle]) deg[r.Quelle] = { out: 0, inn: 0 }; deg[r.Quelle].out++; }
+    if (r.Ziel)   { if (!deg[r.Ziel])   deg[r.Ziel]   = { out: 0, inn: 0 }; deg[r.Ziel].inn++; }
+  });
+  const topNodes = Object.entries(deg)
+    .sort((a, b) => (b[1].out + b[1].inn) - (a[1].out + a[1].inn))
+    .slice(0, 10);
+
+  const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const schutzBadge = v => {
+    const safe = e(v);
+    if (v === 'DSGVO-relevant') return `<span class="badge badge-dsgvo">${safe}</span>`;
+    if (v === 'Intern')         return `<span class="badge badge-intern">${safe}</span>`;
+    if (v === 'Öffentlich')     return `<span class="badge badge-public">${safe}</span>`;
+    return safe;
+  };
+
+  return `<!DOCTYPE html><html lang="de"><head>
+<meta charset="UTF-8">
+<title>DatenGraf – Bericht</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e1b2e; padding: 40px; font-size: 12px; line-height: 1.5; }
+h1 { font-size: 22px; color: #420093; font-weight: 800; letter-spacing: -0.5px; }
+.meta { color: #7a7591; font-size: 12px; margin: 4px 0 28px; }
+.section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #7a7591; font-weight: 700; margin: 28px 0 12px; border-bottom: 2px solid #ede9f8; padding-bottom: 5px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat-box { background: #f5f3fb; border-radius: 8px; padding: 14px 12px; text-align: center; }
+.stat-value { font-size: 26px; font-weight: 800; color: #420093; }
+.stat-label { font-size: 10px; color: #7a7591; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+img.net { max-width: 100%; border-radius: 8px; border: 1px solid #e0dce8; display: block; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+th { background: #420093; color: #fff; padding: 7px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
+td { padding: 6px 10px; border-bottom: 1px solid #ede9f8; vertical-align: middle; }
+tr:nth-child(even) td { background: #f8f6fc; }
+.num { text-align: center; }
+.bold { font-weight: 700; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.badge-dsgvo  { background: #fde8e8; color: #c0392b; }
+.badge-intern { background: #fef3e2; color: #d4820a; }
+.badge-public { background: #e8f8ee; color: #2e9e60; }
+.filter-note { font-size: 11px; color: #7a7591; font-style: italic; margin-top: 8px; }
+@media print { @page { margin: 15mm 18mm; size: A4; } body { padding: 0; } }
+</style></head><body>
+<h1>DatenGraf – Datenfluss-Bericht</h1>
+<div class="meta">Erstellt am ${date}${isFiltered ? ' &nbsp;·&nbsp; Gefilterter Datensatz' : ''}</div>
+
+<div class="section-title">Übersicht</div>
+<div class="stats-grid">
+  <div class="stat-box"><div class="stat-value">${data.length}</div><div class="stat-label">Datenflüsse</div></div>
+  <div class="stat-box"><div class="stat-value">${nodes.size}</div><div class="stat-label">Knoten</div></div>
+  <div class="stat-box"><div class="stat-value">${dsgvoCount}</div><div class="stat-label">DSGVO-relevant</div></div>
+  <div class="stat-box"><div class="stat-value">${orgs.size || '—'}</div><div class="stat-label">Organisationen</div></div>
+</div>
+${isFiltered ? '<p class="filter-note">* Es sind Filter aktiv – der Bericht zeigt nur den gefilterten Datensatz.</p>' : ''}
+
+${networkImgUri ? `
+<div class="section-title">Netzwerkkarte</div>
+<img class="net" src="${networkImgUri}" alt="Netzwerkkarte">
+` : ''}
+
+<div class="section-title">Top-Knoten nach Vernetzungsgrad</div>
+<table>
+  <thead><tr><th>#</th><th>Knoten</th><th class="num">Ausgehend</th><th class="num">Eingehend</th><th class="num">Gesamt</th></tr></thead>
+  <tbody>${topNodes.map(([name, d], i) => `
+    <tr><td>${i + 1}</td><td>${e(name)}</td><td class="num">${d.out}</td><td class="num">${d.inn}</td><td class="num bold">${d.out + d.inn}</td></tr>`).join('')}
+  </tbody>
+</table>
+
+<div class="section-title">Alle Datenflüsse (${data.length})</div>
+<table>
+  <thead><tr><th>Quelle</th><th>Ziel</th><th>Beziehung</th><th>Datentyp</th><th>Häufigkeit</th><th>Format</th><th>Schutzbedarf</th></tr></thead>
+  <tbody>${data.map(r => `
+    <tr><td>${e(r.Quelle)}</td><td>${e(r.Ziel)}</td><td>${e(r.Beziehung)}</td><td>${e(r.Datentyp)}</td><td>${e(r.Häufigkeit)}</td><td>${e(r.Format)}</td><td>${schutzBadge(r.Schutzbedarf)}</td></tr>`).join('')}
+  </tbody>
+</table>
+</body></html>`;
+}
+
+document.getElementById('pdf-report-btn').addEventListener('click', () => {
+  if (!allData.length) { setStatus('Keine Daten für Bericht.', 'error'); return; }
+  const openReport = uri => {
+    const win = window.open('', '_blank');
+    if (!win) { setStatus('Popup blockiert – bitte Popup-Blocker deaktivieren.', 'error'); return; }
+    win.document.write(buildReportHTML(uri));
+    win.document.close();
+    win.addEventListener('load', () => setTimeout(() => win.print(), 300));
+  };
+  if (networkChart) {
+    const uri = networkChart.png({ output: 'base64uri', full: true, scale: 2, bg: '#f0edf8' });
+    openReport(typeof uri === 'string' ? uri : null);
+  } else {
+    openReport(null);
+  }
+});
+
 // ── Share Link ────────────────────────────────────────────────────────────────
 document.getElementById('share-link-btn').addEventListener('click', () => {
   if (!allData.length) { setStatus('Keine Daten zum Teilen.', 'error'); return; }
