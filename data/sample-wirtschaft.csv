@@ -1,0 +1,29 @@
+Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
+Online-Shop,E-Commerce,Vertrieb,Globex Handels GmbH,Datenersteller,übergibt,Warenwirtschaft,Bestellungen,stündlich,API,Intern,Automatisiert,Shop-System sendet neue Bestellungen automatisch
+Online-Shop,E-Commerce,Vertrieb,Globex Handels GmbH,Datenersteller,übergibt,CRM,Registrierungsdaten,sofort,API,DSGVO-relevant,Automatisiert,Neuregistrierungen werden synchronisiert
+Online-Shop,E-Commerce,Vertrieb,Globex Handels GmbH,Datennutzer,empfängt,Logistik,Sendungsstatus,täglich,API,Intern,Automatisiert,Trackingnummern für Kunden
+Online-Shop,E-Commerce,Vertrieb,Globex Handels GmbH,Datennutzer,nutzt,Marketing,Kampagnendaten,unregelmäßig,Excel,Öffentlich,Manuell,Aktionspreise werden manuell übertragen
+Warenwirtschaft,IT,Kernprozesse,Globex Handels GmbH,Datenverwalter,übergibt,Lagerverwaltung,Kommissionieraufträge,stündlich,API,Intern,Automatisiert,
+Warenwirtschaft,IT,Kernprozesse,Globex Handels GmbH,Datenverwalter,übergibt,Logistik,Versandaufträge,stündlich,EDI,Intern,Automatisiert,
+Warenwirtschaft,IT,Kernprozesse,Globex Handels GmbH,Datenverwalter,übergibt,Buchhaltung,Rechnungsdaten,täglich,CSV,Intern,Automatisiert,Tagesabschluss
+Warenwirtschaft,IT,Kernprozesse,Globex Handels GmbH,Datenverwalter,übergibt,Controlling,Bestandsdaten,täglich,Excel,Intern,Manuell,Manueller Export aus Warenwirtschaft
+Warenwirtschaft,IT,Kernprozesse,Globex Handels GmbH,Datenverwalter,übergibt,CRM,Bestellhistorie,täglich,API,Intern,Automatisiert,
+Warenwirtschaft,IT,Kernprozesse,Globex Handels GmbH,Datenverwalter,übergibt,Lieferantenportal,Bestellungen,täglich,EDI,Intern,Automatisiert,
+Lagerverwaltung,Lager,Logistik,Globex Handels GmbH,Datenverarbeiter,übergibt,Warenwirtschaft,Bestandsabgleich,täglich,API,Intern,Automatisiert,
+Lagerverwaltung,Lager,Logistik,Globex Handels GmbH,Datenersteller,übergibt,Controlling,Lagerkosten,monatlich,Excel,Intern,Manuell,
+Logistik,Versand,Logistik,Globex Handels GmbH,Datenverarbeiter,übergibt,Online-Shop,Sendungsstatus,täglich,API,Intern,Automatisiert,
+Logistik,Versand,Logistik,Globex Handels GmbH,Datenverarbeiter,übergibt,Retourenmanagement,Rücksendungen,täglich,Excel,Intern,Manuell,Keine direkte Systemschnittstelle
+Logistik,Versand,Logistik,Globex Handels GmbH,Datenersteller,übergibt,Controlling,Versandkosten,monatlich,Excel,Intern,Manuell,
+Lieferantenportal,Einkauf,Einkauf,Globex Handels GmbH,Datenersteller,übergibt,Warenwirtschaft,Lieferavise,täglich,EDI,Intern,Automatisiert,
+Lieferantenportal,Einkauf,Einkauf,Globex Handels GmbH,Datenersteller,übergibt,Buchhaltung,Eingangsrechnungen,täglich,EDI,Intern,Automatisiert,
+Retourenmanagement,Kundenservice,Vertrieb,Globex Handels GmbH,Datenverarbeiter,übergibt,Warenwirtschaft,Retouren,täglich,CSV,Intern,Manuell,Manuell zurückgebucht
+Retourenmanagement,Kundenservice,Vertrieb,Globex Handels GmbH,Datenverarbeiter,übergibt,Buchhaltung,Gutschriften,täglich,CSV,Intern,Manuell,
+CRM,Marketing,Vertrieb,Globex Handels GmbH,Datenverwalter,übergibt,Marketing,Kundensegmente,wöchentlich,CSV,Intern,Manuell,
+CRM,Marketing,Vertrieb,Globex Handels GmbH,Datenverwalter,übergibt,Geschäftsleitung,Kundenbericht,quartalsweise,PDF,Intern,Manuell,
+Marketing,Marketing,Vertrieb,Globex Handels GmbH,Datenersteller,übergibt,CRM,Kampagnenergebnisse,wöchentlich,Excel,Intern,Manuell,Kein direkter Rückfluss zu Logistik
+Buchhaltung,Finanzen,Finanzen,Globex Handels GmbH,Datenverarbeiter,übergibt,Controlling,Ist-Kosten,monatlich,Excel,Intern,Manuell,
+Buchhaltung,Finanzen,Finanzen,Globex Handels GmbH,Datenverarbeiter,übergibt,Geschäftsleitung,Jahresabschluss,jährlich,PDF,Intern,Manuell,
+Controlling,Controlling,Finanzen,Globex Handels GmbH,Datenverarbeiter,übergibt,Geschäftsleitung,Monatsbericht,monatlich,PDF,Intern,Manuell,
+Controlling,Controlling,Finanzen,Globex Handels GmbH,Datenverwalter,übergibt,HR,Budgetvorgaben,jährlich,Excel,Intern,Manuell,
+HR,Personal,Verwaltung,Globex Handels GmbH,Datenersteller,übergibt,Controlling,Personalkosten,monatlich,Excel,DSGVO-relevant,Manuell,
+HR,Personal,Verwaltung,Globex Handels GmbH,Datenersteller,übergibt,Geschäftsleitung,Personalplanung,quartalsweise,PDF,DSGVO-relevant,Manuell,

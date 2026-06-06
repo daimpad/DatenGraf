@@ -1,0 +1,31 @@
+Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
+Ortsgruppe Hamburg,Ehrenamt,Nord,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Regionalstelle Nord,Fallzahlen,monatlich,Excel,DSGVO-relevant,Manuell,Eigenes Template je Ortsgruppe
+Ortsgruppe Berlin,Ehrenamt,Nord,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Regionalstelle Nord,Fallzahlen,monatlich,Excel,DSGVO-relevant,Manuell,Anderes Format als Hamburg
+Ortsgruppe München,Ehrenamt,Süd,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Regionalstelle Süd,Fallzahlen,monatlich,Excel,DSGVO-relevant,Manuell,
+Ortsgruppe Hamburg,Ehrenamt,Nord,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Koordinierungsstelle,Veranstaltungsberichte,monatlich,Word,Öffentlich,Manuell,Parallel zur Regionalstelle
+Ortsgruppe Berlin,Ehrenamt,Nord,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Öffentlichkeitsarbeit,Fotos und Berichte,unregelmäßig,E-Mail,Öffentlich,Manuell,Direktkontakt an PR – Bypass der Regionalbüros
+Ortsgruppe Hamburg,Ehrenamt,Nord,Nachbarschaftshilfe e.V.,Datennutzer,nutzt,Ortsgruppe Berlin,Erfahrungsaustausch,unregelmäßig,E-Mail,Intern,Manuell,Informelle Abstimmung ohne Koordinierungsstelle
+Regionalstelle Nord,Regionalleitung,Nord,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Bundesverband,Quartalsbericht,quartalsweise,PDF,Intern,Manuell,Aggregierte Fallzahlen aus beiden Ortsgruppen
+Regionalstelle Nord,Regionalleitung,Nord,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Koordinierungsstelle,Rückmeldungen,monatlich,E-Mail,Intern,Manuell,
+Regionalstelle Nord,Regionalleitung,Nord,Nachbarschaftshilfe e.V.,Datennutzer,nutzt,Spendenverwaltung,Spendeneingänge,monatlich,Excel,Intern,Manuell,Selten genutzte Verbindung
+Regionalstelle Süd,Regionalleitung,Süd,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Bundesverband,Quartalsbericht,quartalsweise,PDF,Intern,Manuell,
+Regionalstelle Süd,Regionalleitung,Süd,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Koordinierungsstelle,Rückmeldungen,monatlich,E-Mail,Intern,Manuell,
+Bundesverband,Vorstand,Zentrale,Nachbarschaftshilfe e.V.,Datenverwalter,übergibt,Fördermittelmanagement,Förderbescheide,unregelmäßig,PDF,Intern,Manuell,
+Bundesverband,Vorstand,Zentrale,Nachbarschaftshilfe e.V.,Datenverwalter,übergibt,Öffentlichkeitsarbeit,Jahresbericht,jährlich,PDF,Öffentlich,Manuell,
+Fördermittelmanagement,Verwaltung,Zentrale,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Bundesverband,Verwendungsnachweise,jährlich,Excel,Intern,Manuell,
+Fördermittelmanagement,Verwaltung,Zentrale,Nachbarschaftshilfe e.V.,Datenverwalter,übergibt,Koordinierungsstelle,Budgetrahmen,quartalsweise,Excel,Intern,Manuell,
+Spendenverwaltung,Verwaltung,Zentrale,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Bundesverband,Spendenberichte,quartalsweise,Excel,Intern,Manuell,Kein Kontakt zu Programmabteilungen
+Spendenverwaltung,Verwaltung,Zentrale,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Öffentlichkeitsarbeit,Spenderzahlen,monatlich,Excel,Intern,Manuell,
+Öffentlichkeitsarbeit,Kommunikation,Zentrale,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Bundesverband,Pressemitteilungen,unregelmäßig,PDF,Öffentlich,Manuell,
+Öffentlichkeitsarbeit,Kommunikation,Zentrale,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Spendenverwaltung,Spendenaktionen,unregelmäßig,E-Mail,Intern,Manuell,
+Ehrenamtskoordination,Verwaltung,Zentrale,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Regionalstelle Nord,Einsatzstunden,monatlich,Excel,DSGVO-relevant,Manuell,
+Ehrenamtskoordination,Verwaltung,Zentrale,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Regionalstelle Süd,Einsatzstunden,monatlich,Excel,DSGVO-relevant,Manuell,
+Ehrenamtskoordination,Verwaltung,Zentrale,Nachbarschaftshilfe e.V.,Datenverarbeiter,übergibt,Bundesverband,Jahresübersicht Ehrenamt,jährlich,PDF,Intern,Manuell,
+Koordinierungsstelle,Projektsteuerung,Zentrale,Nachbarschaftshilfe e.V.,Datenverwalter,übergibt,Bundesverband,Projektberichte,monatlich,Word,Intern,Manuell,
+Koordinierungsstelle,Projektsteuerung,Zentrale,Nachbarschaftshilfe e.V.,Datenverwalter,übergibt,Regionalstelle Nord,Projektpläne,unregelmäßig,Excel,Intern,Manuell,
+Koordinierungsstelle,Projektsteuerung,Zentrale,Nachbarschaftshilfe e.V.,Datenverwalter,übergibt,Regionalstelle Süd,Projektpläne,unregelmäßig,Excel,Intern,Manuell,
+Koordinierungsstelle,Projektsteuerung,Zentrale,Nachbarschaftshilfe e.V.,Datenverwalter,übergibt,Fördermittelmanagement,Projektdaten,quartalsweise,Excel,Intern,Manuell,
+Sozialdienst,Beratung,Programm,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Koordinierungsstelle,Beratungsfälle,wöchentlich,Excel,DSGVO-relevant,Manuell,
+Sozialdienst,Beratung,Programm,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Ehrenamtskoordination,Einsatzanfragen,bei Bedarf,E-Mail,Intern,Manuell,
+Sozialdienst,Beratung,Programm,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Bundesverband,Wirkungsbericht,jährlich,PDF,DSGVO-relevant,Manuell,Direkt an Vorstand – 5 Hops von Ortsgruppe bis hierher
+Sozialdienst,Beratung,Programm,Nachbarschaftshilfe e.V.,Datenersteller,übergibt,Regionalstelle Süd,Fallberichte Süd,monatlich,Excel,DSGVO-relevant,Manuell,

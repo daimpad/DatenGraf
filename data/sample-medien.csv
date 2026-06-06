@@ -1,0 +1,29 @@
+Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
+Nachrichtenagenturen,Extern,Extern,,Datenersteller,übergibt,Lokalredaktion,Agenturmeldungen,stündlich,RSS,Öffentlich,Automatisiert,
+Nachrichtenagenturen,Extern,Extern,,Datenersteller,übergibt,Politik-Desk,Agenturmeldungen,stündlich,RSS,Öffentlich,Automatisiert,
+Nachrichtenagenturen,Extern,Extern,,Datenersteller,übergibt,Sport-Desk,Sportticker,stündlich,API,Öffentlich,Automatisiert,
+Lokalredaktion,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenersteller,übergibt,CMS,Artikel und Fotos,täglich,CMS-Upload,Öffentlich,Manuell,
+Lokalredaktion,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenersteller,übergibt,Archiv,Fertige Artikel,täglich,CMS-Export,Öffentlich,Automatisiert,
+Lokalredaktion,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenersteller,übergibt,Chefredaktion,Planungsvorschau,täglich,E-Mail,Intern,Manuell,
+Politik-Desk,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenersteller,übergibt,CMS,Artikel und Fotos,täglich,CMS-Upload,Öffentlich,Manuell,
+Politik-Desk,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenersteller,übergibt,Chefredaktion,Themenvorschläge,wöchentlich,E-Mail,Intern,Manuell,
+Sport-Desk,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenersteller,übergibt,CMS,Artikel und Ergebnisse,täglich,CMS-Upload,Öffentlich,Manuell,
+Sport-Desk,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenersteller,übergibt,Bildredaktion,Bildanfragen,täglich,E-Mail,Intern,Manuell,
+Bildredaktion,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenverwalter,übergibt,CMS,Bilder und Metadaten,täglich,FTP,Öffentlich,Manuell,
+Bildredaktion,Redaktion,Redaktion,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Archiv,Bildarchiv,täglich,FTP,Intern,Automatisiert,
+CMS,Technik,IT,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Social-Media-Redaktion,Veröffentlichte Artikel,täglich,API,Öffentlich,Automatisiert,
+CMS,Technik,IT,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Archiv,Alle Artikel,täglich,Datenbank-Sync,Öffentlich,Automatisiert,
+CMS,Technik,IT,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Lesermarkt,Artikelzugriffe,täglich,Analytics-API,Intern,Automatisiert,
+CMS,Technik,IT,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Technik,Fehlerlogs,täglich,Log-Datei,Intern,Automatisiert,
+Social-Media-Redaktion,Redaktion,Digital,Tagesblatt Regional GmbH,Datenersteller,übergibt,Chefredaktion,Social-Media-Bericht,wöchentlich,PDF,Intern,Manuell,Reichweite und Engagement – kein Rückfluss in Redaktionsplanung
+Social-Media-Redaktion,Redaktion,Digital,Tagesblatt Regional GmbH,Datenersteller,übergibt,Anzeigenvertrieb,Reichweitendaten,monatlich,Excel,Intern,Manuell,
+Lesermarkt,Vertrieb,Verlag,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Anzeigenvertrieb,Abonnentendaten,monatlich,Excel,DSGVO-relevant,Manuell,Leserdaten fließen nie in Redaktion zurück
+Lesermarkt,Vertrieb,Verlag,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Chefredaktion,Abozahlen,monatlich,PDF,Intern,Manuell,Aggregiert – keine Themenauswertung
+Lesermarkt,Vertrieb,Verlag,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Verlagsleitung,Umsatzbericht,monatlich,Excel,Intern,Manuell,
+Anzeigenvertrieb,Vertrieb,Verlag,Tagesblatt Regional GmbH,Datenersteller,übergibt,CMS,Anzeigenbuchungen,täglich,CSV,Intern,Automatisiert,Schaltung direkt ins CMS
+Anzeigenvertrieb,Vertrieb,Verlag,Tagesblatt Regional GmbH,Datenersteller,übergibt,Verlagsleitung,Anzeigenumsatz,monatlich,Excel,Intern,Manuell,
+Chefredaktion,Leitung,Redaktion,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Verlagsleitung,Redaktionsbericht,monatlich,PDF,Intern,Manuell,
+Chefredaktion,Leitung,Redaktion,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Lokalredaktion,Redaktionsplan,täglich,E-Mail,Intern,Manuell,
+Chefredaktion,Leitung,Redaktion,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Politik-Desk,Redaktionsplan,täglich,E-Mail,Intern,Manuell,
+Archiv,Technik,IT,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Lokalredaktion,Archivrecherche,bei Bedarf,CMS-Suche,Öffentlich,Manuell,Rückfluss nur auf Anfrage – kein automatisches Empfehlen ähnlicher Artikel
+Technik,IT,IT,Tagesblatt Regional GmbH,Datenverwalter,übergibt,Chefredaktion,Systemstatus,wöchentlich,E-Mail,Intern,Manuell,
