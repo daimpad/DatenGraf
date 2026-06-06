@@ -270,7 +270,26 @@ body {
 }
 .mobile-nav.hidden { display: none; }
 
-.mobile-nav-wizard { width: 100%; justify-content: center; }
+.mobile-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--c-text);
+  text-align: left;
+  transition: background 0.2s;
+}
+.mobile-nav-tab:hover  { background: rgba(66,0,147,0.07); }
+.mobile-nav-tab.active { background: var(--c-accent); color: #fff; }
+.mobile-nav-divider    { border: none; border-top: 1px solid var(--c-border-s); margin: 4px 0; }
+.mobile-nav-wizard     { width: 100%; justify-content: center; margin-top: 4px; }
 
 .content { flex: 1; padding: 28px; overflow: auto; }
 

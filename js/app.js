@@ -1090,7 +1090,7 @@ function setStatus(msg, type = '') {
 
 // ── View tabs ─────────────────────────────────────────────────────────────────
 function switchTab(tabName) {
-  document.querySelectorAll('.view-tab').forEach(t =>
+  document.querySelectorAll('.view-tab, .mobile-nav-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabName)
   );
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1113,6 +1113,13 @@ mobileNav.addEventListener('click', e => e.stopPropagation());
 document.getElementById('mobile-wizard-btn').addEventListener('click', () => {
   mobileNav.classList.add('hidden');
   openWizard();
+});
+
+document.querySelectorAll('.mobile-nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    switchTab(tab.dataset.tab);
+    mobileNav.classList.add('hidden');
+  });
 });
 
 window.addEventListener('resize', () => {
