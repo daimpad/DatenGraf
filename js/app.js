@@ -384,16 +384,90 @@ function runAnalysis(data) {
   return findings.sort((a, b) => sevOrder[a.severity] - sevOrder[b.severity]).slice(0, 5);
 }
 
+function calcVollstaendigkeit(data) {
+  if (!data.length) return { score: 0, gaps: [] };
+  const n = data.length;
+  const dsgvo = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant');
+  const checks = [
+    { label: 'Schutzklasse',            weight: 25, ok: data.filter(r => r.Schutzbedarf).length },
+    { label: 'Erfassungsart',           weight: 15, ok: data.filter(r => r.Erfassungsart).length },
+    { label: 'Datentyp',               weight: 20, ok: data.filter(r => r.Datentyp).length },
+    { label: 'Ansprechpartner (DSGVO)', weight: 25, ok: dsgvo.length === 0 ? n : dsgvo.filter(r => r.Ansprechpartner).length + (n - dsgvo.length) },
+    { label: 'Organisation',           weight: 15, ok: data.filter(r => r.QuelleOrganisation).length },
+  ];
+  const score = Math.round(checks.reduce((s, c) => s + (c.ok / n) * c.weight, 0));
+  const gaps  = checks.filter(c => c.ok < n)
+    .map(c => ({ label: c.label, missing: n - c.ok, pct: Math.round((1 - c.ok / n) * 100) }))
+    .sort((a, b) => b.missing - a.missing);
+  return { score, gaps };
+}
+
+function generateNarrative(data, findings, vs) {
+  if (!data.length) return '';
+  const outDeg = {};
+  data.forEach(r => { if (r.Quelle) outDeg[r.Quelle] = (outDeg[r.Quelle] || 0) + 1; });
+  const maxOut  = Math.max(...Object.values(outDeg), 0);
+  const nodes   = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean));
+  const dsgvoN  = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length;
+
+  const hub   = findings.find(f => f.type === 'hub');
+  const gate  = findings.find(f => f.type === 'gatekeeper');
+  const dsgvo = findings.find(f => f.type === 'dsgvo_no_owner');
+  const diff  = findings.find(f => f.type === 'diff_changes');
+
+  const parts = [];
+
+  if (hub) {
+    const name = hub.title.replace('Zentraler Hub: ', '');
+    parts.push(`Das Netzwerk (${nodes.size} Akteure, ${data.length} Flüsse) zeigt ein Hub-and-Spoke-Muster: ${name} bündelt ${maxOut} ausgehende Verbindungen und ist damit kritischer Single Point of Failure.`);
+  } else if (maxOut <= 2) {
+    parts.push(`Das Netzwerk (${nodes.size} Akteure, ${data.length} Flüsse) ist dezentral verteilt – kein einzelner Akteur dominiert den Informationsfluss.`);
+  } else {
+    parts.push(`Das Netzwerk umfasst ${nodes.size} Akteure und ${data.length} Datenflüsse.`);
+  }
+
+  if (gate && (!hub || hub.title.indexOf(gate.title.replace('Flaschenhals: ', '')) === -1)) {
+    const name = gate.title.replace('Flaschenhals: ', '');
+    parts.push(`${name} fungiert als Gatekeeper – Ausfall oder Überlastung blockiert den gesamten Informationsfluss.`);
+  }
+
+  if (dsgvo) {
+    const missing = parseInt(dsgvo.title) || '?';
+    parts.push(`Compliance-Lücke: Von ${dsgvoN} DSGVO-relevanten Flüssen haben ${missing} keinen Ansprechpartner (Art. 30 DSGVO).`);
+  }
+
+  const scoreLabel = vs.score >= 80 ? 'gut' : vs.score >= 60 ? 'ausbaufähig' : 'lückenhaft';
+  parts.push(`Datenvollständigkeit: ${vs.score} % (${scoreLabel}).`);
+
+  if (diff) parts.push(`Seit letztem Snapshot: ${diff.text}.`);
+
+  return parts.join(' ');
+}
+
 function showAnalyseBriefing() {
   const findings = runAnalysis(allData);
-  const panel = document.getElementById('analyse-briefing');
+  const panel    = document.getElementById('analyse-briefing');
   const container = document.getElementById('briefing-findings');
-  if (!findings.length) { panel.classList.add('hidden'); return; }
+  if (!allData.length) { panel.classList.add('hidden'); return; }
 
-  const sevIcon = { high: 'fa-circle-exclamation', medium: 'fa-triangle-exclamation', low: 'fa-circle-info' };
+  const vs        = calcVollstaendigkeit(allData);
+  const narrative = generateNarrative(allData, findings, vs);
+  const scoreColor = vs.score >= 80 ? 'var(--c-success)' : vs.score >= 60 ? 'var(--c-warn)' : 'var(--c-danger)';
+
+  const sevIcon  = { high: 'fa-circle-exclamation', medium: 'fa-triangle-exclamation', low: 'fa-circle-info' };
   const sevClass = { high: 'finding-high', medium: 'finding-medium', low: 'finding-low' };
 
-  container.innerHTML = findings.map((f, i) => `
+  const narrativeHTML = narrative ? `
+    <div class="briefing-narrative">
+      <p class="briefing-narrative-text">${esc(narrative)}</p>
+      <div class="briefing-score-wrap">
+        <span class="briefing-score-label">Vollständigkeit</span>
+        <div class="briefing-score-bar"><div class="briefing-score-fill" style="width:${vs.score}%;background:${scoreColor}"></div></div>
+        <span class="briefing-score-pct" style="color:${scoreColor}">${vs.score} %</span>
+      </div>
+    </div>` : '';
+
+  container.innerHTML = narrativeHTML + (findings.length ? findings.map((f, i) => `
     <div class="briefing-finding ${sevClass[f.severity]}" data-finding="${i}">
       <div class="finding-icon-wrap">
         <i class="fas ${f.icon}"></i>
@@ -404,8 +478,9 @@ function showAnalyseBriefing() {
         <div class="finding-text">${esc(f.text)}</div>
       </div>
       ${f.action ? `<button class="btn btn-secondary btn-sm finding-action" data-finding="${i}">${esc(f.action.label)} <i class="fas fa-arrow-right" style="font-size:9px"></i></button>` : ''}
-    </div>`).join('');
+    </div>`).join('') : '');
 
+  panel.classList.remove('hidden');
   container.querySelectorAll('.finding-action').forEach(btn => {
     btn.addEventListener('click', () => {
       const f = findings[parseInt(btn.dataset.finding)];
@@ -435,8 +510,6 @@ function showAnalyseBriefing() {
       }
     });
   });
-
-  panel.classList.remove('hidden');
 }
 
 // ── Network view ─────────────────────────────────────────────────────────────

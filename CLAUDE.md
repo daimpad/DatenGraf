@@ -71,9 +71,10 @@ Der Parser (`parseCSV`) ist zeichenweise und behandelt `""` escaped Quotes und m
 DatenGraf soll nicht nur visualisieren, sondern **interpretieren**. Das Analyse-System ist in drei Schichten aufgebaut, die aufeinander aufbauen:
 
 ```
-Schicht 1: Rule-based (v15, ✅)   → deterministisch, lokal, sofort
-Schicht 2: Snapshot-Diff (v16, ✅)→ temporal, lokal, kein Backend
-Schicht 3: LLM-Narrativ (geplant) → kontextuell, opt-in, API-Key nötig
+Schicht 1: Rule-based (v15, ✅)          → deterministisch, lokal, sofort
+Schicht 2: Snapshot-Diff (v16, ✅)       → temporal, lokal, kein Backend
+Schicht 2b: Narrativ + Score (v17, ✅)   → template-basiert, kein Backend, LLM-ready
+Schicht 3: LLM-Narrativ (geplant)        → kontextuell, opt-in, API-Key nötig
 ```
 
 ---
@@ -154,7 +155,36 @@ Kein Finding wenn 0 Änderungen (data identisch zu Snapshot).
 
 ---
 
-### Schicht 3 – LLM-Narrativ (konzept, opt-in)
+### Schicht 2b – Vollständigkeits-Score & Smart Narrative (implementiert in v17)
+
+#### `calcVollstaendigkeit(data)`
+
+Berechnet einen gewichteten Score [0–100]:
+
+| Feld | Gewicht | Sonderregel |
+|---|---|---|
+| Schutzklasse | 25 % | alle Zeilen |
+| Erfassungsart | 15 % | alle Zeilen |
+| Datentyp | 20 % | alle Zeilen |
+| Ansprechpartner | 25 % | nur DSGVO-relevante Zeilen |
+| Organisation | 15 % | alle Zeilen |
+
+Score-Farbe: grün ≥ 80 %, amber ≥ 60 %, rot < 60 %.
+
+#### `generateNarrative(data, findings, vs)`
+
+Erzeugt 3–5 Sätze aus echten Datenpunkten:
+1. Netzwerktopologie (Hub-and-Spoke vs. dezentral)
+2. Gatekeeper-Risiko (falls vorhanden, kein Duplikat zum Hub-Satz)
+3. DSGVO-Compliance-Lücke (falls DSGVO-Flows ohne Ansprechpartner)
+4. Vollständigkeits-Zusammenfassung
+5. Snapshot-Diff (falls Änderungen vorhanden)
+
+**LLM-Upgrade-Pfad:** `generateNarrative` kann 1:1 durch einen Fetch auf die Claude API ersetzt werden — gleicher Input (`data, findings, vs`), gleicher Output-Slot im Briefing. Template bleibt als Fallback bei fehlendem API-Key.
+
+---
+
+### Schicht 3 – LLM-Narrativ (geplant)
 
 **Ziel:** Aus den rule-based Befunden und der Netzwerktopologie eine natürlichsprachige Analyse generieren:
 > *„Euer Netzwerk zeigt ein klassisches Sterntopologie-Muster mit Warenwirtschaft als Single Point of Failure. Besonders kritisch: 6 DSGVO-Flüsse haben keine verantwortliche Person – das ist eine Compliance-Lücke nach Art. 30 DSGVO."*
