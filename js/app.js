@@ -358,6 +358,28 @@ function runAnalysis(data) {
     });
   }
 
+  // Snapshot-Diff gegen neuesten Snapshot
+  const snapshots = listSnapshots();
+  if (snapshots.length) {
+    const newest = snapshots[0];
+    const diff = diffSnapshots(newest.data, data);
+    const parts = [];
+    if (diff.added.length)         parts.push(`+${diff.added.length} neu`);
+    if (diff.removed.length)       parts.push(`−${diff.removed.length} entfernt`);
+    if (diff.schutzChanged.length) parts.push(`${diff.schutzChanged.length} Schutzklasse${diff.schutzChanged.length !== 1 ? 'n' : ''} geändert`);
+    if (parts.length) {
+      const age = newest.savedAt ? ` (${formatSnapAge(newest.savedAt)})` : '';
+      findings.push({
+        type: 'diff_changes',
+        severity: diff.removed.length > 0 || diff.schutzChanged.length > 0 ? 'medium' : 'low',
+        icon: 'fa-clock-rotate-left',
+        title: `Änderungen seit „${newest.name}"${age}`,
+        text: parts.join(' · '),
+        action: { label: 'Listenansicht', type: 'tab', tab: 'list' }
+      });
+    }
+  }
+
   const sevOrder = { high: 0, medium: 1, low: 2 };
   return findings.sort((a, b) => sevOrder[a.severity] - sevOrder[b.severity]).slice(0, 5);
 }
@@ -1548,8 +1570,36 @@ const LS_SNAP_PREFIX = 'datengraf_snap_';
 function listSnapshots() {
   return Object.keys(localStorage)
     .filter(k => k.startsWith(LS_SNAP_PREFIX))
-    .map(k => ({ key: k, name: k.slice(LS_SNAP_PREFIX.length) }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .map(k => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(k));
+        if (Array.isArray(parsed)) {
+          return { key: k, name: k.slice(LS_SNAP_PREFIX.length), data: parsed, savedAt: 0 };
+        }
+        return { key: k, name: parsed.name || k.slice(LS_SNAP_PREFIX.length), data: parsed.data || [], savedAt: parsed.savedAt || 0 };
+      } catch { return null; }
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.savedAt - a.savedAt);
+}
+
+function formatSnapAge(savedAt) {
+  if (!savedAt) return '';
+  const days = Math.floor((Date.now() - savedAt) / 86400000);
+  if (days === 0) return 'heute';
+  if (days === 1) return 'gestern';
+  if (days < 7)  return `vor ${days} Tagen`;
+  return new Date(savedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function diffSnapshots(prev, curr) {
+  const key  = r => `${r.Quelle}|||${r.Ziel}|||${r.Datentyp}`;
+  const prevMap = new Map(prev.map(r => [key(r), r]));
+  const currMap = new Map(curr.map(r => [key(r), r]));
+  const added   = curr.filter(r => !prevMap.has(key(r)));
+  const removed = prev.filter(r => !currMap.has(key(r)));
+  const schutzChanged = curr.filter(r => { const p = prevMap.get(key(r)); return p && p.Schutzbedarf !== r.Schutzbedarf; });
+  return { added, removed, schutzChanged };
 }
 
 function renderSnapshotList() {
@@ -1559,27 +1609,29 @@ function renderSnapshotList() {
     listEl.innerHTML = '<p class="snapshot-empty">Noch keine Snapshots gespeichert.</p>';
     return;
   }
-  listEl.innerHTML = snaps.map(s => `
+  listEl.innerHTML = snaps.map((s, i) => `
     <div class="snapshot-item">
-      <span class="snapshot-name">${esc(s.name)}</span>
+      <div class="snapshot-meta">
+        <span class="snapshot-name">${esc(s.name)}</span>
+        ${s.savedAt ? `<span class="snapshot-age">${esc(formatSnapAge(s.savedAt))} · ${s.data.length} Einträge</span>` : `<span class="snapshot-age">${s.data.length} Einträge</span>`}
+      </div>
       <div class="snapshot-item-actions">
-        <button class="btn btn-primary btn-sm" data-snap-load="${esc(s.key)}" data-snap-name="${esc(s.name)}">Laden</button>
+        <button class="btn btn-primary btn-sm" data-snap-idx="${i}">Laden</button>
         <button class="btn btn-secondary btn-sm" data-snap-del="${esc(s.key)}">✕</button>
       </div>
     </div>`).join('');
 
-  listEl.querySelectorAll('[data-snap-load]').forEach(btn => {
+  const snapArr = snaps;
+  listEl.querySelectorAll('[data-snap-idx]').forEach(btn => {
     btn.addEventListener('click', () => {
-      try {
-        const saved = localStorage.getItem(btn.dataset.snapLoad);
-        if (!saved) return;
-        allData = JSON.parse(saved);
-        buildSidebarFilters();
-        applyFilters();
-        showAnalyseBriefing();
-        setStatus(`Snapshot „${btn.dataset.snapName}" geladen (${allData.length} Einträge).`, 'success');
-        closeSnapshotModal();
-      } catch { setStatus('Snapshot konnte nicht geladen werden.', 'error'); }
+      const s = snapArr[parseInt(btn.dataset.snapIdx)];
+      if (!s) return;
+      allData = s.data;
+      buildSidebarFilters();
+      applyFilters();
+      showAnalyseBriefing();
+      setStatus(`Snapshot „${s.name}" geladen (${allData.length} Einträge).`, 'success');
+      closeSnapshotModal();
     });
   });
 
@@ -1605,7 +1657,7 @@ document.getElementById('snapshot-save-btn').addEventListener('click', () => {
   const name = document.getElementById('snapshot-name-input').value.trim();
   if (!name) { document.getElementById('snapshot-name-input').focus(); return; }
   if (!allData.length) { setStatus('Keine Daten zum Speichern.', 'error'); return; }
-  localStorage.setItem(LS_SNAP_PREFIX + name, JSON.stringify(allData));
+  localStorage.setItem(LS_SNAP_PREFIX + name, JSON.stringify({ data: allData, savedAt: Date.now(), name }));
   setStatus(`Snapshot „${name}" gespeichert (${allData.length} Einträge).`, 'success');
   document.getElementById('snapshot-name-input').value = '';
   renderSnapshotList();

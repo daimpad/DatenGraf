@@ -71,9 +71,9 @@ Der Parser (`parseCSV`) ist zeichenweise und behandelt `""` escaped Quotes und m
 DatenGraf soll nicht nur visualisieren, sondern **interpretieren**. Das Analyse-System ist in drei Schichten aufgebaut, die aufeinander aufbauen:
 
 ```
-Schicht 1: Rule-based (jetzt)     → deterministisch, lokal, sofort
-Schicht 2: Snapshot-Diff (bald)   → temporal, lokal, kein Backend
-Schicht 3: LLM-Narrativ (später)  → kontextuell, opt-in, API-Key nötig
+Schicht 1: Rule-based (v15, ✅)   → deterministisch, lokal, sofort
+Schicht 2: Snapshot-Diff (v16, ✅)→ temporal, lokal, kein Backend
+Schicht 3: LLM-Narrativ (geplant) → kontextuell, opt-in, API-Key nötig
 ```
 
 ---
@@ -119,24 +119,38 @@ In `runAnalysis(data)` ein neues Finding-Objekt in `findings` pushen, dann in `r
 
 ---
 
-### Schicht 2 – Snapshot-Differenzanalyse (geplant)
+### Schicht 2 – Snapshot-Differenzanalyse (implementiert in v16)
 
-**Voraussetzung:** Snapshots (bereits implementiert in v14).
+Beim Laden eines Datensatzes wird automatisch gegen den **neuesten Snapshot** (nach `savedAt`) verglichen.
 
-**Konzept:** Beim Laden eines Datensatzes mit vorhandenem Snapshot wird automatisch ein Diff berechnet:
-- Neue Flüsse seit letztem Snapshot
-- Weggefallene Flüsse
-- Veränderte Schutzklassen
-- Neue kritische Knoten (Gatekeeper/Hub die vorher nicht da waren)
+#### Snapshot-Format (ab v16)
 
-**Umsetzung:**
 ```js
-function diffSnapshots(prev, curr) {
-  // Returns { added, removed, schutzChanged, newHubs }
-}
+// localStorage: datengraf_snap_<name>
+{ data: [...], savedAt: Date.now(), name: 'string' }
+// Alte Snapshots (reines Array) werden rückwärtskompatibel gelesen
 ```
 
-Findings aus dem Diff werden mit Icon `fa-clock-rotate-left` und Typ `diff_*` in das Briefing integriert.
+#### Diff-Engine
+
+```js
+diffSnapshots(prev, curr)
+// Returns { added[], removed[], schutzChanged[] }
+// Schlüssel: Quelle|||Ziel|||Datentyp
+```
+
+#### Diff-Finding im Briefing
+
+| Änderung | Severity | Icon |
+|---|---|---|
+| Nur neue Flüsse | low | fa-clock-rotate-left |
+| Entfernte Flüsse oder Schutzklassen-Änderung | medium | fa-clock-rotate-left |
+
+Kein Finding wenn 0 Änderungen (data identisch zu Snapshot).
+
+#### Geplante Erweiterungen
+- „Als Vergleichsbasis markieren"-Button im Snapshot-Modal (statt immer neuester)
+- Neue Hubs/Gatekeeper seit letztem Snapshot als eigenes Finding (`diff_topology`)
 
 ---
 

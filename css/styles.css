@@ -1590,5 +1590,7 @@ textarea.csv-textarea:focus {
   padding: 10px 12px; background: rgba(255,255,255,0.5);
   border: 1px solid var(--c-border-s); border-radius: var(--radius);
 }
+.snapshot-meta { display: flex; flex-direction: column; gap: 2px; }
 .snapshot-name { font-size: 13px; font-weight: 500; }
-.snapshot-item-actions { display: flex; gap: 6px; }
+.snapshot-age  { font-size: 11px; color: var(--c-muted); }
+.snapshot-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
