@@ -266,7 +266,7 @@ function renderList(data) {
 
 function esc(str) {
   if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Snapshots ─────────────────────────────────────────────────────────────────
@@ -430,7 +430,7 @@ function calcVollstaendigkeit(data) {
     { label: 'Schutzklasse',            weight: 25, ok: data.filter(r => r.Schutzbedarf).length },
     { label: 'Erfassungsart',           weight: 15, ok: data.filter(r => r.Erfassungsart).length },
     { label: 'Datentyp',               weight: 20, ok: data.filter(r => r.Datentyp).length },
-    { label: 'Ansprechpartner (DSGVO)', weight: 25, ok: dsgvo.length === 0 ? n : dsgvo.filter(r => r.Ansprechpartner).length + (n - dsgvo.length) },
+    { label: 'Ansprechpartner (DSGVO)', weight: 25, ok: dsgvo.length === 0 ? n : (dsgvo.filter(r => r.Ansprechpartner).length / dsgvo.length) * n },
     { label: 'Organisation',           weight: 15, ok: data.filter(r => r.QuelleOrganisation).length },
   ];
   const score = Math.round(checks.reduce((s, c) => s + (c.ok / n) * c.weight, 0));
@@ -470,7 +470,7 @@ function generateNarrative(data, findings, vs) {
   }
 
   if (dsgvo) {
-    const missing = parseInt(dsgvo.title) || '?';
+    const missing = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant' && !r.Ansprechpartner).length;
     parts.push(`Compliance-Lücke: Von ${dsgvoN} DSGVO-relevanten Flüssen haben ${missing} keinen Ansprechpartner (Art. 30 DSGVO).`);
   }
 
@@ -1161,10 +1161,8 @@ document.querySelectorAll('.mobile-nav-tab').forEach(tab => {
 });
 
 window.addEventListener('resize', () => {
-  if (window.innerWidth <= 768) {
-    toggleSidebar(true);
-    mobileNav.classList.add('hidden');
-  }
+  mobileNav.classList.add('hidden');
+  if (window.innerWidth <= 768) toggleSidebar(true);
 });
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -1710,6 +1708,7 @@ function renderSnapshotList() {
       buildSidebarFilters();
       applyFilters();
       showAnalyseBriefing();
+      switchTab('list');
       setStatus(`Snapshot „${s.name}" geladen (${allData.length} Einträge).`, 'success');
       closeSnapshotModal();
     });
