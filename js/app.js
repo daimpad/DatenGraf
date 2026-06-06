@@ -228,7 +228,6 @@ function renderList(data) {
       ${row.Format     ? `<span class="badge badge-format">${esc(row.Format)}</span>`            : ''}
       ${schutzClass    ? `<span class="badge ${schutzClass}">${esc(row.Schutzbedarf)}</span>`   : ''}
       ${erfClass       ? `<span class="badge ${erfClass}">${esc(row.Erfassungsart)}</span>`     : ''}
-      ${row.Ansprechpartner ? `<span class="badge badge-owner"><i class="fas fa-user" style="font-size:9px"></i> ${esc(row.Ansprechpartner)}</span>` : ''}
       <div class="rel-card-actions" style="margin-left:auto;display:flex;gap:6px">
         <button class="btn btn-secondary btn-sm" data-dupe="${idx}" title="Duplizieren"><i class="fas fa-copy"></i></button>
         <button class="btn btn-secondary btn-sm" data-edit="${idx}" title="Bearbeiten"><i class="fas fa-pen"></i></button>
@@ -542,7 +541,6 @@ const CY_STYLE = [
   { selector: '.faded',       style: { opacity: 0.12, 'z-index': 0 } },
   { selector: '.path-node',   style: { 'background-color': '#2e9e60', 'border-color': '#fff', 'border-width': 3, opacity: 1, 'z-index': 999, color: '#fff', 'text-outline-color': '#1a6640' } },
   { selector: '.path-edge',   style: { 'line-color': '#2e9e60', 'target-arrow-color': '#2e9e60', width: 4, opacity: 1, 'z-index': 998 } },
-  { selector: ':parent',      style: { 'background-color': 'rgba(66,0,147,0.04)', 'background-opacity': 1, 'border-color': 'rgba(66,0,147,0.25)', 'border-width': 1, 'padding': '18px', label: 'data(label)', 'text-valign': 'top', 'text-halign': 'center', color: '#420093', 'font-size': '11px', 'font-weight': 600, 'text-outline-width': 0 } },
 ];
 
 function prepareElements(data, useHierarchy = false) {
@@ -566,24 +564,9 @@ function prepareElements(data, useHierarchy = false) {
   });
 
   const elements = [];
-
-  if (useHierarchy) {
-    const bereiche = new Map();
-    nodes.forEach(n => { if (n.bereich) bereiche.set(n.bereich, `_p_${n.bereich}`); });
-    bereiche.forEach((id, bereich) => {
-      elements.push({ data: { id, label: bereich, isParent: true } });
-    });
-    nodes.forEach((n, id) => {
-      const nodeData = { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) };
-      if (n.bereich && bereiche.has(n.bereich)) nodeData.parent = bereiche.get(n.bereich);
-      elements.push({ data: nodeData });
-    });
-  } else {
-    nodes.forEach((n, id) => {
-      elements.push({ data: { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
-    });
-  }
-
+  nodes.forEach((n, id) => {
+    elements.push({ data: { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
+  });
   edges.forEach((row, i) => {
     elements.push({ data: { id: `e${i}`, source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: REL_COLORS_HEX[row.Beziehung] || '#999' } });
   });
@@ -599,7 +582,7 @@ function renderNetwork(data) {
   document.getElementById('org-legend').classList.add('hidden');
   if (!data.length) { networkChart = null; return; }
 
-  networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: CY_STYLE, layout: COSE_OPTS });
+  networkChart = cytoscape({ container, elements: prepareElements(data), style: CY_STYLE, layout: COSE_OPTS });
   if (colorByOrg) applyOrgColors();
 
   networkChart.on('tap', 'node', evt => {
@@ -856,7 +839,6 @@ let wizardData  = {};
 let editIndex   = -1;
 let wizardDuplicateConfirmed = false;
 let colorByOrg = false;
-let orgHierarchyMode = false;
 
 const ORG_PALETTE = [
   { bg: '#420093', outline: '#2d0066' },
@@ -947,18 +929,6 @@ function collectWizardStep() {
 document.getElementById('wizard-next').addEventListener('click', () => {
   if (!collectWizardStep()) return;
   if (wizardStep < WIZARD_STEPS.length - 1) {
-    // Early dup-check after step 1 (Ziel, Datentyp collected) – warn before user fills steps 2–3
-    if (wizardStep === 1 && wizardData.Quelle && wizardData.Ziel && !wizardDuplicateConfirmed) {
-      const dupIdx = findDuplicate(allData, wizardData, editIndex);
-      if (dupIdx !== -1) {
-        const dup = allData[dupIdx];
-        document.getElementById('wizard-dup-text').textContent =
-          `${dup.Quelle} → ${dup.Ziel} (${dup.Datentyp})`;
-        document.getElementById('wizard-dup-warning').classList.remove('hidden');
-        wizardDuplicateConfirmed = true;
-        return;
-      }
-    }
     wizardStep++;
     wizardDuplicateConfirmed = false;
     document.getElementById('wizard-dup-warning').classList.add('hidden');
@@ -1304,12 +1274,6 @@ document.getElementById('btn-color-by-org').addEventListener('click', () => {
   else clearOrgColors();
 });
 
-document.getElementById('btn-toggle-hierarchy').addEventListener('click', () => {
-  orgHierarchyMode = !orgHierarchyMode;
-  document.getElementById('btn-toggle-hierarchy').classList.toggle('active', orgHierarchyMode);
-  renderNetwork(filteredData);
-});
-
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
   document.getElementById('panel-network').classList.toggle('fullscreen');
   setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);
@@ -1582,9 +1546,9 @@ ${networkImgUri ? `
 
 <div class="section-title">Alle Datenflüsse (${data.length})</div>
 <table>
-  <thead><tr><th>Quelle</th><th>Ziel</th><th>Beziehung</th><th>Datentyp</th><th>Häufigkeit</th><th>Format</th><th>Schutzbedarf</th><th>Ansprechpartner</th></tr></thead>
+  <thead><tr><th>Quelle</th><th>Ziel</th><th>Beziehung</th><th>Datentyp</th><th>Häufigkeit</th><th>Format</th><th>Schutzbedarf</th></tr></thead>
   <tbody>${data.map(r => `
-    <tr><td>${e(r.Quelle)}</td><td>${e(r.Ziel)}</td><td>${e(r.Beziehung)}</td><td>${e(r.Datentyp)}</td><td>${e(r.Häufigkeit)}</td><td>${e(r.Format)}</td><td>${schutzBadge(r.Schutzbedarf)}</td><td>${e(r.Ansprechpartner)}</td></tr>`).join('')}
+    <tr><td>${e(r.Quelle)}</td><td>${e(r.Ziel)}</td><td>${e(r.Beziehung)}</td><td>${e(r.Datentyp)}</td><td>${e(r.Häufigkeit)}</td><td>${e(r.Format)}</td><td>${schutzBadge(r.Schutzbedarf)}</td></tr>`).join('')}
   </tbody>
 </table>
 </body></html>`;
@@ -1643,109 +1607,6 @@ function loadFromShareHash() {
     setStatus('Link-Daten konnten nicht geladen werden.', 'error');
   }
 }
-
-// ── Snapshots ─────────────────────────────────────────────────────────────────
-const LS_SNAP_PREFIX = 'datengraf_snap_';
-
-function listSnapshots() {
-  return Object.keys(localStorage)
-    .filter(k => k.startsWith(LS_SNAP_PREFIX))
-    .map(k => {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(k));
-        if (Array.isArray(parsed)) {
-          return { key: k, name: k.slice(LS_SNAP_PREFIX.length), data: parsed, savedAt: 0 };
-        }
-        return { key: k, name: parsed.name || k.slice(LS_SNAP_PREFIX.length), data: parsed.data || [], savedAt: parsed.savedAt || 0 };
-      } catch { return null; }
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.savedAt - a.savedAt);
-}
-
-function formatSnapAge(savedAt) {
-  if (!savedAt) return '';
-  const days = Math.floor((Date.now() - savedAt) / 86400000);
-  if (days === 0) return 'heute';
-  if (days === 1) return 'gestern';
-  if (days < 7)  return `vor ${days} Tagen`;
-  return new Date(savedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function diffSnapshots(prev, curr) {
-  const key  = r => `${r.Quelle}|||${r.Ziel}|||${r.Datentyp}`;
-  const prevMap = new Map(prev.map(r => [key(r), r]));
-  const currMap = new Map(curr.map(r => [key(r), r]));
-  const added   = curr.filter(r => !prevMap.has(key(r)));
-  const removed = prev.filter(r => !currMap.has(key(r)));
-  const schutzChanged = curr.filter(r => { const p = prevMap.get(key(r)); return p && p.Schutzbedarf !== r.Schutzbedarf; });
-  return { added, removed, schutzChanged };
-}
-
-function renderSnapshotList() {
-  const listEl = document.getElementById('snapshot-list');
-  const snaps  = listSnapshots();
-  if (!snaps.length) {
-    listEl.innerHTML = '<p class="snapshot-empty">Noch keine Snapshots gespeichert.</p>';
-    return;
-  }
-  listEl.innerHTML = snaps.map((s, i) => `
-    <div class="snapshot-item">
-      <div class="snapshot-meta">
-        <span class="snapshot-name">${esc(s.name)}</span>
-        ${s.savedAt ? `<span class="snapshot-age">${esc(formatSnapAge(s.savedAt))} · ${s.data.length} Einträge</span>` : `<span class="snapshot-age">${s.data.length} Einträge</span>`}
-      </div>
-      <div class="snapshot-item-actions">
-        <button class="btn btn-primary btn-sm" data-snap-idx="${i}">Laden</button>
-        <button class="btn btn-secondary btn-sm" data-snap-del="${esc(s.key)}">✕</button>
-      </div>
-    </div>`).join('');
-
-  const snapArr = snaps;
-  listEl.querySelectorAll('[data-snap-idx]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const s = snapArr[parseInt(btn.dataset.snapIdx)];
-      if (!s) return;
-      allData = s.data;
-      buildSidebarFilters();
-      applyFilters();
-      showAnalyseBriefing();
-      setStatus(`Snapshot „${s.name}" geladen (${allData.length} Einträge).`, 'success');
-      closeSnapshotModal();
-    });
-  });
-
-  listEl.querySelectorAll('[data-snap-del]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      localStorage.removeItem(btn.dataset.snapDel);
-      renderSnapshotList();
-    });
-  });
-}
-
-function openSnapshotModal() {
-  renderSnapshotList();
-  document.getElementById('snapshot-backdrop').classList.remove('hidden');
-}
-
-function closeSnapshotModal() {
-  document.getElementById('snapshot-backdrop').classList.add('hidden');
-  document.getElementById('snapshot-name-input').value = '';
-}
-
-document.getElementById('snapshot-save-btn').addEventListener('click', () => {
-  const name = document.getElementById('snapshot-name-input').value.trim();
-  if (!name) { document.getElementById('snapshot-name-input').focus(); return; }
-  if (!allData.length) { setStatus('Keine Daten zum Speichern.', 'error'); return; }
-  localStorage.setItem(LS_SNAP_PREFIX + name, JSON.stringify({ data: allData, savedAt: Date.now(), name }));
-  setStatus(`Snapshot „${name}" gespeichert (${allData.length} Einträge).`, 'success');
-  document.getElementById('snapshot-name-input').value = '';
-  renderSnapshotList();
-});
-
-document.getElementById('open-snapshots-btn').addEventListener('click', openSnapshotModal);
-document.getElementById('snapshot-close-btn').addEventListener('click', closeSnapshotModal);
-document.getElementById('snapshot-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeSnapshotModal(); });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadFromShareHash();

@@ -1,232 +1,193 @@
-# DatenGraf – Entwicklerdokumentation
+# CLAUDE.md – DatenGraf
 
-## Architektur-Überblick
-
-Single-Page Application (SPA) ohne Build-Schritt, kein Framework, kein Backend.
-
-| Datei | Verantwortung |
-|---|---|
-| `index.html` | DOM-Struktur, alle IDs, keine Inline-Logik |
-| `css/styles.css` | Design-Tokens, Komponenten, Responsive |
-| `js/app.js` | Gesamte Anwendungslogik (Daten, Render, Analyse) |
-| `data/*.csv` | Beispieldatensätze + Vorlage |
-
-**Cache-Busting:** `<script src="js/app.js?v=N">` – bei jedem Deploy erhöhen.  
-**Aktuelle Version:** v15
+Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierungsdetails für AI-gestützte Entwicklung.
 
 ---
 
-## Zustandsvariablen (app.js)
+## Projektübersicht
+
+**DatenGraf** ist eine browserbasierte Single-Page-Application (SPA) zur Kartierung und Analyse von Datenflüssen in Organisationen. Kein Backend, kein Build-Prozess, kein Framework — nur HTML, CSS und Vanilla JS.
+
+- **Einstiegspunkt:** `index.html`
+- **Styles:** `css/styles.css`
+- **Logik:** `js/app.js` (eine einzige Datei, ~1200 Zeilen)
+- **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
+
+---
+
+## Lokale Entwicklung
+
+```bash
+python3 -m http.server 8080
+# → http://localhost:8080
+```
+
+`file://` funktioniert nicht, da `fetch()` für CSV-Beispieldaten nötig ist. Kein `npm install`, kein Bundler, keine Build-Pipeline.
+
+**Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag erhöhen:
+```html
+<script src="js/app.js?v=13"></script>
+```
+
+---
+
+## Architektur
+
+### Datenfluss
+
+```
+CSV-Import / Wizard
+       ↓
+  allData (Array<Row>)
+       ↓
+  applyFilters() → filteredData
+       ↓
+  renderAll()
+   ├── renderList(filteredData)
+   ├── renderNetwork(filteredData)
+   └── renderInsights(filteredData)
+```
+
+### Globaler State
 
 | Variable | Typ | Bedeutung |
 |---|---|---|
-| `allData` | `Array<Object>` | Alle geladenen Zeilen (ungefiltert) |
-| `filteredData` | `Array<Object>` | Nach `activeFilters` gefilterter Stand |
-| `networkChart` | `cytoscape \| null` | Aktive Cytoscape-Instanz |
-| `activeFilters` | `Object` | Aktiver Filterstatus (Sets + Strings) |
-| `editIndex` | `number` | Index in `allData` beim Bearbeiten (-1 = neu) |
-| `wizardStep` | `number` | Aktueller Wizard-Schritt (0–3) |
-| `wizardData` | `Object` | Formular-Akkumulator des Wizards |
-| `wizardDuplicateConfirmed` | `boolean` | Duplikat-Warnung bestätigt |
-| `colorByOrg` | `boolean` | Org-Farben aktiv |
-| `orgHierarchyMode` | `boolean` | Compound-Node-Hierarchie aktiv |
-| `pendingFileText` | `string \| null` | Gelesener Dateiinhalt vor Import |
+| `allData` | `Row[]` | Vollständiger Datensatz |
+| `filteredData` | `Row[]` | Gefilterter Datensatz (Subset von `allData`) |
+| `networkChart` | `cytoscape \| null` | Aktuelle Cytoscape-Instanz; `null` wenn keine Daten |
+| `activeFilters` | `Object` | Aktive Filterwerte (Sets + Strings) |
+| `editIndex` | `number` | Index in `allData` des gerade bearbeiteten Eintrags; `-1` = neuer Eintrag |
+| `wizardStep` | `number` | Aktueller Wizard-Schritt (0-basiert) |
+| `wizardData` | `Object` | Zwischenspeicher der Wizard-Eingaben |
+| `wizardDuplicateConfirmed` | `boolean` | `true` nachdem User Duplikat-Warnung bestätigt hat |
+| `colorByOrg` | `boolean` | Org-Farben-Modus aktiv |
+| `pendingFileText` | `string \| null` | Zwischenspeicher für FileReader-Ergebnis |
 
----
-
-## CSV-Schema
+### CSV-Spalten (Row-Schema)
 
 ```
 Quelle, QuelleAbteilung, QuelleBereich, QuelleOrganisation, QuelleRolle,
-Beziehung, Ziel, Datentyp, Häufigkeit, Format,
-Schutzbedarf, Erfassungsart, Anmerkungen, Ansprechpartner
+Beziehung, Ziel, Datentyp, Häufigkeit, Format, Schutzbedarf, Erfassungsart, Anmerkungen
 ```
-
-`toCSV()` und der Parser sind an diese Reihenfolge gebunden.  
-Der Parser (`parseCSV`) ist zeichenweise und behandelt `""` escaped Quotes und mehrzeilige Felder.
 
 ---
 
-## XSS-Konventionen
+## Wichtige Konventionen
 
-- **`esc(str)`** für alle Werte in `innerHTML`
-- **Rohe Werte** für `textContent` – `esc()` dort erzeugt `&amp;`-Doppelkodierung
-- **`data-*`-Attribute**: `esc()` ist korrekt, Browser dekodiert HTML-Entities beim Lesen via `dataset`
+### XSS-Schutz
+
+**Immer `esc(value)` für User-Daten in `innerHTML` verwenden:**
+```js
+card.innerHTML = `<div>${esc(row.Quelle)}</div>`;
+```
+
+**Niemals `esc()` in `textContent` verwenden** — `textContent` ist bereits sicher und `esc()` würde HTML-Entities literal anzeigen:
+```js
+el.textContent = row.Quelle;        // ✓ korrekt
+el.textContent = esc(row.Quelle);   // ✗ zeigt "&amp;" statt "&"
+```
+
+Die `esc()`-Funktion in `buildReportHTML()` heißt intern `e()` und ist lokal definiert, da sie im Print-Window-Kontext läuft.
+
+### CSS-Variablen
+
+Immer Design-Tokens verwenden, nie hardcoded Farben:
+```css
+color: var(--c-accent);      /* #420093 */
+color: var(--c-muted);       /* #7a7591 */
+color: var(--c-success);     /* #2e9e60 */
+color: var(--c-danger);      /* #c0392b */
+color: var(--c-warn);        /* #d4820a */
+border: 1px solid var(--c-border-s);
+background: var(--glass-bg);
+box-shadow: var(--shadow-md);
+border-radius: var(--radius);
+```
+
+### Hidden-Pattern
+
+Kein globales `.hidden` — jede Komponente definiert ihre eigene Regel:
+```css
+.meine-komponente.hidden { display: none; }
+```
+
+### `networkChart` Guards
+
+`networkChart` ist `null` wenn keine Daten geladen sind (seit Fix: auch nach `renderNetwork([])` korrekt genullt). Immer prüfen:
+```js
+if (networkChart) networkChart.zoom(...);
+```
 
 ---
 
 ## Cytoscape-Integration
 
-- Instanz: `networkChart` (null wenn kein Graph)
-- Style: `CY_STYLE` – enthält `data(orgColor)`, `data(orgOutlineColor)` sowie Klassen `.highlighted`, `.faded`, `.path-node`, `.path-edge`, `:parent`
-- Compound Nodes: aktiviert über `orgHierarchyMode`, Parent-IDs mit `_p_`-Präfix
-- Alle Guards: `if (networkChart)` vor jedem Zugriff
+- **Library:** Cytoscape.js v3.23 (CDN)
+- **Layout:** CoSE (force-directed), Konfiguration in `COSE_OPTS`
+- **Stylesheet:** `CY_STYLE` — node/edge-Basis, `.highlighted`, `.faded`, `.path-node`, `.path-edge`
+- **Knotenfarbe:** `data(orgColor)` / `data(orgOutlineColor)` — Default `#7a6fa8`/`#5c5080`; via `applyOrgColors()` überschreibbar
+- **Klassen-Priorität:** `.highlighted` > `.path-node` > `data(orgColor)` (CSS-Spezifität: class > type+data)
+- **Pfadsuche:** `cy.elements().aStar({ root, goal, directed: true })`
+- **PNG-Export:** `cy.png({ output: 'base64uri', full: true, scale: 2, bg: '#f0edf8' })` — synchron
+- **SVG-Export:** `cy.svg({ full: true })` — synchron
 
 ---
 
-## Kontextanalyse – Konzept & Roadmap
+## Feature-Übersicht
 
-### Philosophie
-
-DatenGraf soll nicht nur visualisieren, sondern **interpretieren**. Das Analyse-System ist in drei Schichten aufgebaut, die aufeinander aufbauen:
-
-```
-Schicht 1: Rule-based (v15, ✅)          → deterministisch, lokal, sofort
-Schicht 2: Snapshot-Diff (v16, ✅)       → temporal, lokal, kein Backend
-Schicht 2b: Narrativ + Score (v17, ✅)   → template-basiert, kein Backend, LLM-ready
-Schicht 3: LLM-Narrativ (geplant)        → kontextuell, opt-in, API-Key nötig
-```
-
----
-
-### Schicht 1 – Rule-based Analyse (implementiert in v15)
-
-**Einstiegspunkt:** `showAnalyseBriefing()` – wird nach jedem Datenladen aufgerufen.  
-**Analyse-Engine:** `runAnalysis(data)` – gibt max. 5 priorisierte Findings zurück.
-
-#### Finding-Struktur
-
-```js
-{
-  type: string,           // Eindeutiger Bezeichner, z. B. 'hub', 'gatekeeper'
-  severity: 'high' | 'medium' | 'low',
-  icon: string,           // Font Awesome class, z. B. 'fa-arrows-to-dot'
-  title: string,          // Kurze Überschrift (esc'd beim Rendern)
-  text: string,           // Erklärung (esc'd beim Rendern)
-  action: {
-    label: string,        // Button-Text
-    type: 'highlight' | 'filter-schutz' | 'tab',
-    nodeId?: string,      // für type: 'highlight'
-    value?: string,       // für type: 'filter-schutz'
-    tab?: string,         // für type: 'tab'
-  } | null
-}
-```
-
-#### Implementierte Regeln
-
-| Regel | Typ | Schwellwert | Aktion |
-|---|---|---|---|
-| `hub` | Structural | out-degree ≥ max(4, 2× Ø) | Netzwerk-Highlight |
-| `gatekeeper` | Structural | Betweenness > 3× Ø | Netzwerk-Highlight |
-| `dsgvo_no_owner` | Compliance | DSGVO ohne Ansprechpartner | Filter setzen |
-| `missing_schutz` | Hygiene | Schutzbedarf leer | Insights-Tab |
-| `no_org` | Vollständigkeit | 0% mit QuelleOrganisation | — |
-| `missing_datentyp` | Vollständigkeit | >30% ohne Datentyp | Listen-Tab |
-
-#### Neue Regeln hinzufügen
-
-In `runAnalysis(data)` ein neues Finding-Objekt in `findings` pushen, dann in `runAnalysis` am Ende durch `slice(0, 5)` automatisch priorisiert (Sortierung nach `severity`).
-
----
-
-### Schicht 2 – Snapshot-Differenzanalyse (implementiert in v16)
-
-Beim Laden eines Datensatzes wird automatisch gegen den **neuesten Snapshot** (nach `savedAt`) verglichen.
-
-#### Snapshot-Format (ab v16)
-
-```js
-// localStorage: datengraf_snap_<name>
-{ data: [...], savedAt: Date.now(), name: 'string' }
-// Alte Snapshots (reines Array) werden rückwärtskompatibel gelesen
-```
-
-#### Diff-Engine
-
-```js
-diffSnapshots(prev, curr)
-// Returns { added[], removed[], schutzChanged[] }
-// Schlüssel: Quelle|||Ziel|||Datentyp
-```
-
-#### Diff-Finding im Briefing
-
-| Änderung | Severity | Icon |
+| Feature | Schlüsselfunktionen | Schlüssel-IDs |
 |---|---|---|
-| Nur neue Flüsse | low | fa-clock-rotate-left |
-| Entfernte Flüsse oder Schutzklassen-Änderung | medium | fa-clock-rotate-left |
-
-Kein Finding wenn 0 Änderungen (data identisch zu Snapshot).
-
-#### Geplante Erweiterungen
-- „Als Vergleichsbasis markieren"-Button im Snapshot-Modal (statt immer neuester)
-- Neue Hubs/Gatekeeper seit letztem Snapshot als eigenes Finding (`diff_topology`)
+| Wizard | `openWizard(prefill, editIdx)`, `closeWizard()`, `renderWizardStep()`, `collectWizardStep()` | `#wizard-backdrop`, `#wizard-next`, `#wizard-back` |
+| Duplikat-Erkennung | `findDuplicate(data, candidate, skipIndex)` | `#wizard-dup-warning`, `#wizard-dup-text` |
+| Listenansicht | `renderList(data)` | `#list-content`, `[data-edit]`, `[data-dupe]`, `[data-del]` |
+| Netzwerk | `renderNetwork(data)`, `prepareElements(data)` | `#network-container`, `#node-detail` |
+| Knoten-Detail | `showNodeDetail(nodeId, data)` | `#nd-name`, `#nd-metrics`, `#nd-flows` |
+| Pfadfinder | `populatePathfinderSelects()`, `clearPath()` | `#pathfinder-bar`, `#path-from`, `#path-to` |
+| Org-Farben | `applyOrgColors()`, `clearOrgColors()`, `buildOrgColorMap()` | `#btn-color-by-org`, `#org-legend` |
+| Insights | `renderInsights(data)` | `#insights-grid` |
+| Filter | `applyFilters()`, `buildSidebarFilters()`, `clearFilters()` | `#sidebar`, `.chip`, `.filter-group` |
+| CSV-Import | `parseCSV(text)`, `splitCSVLine(line)` | `#import-body`, `#csv-textarea` |
+| CSV-Export | `toCSV(data)` | `#export-csv-btn` |
+| PNG/SVG-Export | `downloadBlob(blob, filename)` | `#btn-export-png`, `#btn-export-svg` |
+| PDF-Bericht | `buildReportHTML(networkImgUri)` | `#pdf-report-btn` |
+| Share-Link | `loadFromShareHash()` | `#share-link-btn` |
+| Beispieldaten | `loadExample(key)`, `showExampleInfo(ex)`, `EXAMPLES` | `.sample-card`, `#example-info` |
+| LocalStorage | — | `#save-local-btn`, `#load-local-btn` |
 
 ---
 
-### Schicht 2b – Vollständigkeits-Score & Smart Narrative (implementiert in v17)
+## Beispieldatensätze
 
-#### `calcVollstaendigkeit(data)`
+Alle in `data/sample-*.csv`, geladen via `fetch()`:
 
-Berechnet einen gewichteten Score [0–100]:
-
-| Feld | Gewicht | Sonderregel |
+| Datei | Organisation | Analyseschwerpunkt |
 |---|---|---|
-| Schutzklasse | 25 % | alle Zeilen |
-| Erfassungsart | 15 % | alle Zeilen |
-| Datentyp | 20 % | alle Zeilen |
-| Ansprechpartner | 25 % | nur DSGVO-relevante Zeilen |
-| Organisation | 15 % | alle Zeilen |
-
-Score-Farbe: grün ≥ 80 %, amber ≥ 60 %, rot < 60 %.
-
-#### `generateNarrative(data, findings, vs)`
-
-Erzeugt 3–5 Sätze aus echten Datenpunkten:
-1. Netzwerktopologie (Hub-and-Spoke vs. dezentral)
-2. Gatekeeper-Risiko (falls vorhanden, kein Duplikat zum Hub-Satz)
-3. DSGVO-Compliance-Lücke (falls DSGVO-Flows ohne Ansprechpartner)
-4. Vollständigkeits-Zusammenfassung
-5. Snapshot-Diff (falls Änderungen vorhanden)
-
-**LLM-Upgrade-Pfad:** `generateNarrative` kann 1:1 durch einen Fetch auf die Claude API ersetzt werden — gleicher Input (`data, findings, vs`), gleicher Output-Slot im Briefing. Template bleibt als Fallback bei fehlendem API-Key.
+| `sample-wirtschaft.csv` | Globex Handels GmbH | Warenwirtschaft als Hub, Marketing↔Logistik-Silo |
+| `sample-zivilgesellschaft.csv` | Nachbarschaftshilfe e.V. | Spaghetti-Netzwerk, Spendenverwaltung isoliert |
+| `sample-verwaltung.csv` | Stadtverwaltung Musterstadt | Sterntopologie Bürgermeisterbüro, Sozialamt↔Jugendamt-Lücke |
+| `sample-wissenschaft.csv` | Institut für Klimaforschung | Drittmittelverwaltung als Bottleneck, Ethikkommission-Blocker |
+| `sample-medien.csv` | Tagesblatt Regional GmbH | CMS als Hub, Lesermarkt von Redaktion isoliert |
 
 ---
 
-### Schicht 3 – LLM-Narrativ (geplant)
+## Externe Libraries (CDN)
 
-**Ziel:** Aus den rule-based Befunden und der Netzwerktopologie eine natürlichsprachige Analyse generieren:
-> *„Euer Netzwerk zeigt ein klassisches Sterntopologie-Muster mit Warenwirtschaft als Single Point of Failure. Besonders kritisch: 6 DSGVO-Flüsse haben keine verantwortliche Person – das ist eine Compliance-Lücke nach Art. 30 DSGVO."*
-
-**Privacy-Ansatz:** Nur anonymisierte Metriken senden (keine Klarnamen), oder opt-in mit vollständigem Kontext + eigenem API-Key.
-
-**Input-Struktur (komprimiert, ~500 Token):**
-```js
-{
-  nodeCount, edgeCount, dsgvoCount,
-  topHubs: [{ id: 'A', out: 9 }],     // keine Klarnamen = privacy-safe
-  topGatekeepers: [...],
-  missingFields: { schutz: 4, ansprechpartner: 2 },
-  findings: runAnalysis(data).map(f => f.type)
-}
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:...">
 ```
 
-**Technische Anforderungen:**
-- Minimaler Backend-Proxy (API-Key nicht im Browser) oder User-seitig via Settings-Modal
-- Streaming-Response für UX (kein 5s-Blank-Screen)
-- Fallback: wenn kein API-Key → zeige nur rule-based Findings
+LZString wird für `#share-link-btn` (`LZString.compressToEncodedURIComponent`) und `loadFromShareHash` (`decompressFromEncodedURIComponent`) verwendet.
 
 ---
 
-## Vollständigkeits-Score (geplant)
+## Bekannte Fallstricke
 
-Ein `[0–100%]`-Score berechnet aus:
-- Schutzbedarf gesetzt: 25 Punkte (gewichtet)
-- Erfassungsart gesetzt: 15 Punkte
-- Datentyp gesetzt: 20 Punkte
-- Ansprechpartner bei DSGVO: 25 Punkte
-- QuelleOrganisation gesetzt: 15 Punkte
-
-Anzeige als Progress-Bar im Briefing-Header oder in den Insights.
-
----
-
-## Bekannte Einschränkungen / Pitfalls
-
-- `renderNetwork([])` muss `networkChart = null` setzen – sonst stale reference
-- `textContent = esc(val)` → Doppelkodierung – immer raw values für textContent
-- `buildChipGroup` restauriert jetzt active-State aus `activeFilters` (seit v15)
-- Org-Farben überschreiben `data(orgColor)` direkt – Klassen `.highlighted`/`.faded` haben höhere Spezifität im CY_STYLE
-- Compound Nodes: Parent-IDs müssen `_p_`-Präfix haben um Kollision mit echten Node-IDs zu vermeiden
-- `wizardDuplicateConfirmed` muss bei jedem Back/Cancel/Close zurückgesetzt werden
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen
+- **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
+- **`networkChart = null`:** Nach `renderNetwork([])` korrekt gesetzt; alle Handler mit `if (networkChart)` schützen
+- **Ziel-only Knoten:** Erhalten `org: ''` auch wenn sie in anderen Zeilen als Quelle mit Organisation auftauchen — bekanntes Pre-existing-Issue, Workaround: Org-Farben zeigt sie als `—`
+- **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
+- **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
