@@ -1,0 +1,9 @@
+Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner
+[Sendender Akteur],[Abteilung / Team],[Organisationsbereich],[Organisation],[Datenersteller | Datenverarbeiter | Datennutzer | Datenverwalter],[übergibt | nutzt | erstellt | empfängt | verarbeitet],[Empfangender Akteur],[Art der Daten],[täglich | wöchentlich | monatlich | quartalsweise | jährlich | bei Bedarf | unregelmäßig],[CSV | Excel | PDF | API | EDI | E-Mail | Word | JSON | Formular | Datenbank],[DSGVO-relevant | Intern | Öffentlich],[Manuell | Automatisiert],[Optionale Anmerkung],[Name der verantwortlichen Person]
+Buchhaltung,Finanzen,Zentrale,Meine Organisation,Datenersteller,übergibt,Geschäftsleitung,Monatsbericht,monatlich,PDF,Intern,Manuell,Wird am Monatsende erstellt,Max Mustermann
+CRM-System,IT,Vertrieb,Meine Organisation,Datenverwalter,übergibt,Marketing,Kundensegmente,wöchentlich,CSV,Intern,Automatisiert,Automatischer Export jeden Montag,
+HR-Abteilung,Personal,Verwaltung,Meine Organisation,Datenersteller,übergibt,Controlling,Personalkosten,monatlich,Excel,DSGVO-relevant,Manuell,Aggregiert – keine Einzeldaten,Erika Musterfrau
+Aussenstelle Nord,Außenstelle,Nord,Meine Organisation,Datenersteller,übergibt,Zentrale,Projektbericht,quartalsweise,Word,Intern,Manuell,Eigenes Berichtsformat,
+IT-System A,IT,Kernprozesse,Meine Organisation,Datenverarbeiter,übergibt,IT-System B,Transaktionsdaten,täglich,API,Intern,Automatisiert,Schnittstelle seit 2021,
+Externer Partner,Extern,Extern,,Datenersteller,übergibt,Fachabteilung,Auftragsdaten,bei Bedarf,E-Mail,Intern,Manuell,Kein standardisiertes Format,
+Fachabteilung,Fachbereich,Programm,Meine Organisation,Datennutzer,nutzt,Datenbank,Stammdaten,täglich,Datenbank,Öffentlich,Automatisiert,Lesezugriff,

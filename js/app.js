@@ -37,40 +37,45 @@ let activeFilters = {
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
 function parseCSV(csv) {
-  const lines = csv.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = splitCSVLine(lines[0]).map(h => h.trim());
-  const result = [];
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    const values = splitCSVLine(lines[i]);
+  const rows = [];
+  let i = 0;
+  const n = csv.length;
+  while (i < n) {
+    const fields = [];
+    while (true) {
+      let field = '';
+      if (i < n && csv[i] === '"') {
+        i++;
+        while (i < n) {
+          if (csv[i] === '"') {
+            if (i + 1 < n && csv[i + 1] === '"') { field += '"'; i += 2; }
+            else { i++; break; }
+          } else { field += csv[i++]; }
+        }
+      } else {
+        while (i < n && csv[i] !== ',' && csv[i] !== '\n' && csv[i] !== '\r') field += csv[i++];
+        field = field.trim();
+      }
+      fields.push(field);
+      if (i < n && csv[i] === ',') { i++; continue; }
+      if (i < n && csv[i] === '\r') i++;
+      if (i < n && csv[i] === '\n') i++;
+      break;
+    }
+    if (fields.some(f => f !== '')) rows.push(fields);
+  }
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).map(fields => {
     const obj = {};
-    headers.forEach((h, j) => { obj[h] = (values[j] ?? '').trim(); });
-    result.push(obj);
-  }
-  return result;
-}
-
-function splitCSVLine(line) {
-  const values = [];
-  let inQuotes = false, temp = '';
-  for (const ch of line) {
-    if (ch === '"') { inQuotes = !inQuotes; }
-    else if (ch === ',' && !inQuotes) { values.push(unquote(temp)); temp = ''; }
-    else { temp += ch; }
-  }
-  values.push(unquote(temp));
-  return values;
-}
-
-function unquote(s) {
-  s = s.trim();
-  return (s.startsWith('"') && s.endsWith('"')) ? s.slice(1, -1) : s;
+    headers.forEach((h, j) => { obj[h] = fields[j] ?? ''; });
+    return obj;
+  });
 }
 
 function toCSV(data) {
   const headers = ['Quelle','QuelleAbteilung','QuelleBereich','QuelleOrganisation','QuelleRolle',
-    'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen'];
+    'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen','Ansprechpartner'];
   const escape = v => {
     if (!v) return '';
     if (v.includes(',') || v.includes('"') || v.includes('\n')) {
@@ -97,7 +102,25 @@ function applyFilters() {
     }
     return true;
   });
+  updateFilterBanner();
   renderAll();
+}
+
+function updateFilterBanner() {
+  const banner = document.getElementById('active-filter-banner');
+  if (!banner || !allData.length) { if (banner) banner.classList.add('hidden'); return; }
+  const count = activeFilters.relation.size + activeFilters.schutz.size + activeFilters.erfassung.size +
+    (activeFilters.organization !== 'all' ? 1 : 0) + (activeFilters.department !== 'all' ? 1 : 0) +
+    (activeFilters.frequency !== 'all' ? 1 : 0) + (activeFilters.format !== 'all' ? 1 : 0) +
+    (activeFilters.search ? 1 : 0);
+  if (count === 0) {
+    banner.classList.add('hidden');
+  } else {
+    const hidden = allData.length - filteredData.length;
+    document.getElementById('filter-banner-text').textContent =
+      `${count} Filter aktiv – ${filteredData.length} von ${allData.length} Einträgen sichtbar${hidden > 0 ? ` (${hidden} ausgeblendet)` : ''}`;
+    banner.classList.remove('hidden');
+  }
 }
 
 function clearFilters() {
@@ -205,11 +228,29 @@ function renderList(data) {
       ${row.Format     ? `<span class="badge badge-format">${esc(row.Format)}</span>`            : ''}
       ${schutzClass    ? `<span class="badge ${schutzClass}">${esc(row.Schutzbedarf)}</span>`   : ''}
       ${erfClass       ? `<span class="badge ${erfClass}">${esc(row.Erfassungsart)}</span>`     : ''}
-      <div class="rel-card-actions" style="margin-left:auto">
-        <button class="btn btn-secondary btn-sm" data-del="${idx}" title="Löschen">✕</button>
+      ${row.Ansprechpartner ? `<span class="badge badge-owner"><i class="fas fa-user" style="font-size:9px"></i> ${esc(row.Ansprechpartner)}</span>` : ''}
+      <div class="rel-card-actions" style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" data-dupe="${idx}" title="Duplizieren"><i class="fas fa-copy"></i></button>
+        <button class="btn btn-secondary btn-sm" data-edit="${idx}" title="Bearbeiten"><i class="fas fa-pen"></i></button>
+        <button class="btn btn-secondary btn-sm" data-del="${idx}"  title="Löschen">✕</button>
       </div>
     `;
     contentEl.appendChild(card);
+  });
+
+  contentEl.querySelectorAll('[data-dupe]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = filteredData[parseInt(btn.dataset.dupe)];
+      openWizard({ ...row });
+    });
+  });
+
+  contentEl.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = filteredData[parseInt(btn.dataset.edit)];
+      const idx = allData.indexOf(row);
+      openWizard({ ...row }, idx);
+    });
   });
 
   contentEl.querySelectorAll('[data-del]').forEach(btn => {
@@ -234,9 +275,9 @@ const CY_STYLE = [
     selector: 'node',
     style: {
       label: 'data(id)', 'text-valign': 'center', 'text-halign': 'center',
-      'background-color': '#7a6fa8', color: '#fff',
+      'background-color': 'data(orgColor)', color: '#fff',
       'font-size': '11px', 'font-family': 'Inter, sans-serif',
-      'text-outline-width': 1.5, 'text-outline-color': '#5c5080',
+      'text-outline-width': 1.5, 'text-outline-color': 'data(orgOutlineColor)',
       width: 'data(size)', height: 'data(size)',
       'text-wrap': 'wrap', 'text-max-width': '80px',
       'border-width': 2, 'border-color': 'rgba(255,255,255,0.4)',
@@ -256,25 +297,50 @@ const CY_STYLE = [
   },
   { selector: '.highlighted', style: { 'background-color': '#420093', 'line-color': '#420093', 'target-arrow-color': '#420093', opacity: 1, 'z-index': 999, 'border-color': '#fff', 'border-width': 2 } },
   { selector: '.faded',       style: { opacity: 0.12, 'z-index': 0 } },
+  { selector: '.path-node',   style: { 'background-color': '#2e9e60', 'border-color': '#fff', 'border-width': 3, opacity: 1, 'z-index': 999, color: '#fff', 'text-outline-color': '#1a6640' } },
+  { selector: '.path-edge',   style: { 'line-color': '#2e9e60', 'target-arrow-color': '#2e9e60', width: 4, opacity: 1, 'z-index': 998 } },
+  { selector: ':parent',      style: { 'background-color': 'rgba(66,0,147,0.04)', 'background-opacity': 1, 'border-color': 'rgba(66,0,147,0.25)', 'border-width': 1, 'padding': '18px', label: 'data(label)', 'text-valign': 'top', 'text-halign': 'center', color: '#420093', 'font-size': '11px', 'font-weight': 600, 'text-outline-width': 0 } },
 ];
 
-function prepareElements(data) {
+function prepareElements(data, useHierarchy = false) {
   const nodes = new Map();
   const edges = [];
 
   data.forEach(row => {
     if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
-    if (!nodes.has(row.Quelle)) nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '', out: 0, inn: 0 });
+    if (!nodes.has(row.Quelle)) {
+      nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '', bereich: row.QuelleBereich || '', out: 0, inn: 0 });
+    } else {
+      // Update org/bereich if previously registered only as Ziel (no org data)
+      const n = nodes.get(row.Quelle);
+      if (!n.org && row.QuelleOrganisation) n.org = row.QuelleOrganisation;
+      if (!n.bereich && row.QuelleBereich)  n.bereich = row.QuelleBereich;
+    }
     nodes.get(row.Quelle).out++;
-    if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { dept: '', org: '', out: 0, inn: 0 });
+    if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { dept: '', org: '', bereich: '', out: 0, inn: 0 });
     nodes.get(row.Ziel).inn++;
     edges.push(row);
   });
 
   const elements = [];
-  nodes.forEach((n, id) => {
-    elements.push({ data: { id, dept: n.dept, org: n.org, size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
-  });
+
+  if (useHierarchy) {
+    const bereiche = new Map();
+    nodes.forEach(n => { if (n.bereich) bereiche.set(n.bereich, `_p_${n.bereich}`); });
+    bereiche.forEach((id, bereich) => {
+      elements.push({ data: { id, label: bereich, isParent: true } });
+    });
+    nodes.forEach((n, id) => {
+      const nodeData = { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) };
+      if (n.bereich && bereiche.has(n.bereich)) nodeData.parent = bereiche.get(n.bereich);
+      elements.push({ data: nodeData });
+    });
+  } else {
+    nodes.forEach((n, id) => {
+      elements.push({ data: { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
+    });
+  }
+
   edges.forEach((row, i) => {
     elements.push({ data: { id: `e${i}`, source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: REL_COLORS_HEX[row.Beziehung] || '#999' } });
   });
@@ -284,9 +350,14 @@ function prepareElements(data) {
 function renderNetwork(data) {
   const container = document.getElementById('network-container');
   container.innerHTML = '';
-  if (!data.length) return;
+  document.getElementById('pathfinder-bar').classList.add('hidden');
+  document.getElementById('pathfinder-result').textContent = '';
+  document.getElementById('pathfinder-result').className = 'pathfinder-result';
+  document.getElementById('org-legend').classList.add('hidden');
+  if (!data.length) { networkChart = null; return; }
 
-  networkChart = cytoscape({ container, elements: prepareElements(data), style: CY_STYLE, layout: COSE_OPTS });
+  networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: CY_STYLE, layout: COSE_OPTS });
+  if (colorByOrg) applyOrgColors();
 
   networkChart.on('tap', 'node', evt => {
     const node  = evt.target;
@@ -295,10 +366,38 @@ function renderNetwork(data) {
     networkChart.elements().removeClass('highlighted faded');
     networkChart.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
     node.union(edges).union(nbrs).addClass('highlighted');
+    showNodeDetail(node.id(), data);
   });
   networkChart.on('tap', evt => {
-    if (evt.target === networkChart) networkChart.elements().removeClass('highlighted faded');
+    if (evt.target === networkChart) {
+      networkChart.elements().removeClass('highlighted faded');
+      document.getElementById('node-detail').classList.add('hidden');
+    }
   });
+}
+
+function showNodeDetail(nodeId, data) {
+  const outFlows = data.filter(r => r.Quelle === nodeId);
+  const inFlows  = data.filter(r => r.Ziel   === nodeId);
+
+  document.getElementById('nd-name').textContent = nodeId;
+  document.getElementById('nd-metrics').innerHTML =
+    `<span class="nd-badge"><i class="fas fa-arrow-up-from-bracket" style="font-size:9px"></i> ${outFlows.length} ausgehend</span>` +
+    `<span class="nd-badge"><i class="fas fa-arrow-down-to-bracket" style="font-size:9px"></i> ${inFlows.length} eingehend</span>`;
+
+  const flowHtml = (flows, dir) => flows.map(r => `
+    <div class="nd-flow">
+      <span class="nd-flow-dir">${dir}</span>
+      <span class="nd-flow-node">${esc(dir === '→' ? r.Ziel : r.Quelle)}</span>
+      ${r.Beziehung ? `<span class="nd-flow-rel">${esc(r.Beziehung)}</span>` : ''}
+      ${r.Datentyp  ? `<span class="nd-flow-type">${esc(r.Datentyp)}</span>`  : ''}
+    </div>`).join('');
+
+  document.getElementById('nd-flows').innerHTML =
+    (outFlows.length ? `<div class="nd-section-label">Ausgehend</div>${flowHtml(outFlows, '→')}` : '') +
+    (inFlows.length  ? `<div class="nd-section-label">Eingehend</div>${flowHtml(inFlows,  '←')}` : '');
+
+  document.getElementById('node-detail').classList.remove('hidden');
 }
 
 // ── Insights ──────────────────────────────────────────────────────────────────
@@ -460,7 +559,8 @@ const WIZARD_STEPS = [
         <select name="Beziehung">${BEZIEHUNG_OPTS.map(b => `<option>${b}</option>`).join('')}</select>
       </div>
       <div class="form-row"><label>Datentyp</label><input type="text" name="Datentyp" placeholder="z. B. Finanzmittel"></div>
-      <div class="form-row"><label>Anmerkungen</label><textarea name="Anmerkungen" placeholder="Optionale Anmerkungen…"></textarea></div>`
+      <div class="form-row"><label>Anmerkungen</label><textarea name="Anmerkungen" placeholder="Optionale Anmerkungen…"></textarea></div>
+      <div class="form-row"><label>Ansprechpartner</label><input type="text" name="Ansprechpartner" placeholder="z. B. Max Mustermann"></div>`
   },
   {
     label: 'Format & Häufigkeit',
@@ -485,9 +585,9 @@ const WIZARD_STEPS = [
             { val: 'DSGVO-relevant', icon: 'fa-shield-halved', desc: 'Personenbezogene oder besonders schützenswerte Daten (Art. 9 DSGVO)' },
             { val: 'Intern',         icon: 'fa-lock',          desc: 'Daten für den internen Gebrauch, nicht öffentlich zugänglich' },
             { val: 'Öffentlich',     icon: 'fa-globe',         desc: 'Daten, die ohne Einschränkung veröffentlicht werden können' }
-          ].map(o => `
+          ].map((o, idx) => `
             <label class="radio-option">
-              <input type="radio" name="Schutzbedarf" value="${o.val}">
+              <input type="radio" name="Schutzbedarf" value="${o.val}"${idx === 0 ? ' required' : ''}>
               <div><div class="radio-option-label"><i class="fas ${o.icon}"></i> ${o.val}</div><div class="radio-option-desc">${o.desc}</div></div>
             </label>`).join('')}
         </div>
@@ -498,9 +598,9 @@ const WIZARD_STEPS = [
           ${[
             { val: 'Manuell',       icon: 'fa-hand',  desc: 'Daten werden durch menschliches Eingreifen erfasst oder übertragen' },
             { val: 'Automatisiert', icon: 'fa-robot', desc: 'Daten fließen automatisch über Schnittstellen oder Batch-Prozesse' }
-          ].map(o => `
+          ].map((o, idx) => `
             <label class="radio-option">
-              <input type="radio" name="Erfassungsart" value="${o.val}">
+              <input type="radio" name="Erfassungsart" value="${o.val}"${idx === 0 ? ' required' : ''}>
               <div><div class="radio-option-label"><i class="fas ${o.icon}"></i> ${o.val}</div><div class="radio-option-desc">${o.desc}</div></div>
             </label>`).join('')}
         </div>
@@ -509,18 +609,49 @@ const WIZARD_STEPS = [
 ];
 
 let wizardStep = 0;
-let wizardData = {};
+let wizardData  = {};
+let editIndex   = -1;
+let wizardDuplicateConfirmed = false;
+let colorByOrg = false;
+let orgHierarchyMode = false;
 
-function openWizard(prefill = {}) {
+const ORG_PALETTE = [
+  { bg: '#420093', outline: '#2d0066' },
+  { bg: '#2e9e60', outline: '#1a6640' },
+  { bg: '#d4820a', outline: '#a05f07' },
+  { bg: '#2980b9', outline: '#1c5e8c' },
+  { bg: '#c0392b', outline: '#8c2920' },
+  { bg: '#8e44ad', outline: '#5e2d75' },
+  { bg: '#16a085', outline: '#0d6b58' },
+  { bg: '#d35400', outline: '#922800' },
+  { bg: '#555b6e', outline: '#323740' },
+  { bg: '#1a6640', outline: '#0d3d22' },
+];
+
+function findDuplicate(data, candidate, skipIndex = -1) {
+  return data.findIndex((row, i) =>
+    i !== skipIndex &&
+    row.Quelle    === candidate.Quelle &&
+    row.Ziel      === candidate.Ziel   &&
+    row.Datentyp  === candidate.Datentyp
+  );
+}
+
+function openWizard(prefill = {}, editIdx = -1) {
+  editIndex  = editIdx;
   wizardStep = 0;
   wizardData = { ...prefill };
+  document.getElementById('wizard-title').textContent = editIdx >= 0 ? 'Datenfluss bearbeiten' : 'Neuen Datenfluss erfassen';
   document.getElementById('wizard-backdrop').classList.remove('hidden');
   renderWizardStep();
 }
 
 function closeWizard() {
   document.getElementById('wizard-backdrop').classList.add('hidden');
+  document.getElementById('wizard-dup-warning').classList.add('hidden');
   wizardData = {};
+  editIndex  = -1;
+  wizardDuplicateConfirmed = false;
 }
 
 function renderWizardStep() {
@@ -557,7 +688,10 @@ function renderWizardStep() {
 
   document.getElementById('wizard-hint').textContent  = step.hint;
   document.getElementById('wizard-back').style.display = wizardStep === 0 ? 'none' : '';
-  document.getElementById('wizard-next').innerHTML   = wizardStep === WIZARD_STEPS.length - 1 ? '<i class="fas fa-check"></i> Speichern' : 'Weiter <i class="fas fa-arrow-right"></i>';
+  const isLast = wizardStep === WIZARD_STEPS.length - 1;
+  document.getElementById('wizard-next').innerHTML = isLast
+    ? `<i class="fas fa-check"></i> ${editIndex >= 0 ? 'Aktualisieren' : 'Speichern'}`
+    : 'Weiter <i class="fas fa-arrow-right"></i>';
 }
 
 function collectWizardStep() {
@@ -569,17 +703,56 @@ function collectWizardStep() {
 
 document.getElementById('wizard-next').addEventListener('click', () => {
   if (!collectWizardStep()) return;
-  if (wizardStep < WIZARD_STEPS.length - 1) { wizardStep++; renderWizardStep(); }
-  else {
-    allData.push({ ...wizardData });
+  if (wizardStep < WIZARD_STEPS.length - 1) {
+    // Early dup-check after step 1 (Ziel, Datentyp collected) – warn before user fills steps 2–3
+    if (wizardStep === 1 && wizardData.Quelle && wizardData.Ziel && !wizardDuplicateConfirmed) {
+      const dupIdx = findDuplicate(allData, wizardData, editIndex);
+      if (dupIdx !== -1) {
+        const dup = allData[dupIdx];
+        document.getElementById('wizard-dup-text').textContent =
+          `${dup.Quelle} → ${dup.Ziel} (${dup.Datentyp})`;
+        document.getElementById('wizard-dup-warning').classList.remove('hidden');
+        wizardDuplicateConfirmed = true;
+        return;
+      }
+    }
+    wizardStep++;
+    wizardDuplicateConfirmed = false;
+    document.getElementById('wizard-dup-warning').classList.add('hidden');
+    renderWizardStep();
+  } else {
+    const dupIdx = findDuplicate(allData, wizardData, editIndex);
+    if (dupIdx !== -1 && !wizardDuplicateConfirmed) {
+      const dup = allData[dupIdx];
+      document.getElementById('wizard-dup-text').textContent =
+        `${dup.Quelle} → ${dup.Ziel} (${dup.Datentyp})`;
+      document.getElementById('wizard-dup-warning').classList.remove('hidden');
+      document.getElementById('wizard-next').innerHTML = '<i class="fas fa-triangle-exclamation"></i> Trotzdem speichern';
+      wizardDuplicateConfirmed = true;
+      return;
+    }
+    if (editIndex >= 0) {
+      allData[editIndex] = { ...wizardData };
+      setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" aktualisiert.`, 'success');
+      editIndex = -1;
+    } else {
+      allData.push({ ...wizardData });
+      setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" gespeichert.`, 'success');
+    }
+    wizardDuplicateConfirmed = false;
     buildSidebarFilters();
     applyFilters();
     closeWizard();
-    setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" gespeichert.`, 'success');
   }
 });
 
-document.getElementById('wizard-back').addEventListener('click', () => { collectWizardStep(); wizardStep--; renderWizardStep(); });
+document.getElementById('wizard-back').addEventListener('click', () => {
+  collectWizardStep();
+  wizardStep--;
+  wizardDuplicateConfirmed = false;
+  document.getElementById('wizard-dup-warning').classList.add('hidden');
+  renderWizardStep();
+});
 document.getElementById('wizard-cancel').addEventListener('click', closeWizard);
 document.getElementById('wizard-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeWizard(); });
 document.getElementById('open-wizard-btn').addEventListener('click', () => openWizard());
@@ -717,6 +890,7 @@ function toggleSidebar(forceClose) {
 document.getElementById('sidebar-toggle-btn').addEventListener('click', () => toggleSidebar());
 sidebarOverlay.addEventListener('click', () => toggleSidebar(true));
 document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+document.getElementById('filter-banner-reset').addEventListener('click', clearFilters);
 document.getElementById('filter-organization').addEventListener('change', e => { activeFilters.organization = e.target.value; applyFilters(); });
 document.getElementById('filter-department').addEventListener('change',   e => { activeFilters.department   = e.target.value; applyFilters(); });
 document.getElementById('filter-frequency').addEventListener('change',    e => { activeFilters.frequency    = e.target.value; applyFilters(); });
@@ -728,6 +902,159 @@ document.getElementById('btn-reset-layout').addEventListener('click', () => { if
 document.getElementById('btn-zoom-in').addEventListener('click',  () => { if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 1.2, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } }); });
 document.getElementById('btn-zoom-out').addEventListener('click', () => { if (networkChart) networkChart.zoom({ level: networkChart.zoom() * 0.8, renderedPosition: { x: networkChart.width() / 2, y: networkChart.height() / 2 } }); });
 document.getElementById('btn-zoom-fit').addEventListener('click', () => { if (networkChart) { networkChart.fit(); networkChart.center(); } });
+// ── Network Export ────────────────────────────────────────────────────────────
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('btn-export-png').addEventListener('click', () => {
+  if (!networkChart) return;
+  networkChart.png({ output: 'blob', full: true, scale: 2, bg: '#f0edf8' }, blob => downloadBlob(blob, 'datengraf-netzwerk.png'));
+});
+
+document.getElementById('btn-export-svg').addEventListener('click', () => {
+  if (!networkChart) return;
+  const svg  = networkChart.svg({ full: true });
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  downloadBlob(blob, 'datengraf-netzwerk.svg');
+});
+
+document.getElementById('nd-close').addEventListener('click', () => {
+  document.getElementById('node-detail').classList.add('hidden');
+  if (networkChart) networkChart.elements().removeClass('highlighted faded');
+});
+
+// ── Pathfinder ────────────────────────────────────────────────────────────────
+function populatePathfinderSelects() {
+  if (!networkChart) return;
+  const nodes = networkChart.nodes().map(n => n.id()).sort((a, b) => a.localeCompare(b));
+  ['path-from', 'path-to'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Knoten wählen…</option>';
+    nodes.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    if (nodes.includes(cur)) sel.value = cur;
+  });
+}
+
+function clearPath() {
+  if (networkChart) networkChart.elements().removeClass('path-node path-edge faded highlighted');
+  const r = document.getElementById('pathfinder-result');
+  r.textContent = '';
+  r.className = 'pathfinder-result';
+}
+
+document.getElementById('btn-toggle-pathfinder').addEventListener('click', () => {
+  const bar = document.getElementById('pathfinder-bar');
+  bar.classList.toggle('hidden');
+  const isOpen = !bar.classList.contains('hidden');
+  if (isOpen) {
+    populatePathfinderSelects();
+  } else {
+    clearPath();
+  }
+  // Keep org-legend below the pathfinder bar when both are visible
+  const legend = document.getElementById('org-legend');
+  legend.style.top = isOpen ? (bar.offsetHeight + 58) + 'px' : '';
+});
+
+document.getElementById('btn-find-path').addEventListener('click', () => {
+  if (!networkChart) return;
+  const from = document.getElementById('path-from').value;
+  const to   = document.getElementById('path-to').value;
+  const resultEl = document.getElementById('pathfinder-result');
+
+  if (!from || !to) {
+    resultEl.textContent = 'Bitte Von- und Nach-Knoten wählen.';
+    resultEl.className = 'pathfinder-result';
+    return;
+  }
+  if (from === to) {
+    resultEl.textContent = 'Von und Nach sind identisch.';
+    resultEl.className = 'pathfinder-result';
+    return;
+  }
+
+  networkChart.elements().removeClass('path-node path-edge faded highlighted');
+
+  const root = networkChart.$id(from);
+  const goal = networkChart.$id(to);
+  if (!root.length || !goal.length) return;
+
+  const result = networkChart.elements().aStar({ root, goal, directed: true });
+
+  if (result.found) {
+    networkChart.elements().difference(result.path).addClass('faded');
+    result.path.nodes().addClass('path-node');
+    result.path.edges().addClass('path-edge');
+    const nodeCount = result.path.nodes().length;
+    const edgeCount = result.path.edges().length;
+    const stepNames = result.path.nodes().map(n => n.id()).join(' → ');
+    resultEl.textContent = `${nodeCount} Knoten · ${edgeCount} Schritt${edgeCount !== 1 ? 'e' : ''}: ${stepNames}`;
+    resultEl.className = 'pathfinder-result found';
+    networkChart.fit(result.path, 80);
+  } else {
+    resultEl.textContent = `Kein Pfad von „${from}" nach „${to}" gefunden.`;
+    resultEl.className = 'pathfinder-result not-found';
+  }
+});
+
+document.getElementById('btn-clear-path').addEventListener('click', clearPath);
+
+// ── Org-Farben ────────────────────────────────────────────────────────────────
+function buildOrgColorMap() {
+  if (!networkChart) return {};
+  const orgs = [...new Set(networkChart.nodes().map(n => n.data('org') || '—'))].sort((a, b) => a.localeCompare(b));
+  const map = {};
+  orgs.forEach((org, i) => { map[org] = ORG_PALETTE[i % ORG_PALETTE.length]; });
+  return map;
+}
+
+function applyOrgColors() {
+  if (!networkChart) return;
+  const map = buildOrgColorMap();
+  networkChart.nodes().forEach(node => {
+    const c = map[node.data('org') || '—'];
+    node.data('orgColor',        c.bg);
+    node.data('orgOutlineColor', c.outline);
+  });
+  const legendItems = document.getElementById('org-legend-items');
+  legendItems.innerHTML = Object.entries(map).map(([org, c]) =>
+    `<div class="org-legend-item"><span class="org-legend-dot" style="background:${c.bg}"></span><span>${esc(org)}</span></div>`
+  ).join('');
+  document.getElementById('org-legend').classList.remove('hidden');
+}
+
+function clearOrgColors() {
+  if (!networkChart) return;
+  networkChart.nodes().forEach(node => {
+    node.data('orgColor',        '#7a6fa8');
+    node.data('orgOutlineColor', '#5c5080');
+  });
+  document.getElementById('org-legend').classList.add('hidden');
+}
+
+document.getElementById('btn-color-by-org').addEventListener('click', () => {
+  colorByOrg = !colorByOrg;
+  document.getElementById('btn-color-by-org').classList.toggle('active', colorByOrg);
+  if (colorByOrg) applyOrgColors();
+  else clearOrgColors();
+});
+
+document.getElementById('btn-toggle-hierarchy').addEventListener('click', () => {
+  orgHierarchyMode = !orgHierarchyMode;
+  document.getElementById('btn-toggle-hierarchy').classList.toggle('active', orgHierarchyMode);
+  renderNetwork(filteredData);
+});
+
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
   document.getElementById('panel-network').classList.toggle('fullscreen');
   setTimeout(() => { if (networkChart) { networkChart.resize(); networkChart.fit(); } }, 100);
@@ -764,23 +1091,147 @@ document.getElementById('export-csv-btn').addEventListener('click', () => {
 });
 
 // ── Sample Data ───────────────────────────────────────────────────────────────
-document.getElementById('btn-load-sample').addEventListener('click', () => {
+const EXAMPLES = {
+  wirtschaft: {
+    sector: 'Wirtschaft',
+    sectorClass: 'sample-card-sector--wirtschaft',
+    title: 'Globex Handels GmbH',
+    subtitle: 'E-Commerce-Händler · ~180 MA · 28 Datenflüsse',
+    file: 'data/sample-wirtschaft.csv',
+    context: 'Ein mittelständischer Händler mit hybridem Online-/Stationärgeschäft. Alle Systeme sind über eine zentrale Warenwirtschaft verbunden – die aber historisch gewachsen ist und zunehmend zum Engpass wird. Marketing und Logistik haben sich weitgehend entkoppelt, obwohl ihre Planung voneinander abhängt.',
+    findings: [
+      { icon: 'fa-arrows-to-dot', label: 'Zentraler Hub',   text: 'Warenwirtschaft hat den höchsten Degree-Wert – kritischer Single Point of Failure mit 9 Verbindungen.' },
+      { icon: 'fa-scissors',      label: 'Datensilo',        text: 'Marketing und Logistik sind nicht direkt verbunden – Kampagnenplanung und Lieferzeiten werden nie abgeglichen.' },
+      { icon: 'fa-route',         label: 'Lange Kette',      text: 'Online-Bestellung → Warenwirtschaft → Logistik → Retouren → Buchhaltung: 4 Hops, zwei davon manuell.' },
+    ]
+  },
+  zivilgesellschaft: {
+    sector: 'Zivilgesellschaft',
+    sectorClass: 'sample-card-sector--zivi',
+    title: 'Nachbarschaftshilfe e.V.',
+    subtitle: 'Wohlfahrtsverband · 6 Gliederungen · 30 Datenflüsse',
+    file: 'data/sample-zivilgesellschaft.csv',
+    context: 'Ein bundesweit aktiver Wohlfahrtsverband mit Bundesverband, zwei Regionalstellen und drei Ortsgruppen. Datenflüsse sind historisch über E-Mails und Excel gewachsen – ohne einheitliche Struktur. Spendenverwaltung und Programmabteilungen arbeiten vollständig aneinander vorbei.',
+    findings: [
+      { icon: 'fa-spider',        label: 'Spinnennetz',      text: 'Hohe Kantendichte rund um die Koordinierungsstelle – viele Verbindungen, keine klare Eigentümerschaft.' },
+      { icon: 'fa-circle-xmark',  label: 'Isolation',        text: 'Spendenverwaltung und Sozialdienst sind kaum verbunden – Förderberichte können nicht mit Wirkungsdaten belegt werden.' },
+      { icon: 'fa-route',         label: 'Langer Pfad',      text: 'Ehrenamtsstunden → Regionalstelle → Bundesverband → Fördermittelmanagement: 3 manuelle Hops bis zum Verwendungsnachweis.' },
+    ]
+  },
+  wissenschaft: {
+    sector: 'Wissenschaft',
+    sectorClass: 'sample-card-sector--wissenschaft',
+    title: 'Institut für Klimaforschung',
+    subtitle: 'Forschungsinstitut · 3 Gruppen · 27 Datenflüsse',
+    file: 'data/sample-wissenschaft.csv',
+    context: 'Ein öffentlich gefördertes Forschungsinstitut mit drei Forschungsgruppen, zentralem Datenmanagement und Drittmittelverwaltung. Jede Gruppe arbeitet in eigenen Datensilos – obwohl alle drei auf denselben Messdaten aufbauen. Alle Außenkommunikation läuft zwingend durch die Drittmittelverwaltung.',
+    findings: [
+      { icon: 'fa-filter',        label: 'Engpass Verwaltung', text: 'Drittmittelverwaltung liegt auf jedem Pfad zum Fördergeber – höchste Betweenness, aber rein administrativ.' },
+      { icon: 'fa-scissors',      label: 'Parallelarbeit',     text: 'Alle drei Forschungsgruppen bereiten dieselben Rohdaten separat auf – kein Datenfluss zwischen ihnen.' },
+      { icon: 'fa-hand-paper',    label: 'Blocker-Knoten',     text: 'Ethikkommission hat Betweenness-Wert trotz nur 2 Verbindungen: Forschung wartet auf Votum, bevor sie starten kann.' },
+    ]
+  },
+  medien: {
+    sector: 'Medien',
+    sectorClass: 'sample-card-sector--medien',
+    title: 'Tagesblatt Regional GmbH',
+    subtitle: 'Regionalredaktion · digital & print · 28 Datenflüsse',
+    file: 'data/sample-medien.csv',
+    context: 'Eine Regionalzeitung im Transformationsprozess: Print und Digital laufen parallel, das CMS ist der zentrale Hub. Reichweiten- und Leserdaten werden erhoben, aber nie zur Redaktionsplanung genutzt. Zwischen Vertrieb und Redaktion gibt es keine Verbindung auf Inhaltsebene.',
+    findings: [
+      { icon: 'fa-arrows-to-dot', label: 'Hub CMS',            text: 'Das CMS bündelt alle Inhalte – aber als reiner Durchlaufknoten ohne Rückkopplung an die Redaktion.' },
+      { icon: 'fa-circle-xmark',  label: 'Fehlende Schleife',  text: 'Social-Media-Daten und Leserzahlen fließen nicht in die Themenplanung zurück – Redaktion arbeitet ohne Feedback-Loop.' },
+      { icon: 'fa-box-archive',   label: 'Archiv als Sackgasse', text: 'Das Archiv empfängt alles, sendet aber nur auf manuelle Anfrage – automatische Kontextualisierung fehlt.' },
+    ]
+  },
+  verwaltung: {
+    sector: 'Verwaltung',
+    sectorClass: 'sample-card-sector--verwaltung',
+    title: 'Stadtverwaltung Musterstadt',
+    subtitle: 'Kommunalverwaltung · ~50.000 EW · 28 Datenflüsse',
+    file: 'data/sample-verwaltung.csv',
+    context: 'Stadtverwaltung einer Mittelstadt mit 12 Ämtern. Fast alle Informationsflüsse laufen hierarchisch zum Bürgermeisterbüro – aber nie zurück. Ämter kommunizieren kaum lateral miteinander, obwohl viele Fälle mehrere Stellen gleichzeitig betreffen.',
+    findings: [
+      { icon: 'fa-star',          label: 'Sterntopologie',   text: 'Bürgermeisterbüro hat In-Degree 8, Out-Degree 0 – reiner Empfänger, keine Rückkopplung von Entscheidungen.' },
+      { icon: 'fa-circle-xmark',  label: 'Fehlende Brücke',  text: 'Sozialamt und Jugendamt tauschen keine Daten aus – obwohl beide mit denselben Familien arbeiten.' },
+      { icon: 'fa-user-shield',   label: 'Passive Rolle',    text: 'IT- und Datenschutzbeauftragte erscheinen nur als Empfänger von Meldungen – ohne ausgehende Empfehlungen.' },
+    ]
+  }
+};
+
+function loadExample(key) {
+  const ex = EXAMPLES[key];
+  if (!ex) return;
   setStatus('Lade Beispieldaten…', 'loading');
-  fetch('data/sample.csv')
+  document.querySelectorAll('.sample-card').forEach(c =>
+    c.classList.toggle('active', c.dataset.sample === key)
+  );
+  fetch(ex.file)
     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
     .then(text => {
       if (!text) { setStatus('Beispieldaten leer.', 'error'); return; }
       allData = parseCSV(text);
       buildSidebarFilters();
       applyFilters();
-      setStatus(`${allData.length} Beispiel-Zeilen geladen.`, 'success');
+      setStatus(`${allData.length} Datenflüsse geladen.`, 'success');
+      showExampleInfo(ex);
+      switchTab('list');
     })
     .catch(e => setStatus(`Fehler beim Laden: ${e.message}`, 'error'));
+}
+
+function showExampleInfo(ex) {
+  const panel = document.getElementById('example-info');
+  document.getElementById('example-info-sector').textContent    = ex.sector;
+  document.getElementById('example-info-sector').className      = 'example-info-sector ' + ex.sectorClass;
+  document.getElementById('example-info-title').textContent     = ex.title;
+  document.getElementById('example-info-subtitle').textContent  = ex.subtitle;
+  document.getElementById('example-info-context').textContent   = ex.context;
+  document.getElementById('example-info-findings').innerHTML    = ex.findings.map(f => `
+    <div class="example-finding">
+      <div class="example-finding-icon"><i class="fas ${esc(f.icon)}"></i></div>
+      <div class="example-finding-body">
+        <strong>${esc(f.label)}</strong>
+        <span>${esc(f.text)}</span>
+      </div>
+    </div>`).join('');
+  panel.classList.remove('hidden');
+}
+
+document.querySelectorAll('.sample-card').forEach(card => {
+  card.addEventListener('click', () => loadExample(card.dataset.sample));
+});
+
+// ── Template Download ─────────────────────────────────────────────────────────
+document.getElementById('btn-download-template').addEventListener('click', () => {
+  fetch('data/template.csv')
+    .then(r => r.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'datengraf-vorlage.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    })
+    .catch(() => {
+      // Fallback: direkt navigieren
+      const a = document.createElement('a');
+      a.href = 'data/template.csv';
+      a.download = 'datengraf-vorlage.csv';
+      a.click();
+    });
 });
 
 // ── Hero Section ───────────────────────────────────────────────────────────────
 document.getElementById('hero-wizard-btn').addEventListener('click', () => openWizard());
-document.getElementById('hero-sample-btn').addEventListener('click', () => document.getElementById('btn-load-sample').click());
+document.getElementById('hero-sample-btn').addEventListener('click', () => {
+  if (!importBody.classList.contains('open')) {
+    importBody.classList.add('open');
+    importToggle.classList.add('open');
+    importLabel.textContent = '▲ schließen';
+  }
+  document.querySelector('.sample-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
 
 // ── Page Navigation ────────────────────────────────────────────────────────────
 document.getElementById('topbar-brand-link').addEventListener('click', () => location.reload());
@@ -791,5 +1242,222 @@ document.getElementById('open-theory-btn').addEventListener('click', () => theor
 document.getElementById('theory-close').addEventListener('click',    () => theoryBackdrop.classList.add('hidden'));
 theoryBackdrop.addEventListener('click', e => { if (e.target === theoryBackdrop) theoryBackdrop.classList.add('hidden'); });
 
+// ── PDF-Bericht ───────────────────────────────────────────────────────────────
+function buildReportHTML(networkImgUri) {
+  const data = filteredData.length ? filteredData : allData;
+  const isFiltered = filteredData.length !== allData.length && allData.length > 0;
+  const e = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const nodes = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean));
+  const dsgvoCount = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length;
+  const orgs = new Set(data.map(r => r.QuelleOrganisation).filter(Boolean));
+
+  const deg = {};
+  data.forEach(r => {
+    if (r.Quelle) { if (!deg[r.Quelle]) deg[r.Quelle] = { out: 0, inn: 0 }; deg[r.Quelle].out++; }
+    if (r.Ziel)   { if (!deg[r.Ziel])   deg[r.Ziel]   = { out: 0, inn: 0 }; deg[r.Ziel].inn++; }
+  });
+  const topNodes = Object.entries(deg)
+    .sort((a, b) => (b[1].out + b[1].inn) - (a[1].out + a[1].inn))
+    .slice(0, 10);
+
+  const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const schutzBadge = v => {
+    const safe = e(v);
+    if (v === 'DSGVO-relevant') return `<span class="badge badge-dsgvo">${safe}</span>`;
+    if (v === 'Intern')         return `<span class="badge badge-intern">${safe}</span>`;
+    if (v === 'Öffentlich')     return `<span class="badge badge-public">${safe}</span>`;
+    return safe;
+  };
+
+  return `<!DOCTYPE html><html lang="de"><head>
+<meta charset="UTF-8">
+<title>DatenGraf – Bericht</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e1b2e; padding: 40px; font-size: 12px; line-height: 1.5; }
+h1 { font-size: 22px; color: #420093; font-weight: 800; letter-spacing: -0.5px; }
+.meta { color: #7a7591; font-size: 12px; margin: 4px 0 28px; }
+.section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #7a7591; font-weight: 700; margin: 28px 0 12px; border-bottom: 2px solid #ede9f8; padding-bottom: 5px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat-box { background: #f5f3fb; border-radius: 8px; padding: 14px 12px; text-align: center; }
+.stat-value { font-size: 26px; font-weight: 800; color: #420093; }
+.stat-label { font-size: 10px; color: #7a7591; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+img.net { max-width: 100%; border-radius: 8px; border: 1px solid #e0dce8; display: block; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+th { background: #420093; color: #fff; padding: 7px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
+td { padding: 6px 10px; border-bottom: 1px solid #ede9f8; vertical-align: middle; }
+tr:nth-child(even) td { background: #f8f6fc; }
+.num { text-align: center; }
+.bold { font-weight: 700; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.badge-dsgvo  { background: #fde8e8; color: #c0392b; }
+.badge-intern { background: #fef3e2; color: #d4820a; }
+.badge-public { background: #e8f8ee; color: #2e9e60; }
+.filter-note { font-size: 11px; color: #7a7591; font-style: italic; margin-top: 8px; }
+@media print { @page { margin: 15mm 18mm; size: A4; } body { padding: 0; } }
+</style></head><body>
+<h1>DatenGraf – Datenfluss-Bericht</h1>
+<div class="meta">Erstellt am ${date}${isFiltered ? ' &nbsp;·&nbsp; Gefilterter Datensatz' : ''}</div>
+
+<div class="section-title">Übersicht</div>
+<div class="stats-grid">
+  <div class="stat-box"><div class="stat-value">${data.length}</div><div class="stat-label">Datenflüsse</div></div>
+  <div class="stat-box"><div class="stat-value">${nodes.size}</div><div class="stat-label">Knoten</div></div>
+  <div class="stat-box"><div class="stat-value">${dsgvoCount}</div><div class="stat-label">DSGVO-relevant</div></div>
+  <div class="stat-box"><div class="stat-value">${orgs.size || '—'}</div><div class="stat-label">Organisationen</div></div>
+</div>
+${isFiltered ? '<p class="filter-note">* Es sind Filter aktiv – der Bericht zeigt nur den gefilterten Datensatz.</p>' : ''}
+
+${networkImgUri ? `
+<div class="section-title">Netzwerkkarte</div>
+<img class="net" src="${networkImgUri}" alt="Netzwerkkarte">
+` : ''}
+
+<div class="section-title">Top-Knoten nach Vernetzungsgrad</div>
+<table>
+  <thead><tr><th>#</th><th>Knoten</th><th class="num">Ausgehend</th><th class="num">Eingehend</th><th class="num">Gesamt</th></tr></thead>
+  <tbody>${topNodes.map(([name, d], i) => `
+    <tr><td>${i + 1}</td><td>${e(name)}</td><td class="num">${d.out}</td><td class="num">${d.inn}</td><td class="num bold">${d.out + d.inn}</td></tr>`).join('')}
+  </tbody>
+</table>
+
+<div class="section-title">Alle Datenflüsse (${data.length})</div>
+<table>
+  <thead><tr><th>Quelle</th><th>Ziel</th><th>Beziehung</th><th>Datentyp</th><th>Häufigkeit</th><th>Format</th><th>Schutzbedarf</th><th>Ansprechpartner</th></tr></thead>
+  <tbody>${data.map(r => `
+    <tr><td>${e(r.Quelle)}</td><td>${e(r.Ziel)}</td><td>${e(r.Beziehung)}</td><td>${e(r.Datentyp)}</td><td>${e(r.Häufigkeit)}</td><td>${e(r.Format)}</td><td>${schutzBadge(r.Schutzbedarf)}</td><td>${e(r.Ansprechpartner)}</td></tr>`).join('')}
+  </tbody>
+</table>
+</body></html>`;
+}
+
+document.getElementById('pdf-report-btn').addEventListener('click', () => {
+  if (!allData.length) { setStatus('Keine Daten für Bericht.', 'error'); return; }
+  const openReport = uri => {
+    const win = window.open('', '_blank');
+    if (!win) { setStatus('Popup blockiert – bitte Popup-Blocker deaktivieren.', 'error'); return; }
+    win.document.write(buildReportHTML(uri));
+    win.document.close();
+    if (win.document.readyState === 'complete') {
+      setTimeout(() => win.print(), 300);
+    } else {
+      win.addEventListener('load', () => setTimeout(() => win.print(), 300));
+    }
+  };
+  if (networkChart) {
+    const uri = networkChart.png({ output: 'base64uri', full: true, scale: 2, bg: '#f0edf8' });
+    openReport(typeof uri === 'string' ? uri : null);
+  } else {
+    openReport(null);
+  }
+});
+
+// ── Share Link ────────────────────────────────────────────────────────────────
+document.getElementById('share-link-btn').addEventListener('click', () => {
+  if (!allData.length) { setStatus('Keine Daten zum Teilen.', 'error'); return; }
+  const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(allData));
+  const url = `${location.origin}${location.pathname}#share=${compressed}`;
+  if (url.length > 15000) {
+    setStatus('Datensatz zu groß für einen Link – bitte CSV-Export verwenden.', 'error');
+    return;
+  }
+  navigator.clipboard.writeText(url)
+    .then(() => setStatus('Link kopiert! Einfach weiterschicken.', 'success'))
+    .catch(() => { prompt('Link kopieren:', url); });
+});
+
+function loadFromShareHash() {
+  const hash = location.hash;
+  if (!hash.startsWith('#share=')) return;
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(hash.slice(7));
+    if (!json) { setStatus('Link-Daten konnten nicht geladen werden.', 'error'); return; }
+    const data = JSON.parse(json);
+    if (!Array.isArray(data) || !data.length) return;
+    allData = data;
+    buildSidebarFilters();
+    applyFilters();
+    setStatus(`${data.length} Datenflüsse aus geteiltem Link geladen.`, 'success');
+    history.replaceState(null, '', location.pathname);
+  } catch {
+    setStatus('Link-Daten konnten nicht geladen werden.', 'error');
+  }
+}
+
+// ── Snapshots ─────────────────────────────────────────────────────────────────
+const LS_SNAP_PREFIX = 'datengraf_snap_';
+
+function listSnapshots() {
+  return Object.keys(localStorage)
+    .filter(k => k.startsWith(LS_SNAP_PREFIX))
+    .map(k => ({ key: k, name: k.slice(LS_SNAP_PREFIX.length) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function renderSnapshotList() {
+  const listEl = document.getElementById('snapshot-list');
+  const snaps  = listSnapshots();
+  if (!snaps.length) {
+    listEl.innerHTML = '<p class="snapshot-empty">Noch keine Snapshots gespeichert.</p>';
+    return;
+  }
+  listEl.innerHTML = snaps.map(s => `
+    <div class="snapshot-item">
+      <span class="snapshot-name">${esc(s.name)}</span>
+      <div class="snapshot-item-actions">
+        <button class="btn btn-primary btn-sm" data-snap-load="${esc(s.key)}" data-snap-name="${esc(s.name)}">Laden</button>
+        <button class="btn btn-secondary btn-sm" data-snap-del="${esc(s.key)}">✕</button>
+      </div>
+    </div>`).join('');
+
+  listEl.querySelectorAll('[data-snap-load]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try {
+        const saved = localStorage.getItem(btn.dataset.snapLoad);
+        if (!saved) return;
+        allData = JSON.parse(saved);
+        buildSidebarFilters();
+        applyFilters();
+        setStatus(`Snapshot „${btn.dataset.snapName}" geladen (${allData.length} Einträge).`, 'success');
+        closeSnapshotModal();
+      } catch { setStatus('Snapshot konnte nicht geladen werden.', 'error'); }
+    });
+  });
+
+  listEl.querySelectorAll('[data-snap-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      localStorage.removeItem(btn.dataset.snapDel);
+      renderSnapshotList();
+    });
+  });
+}
+
+function openSnapshotModal() {
+  renderSnapshotList();
+  document.getElementById('snapshot-backdrop').classList.remove('hidden');
+}
+
+function closeSnapshotModal() {
+  document.getElementById('snapshot-backdrop').classList.add('hidden');
+  document.getElementById('snapshot-name-input').value = '';
+}
+
+document.getElementById('snapshot-save-btn').addEventListener('click', () => {
+  const name = document.getElementById('snapshot-name-input').value.trim();
+  if (!name) { document.getElementById('snapshot-name-input').focus(); return; }
+  if (!allData.length) { setStatus('Keine Daten zum Speichern.', 'error'); return; }
+  localStorage.setItem(LS_SNAP_PREFIX + name, JSON.stringify(allData));
+  setStatus(`Snapshot „${name}" gespeichert (${allData.length} Einträge).`, 'success');
+  document.getElementById('snapshot-name-input').value = '';
+  renderSnapshotList();
+});
+
+document.getElementById('open-snapshots-btn').addEventListener('click', openSnapshotModal);
+document.getElementById('snapshot-close-btn').addEventListener('click', closeSnapshotModal);
+document.getElementById('snapshot-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeSnapshotModal(); });
+
 // ── Init ──────────────────────────────────────────────────────────────────────
+loadFromShareHash();
 renderAll();

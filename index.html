@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 </head>
 <body>
 
@@ -38,11 +39,15 @@
 <div class="modal-backdrop hidden" id="wizard-backdrop">
   <div class="wizard" role="dialog" aria-modal="true">
     <div class="wizard-header">
-      <div class="wizard-title">Neuen Datenfluss erfassen</div>
+      <div class="wizard-title" id="wizard-title">Neuen Datenfluss erfassen</div>
       <div class="step-indicators" id="step-indicators"></div>
     </div>
     <div class="wizard-body" id="wizard-body"></div>
     <div class="wizard-footer">
+      <div class="wizard-dup-warning hidden" id="wizard-dup-warning">
+        <i class="fas fa-triangle-exclamation"></i>
+        <span>Mögliches Duplikat: <strong id="wizard-dup-text"></strong> existiert bereits. Trotzdem speichern?</span>
+      </div>
       <span class="step-hint" id="wizard-hint"></span>
       <div class="btn-row" style="margin:0">
         <button class="btn btn-secondary btn-sm" id="wizard-cancel">Abbrechen</button>
@@ -114,8 +119,11 @@
 
     <div class="sidebar-actions">
       <button class="btn btn-secondary btn-sm" id="export-csv-btn"><i class="fas fa-download"></i> CSV exportieren</button>
+      <button class="btn btn-secondary btn-sm" id="share-link-btn"><i class="fas fa-link"></i> Link teilen</button>
+      <button class="btn btn-secondary btn-sm" id="pdf-report-btn"><i class="fas fa-file-pdf"></i> PDF-Bericht</button>
       <button class="btn btn-secondary btn-sm" id="save-local-btn"><i class="fas fa-floppy-disk"></i> Im Browser speichern</button>
       <button class="btn btn-secondary btn-sm" id="load-local-btn"><i class="fas fa-folder-open"></i> Aus Browser laden</button>
+      <button class="btn btn-secondary btn-sm" id="open-snapshots-btn"><i class="fas fa-camera"></i> Snapshots</button>
     </div>
   </aside>
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
@@ -149,7 +157,7 @@
               <p class="hero-subheadline">Datenflüsse in Organisationen analysieren und verbessern.</p>
               <div class="hero-buttons">
                 <button class="btn btn-primary btn-lg" id="hero-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
-                <button class="btn btn-secondary btn-lg" id="hero-sample-btn"><i class="fas fa-vials"></i> Beispieldaten laden</button>
+                <button class="btn btn-secondary btn-lg" id="hero-sample-btn"><i class="fas fa-vials"></i> Beispieldaten entdecken</button>
               </div>
             </div>
           </div>
@@ -247,10 +255,66 @@
           <div class="btn-row">
             <button class="btn btn-primary btn-sm" id="btn-visualize">Visualisieren</button>
             <button class="btn btn-secondary btn-sm" id="btn-append">Zu vorhandenen Daten hinzufügen</button>
-            <button class="btn btn-secondary btn-sm" id="btn-load-sample"><i class="fas fa-table"></i> Beispieldaten laden</button>
           </div>
+
+          <!-- Vorlage -->
+          <div class="template-hint">
+            <div class="template-hint-text">
+              <i class="fas fa-table-columns"></i>
+              <span>Daten kollaborativ erfassen? Lade die <strong>CSV-Vorlage</strong> herunter und befülle sie in Google Sheets, Excel oder Nextcloud Table – dann hier importieren.</span>
+            </div>
+            <div class="template-hint-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-download-template"><i class="fas fa-download"></i> Vorlage herunterladen</button>
+            </div>
+          </div>
+
+          <!-- Beispieldaten Auswahl -->
+          <div class="sample-selector">
+            <div class="sample-selector-label"><i class="fas fa-vials"></i> Oder Beispieldaten laden:</div>
+            <div class="sample-cards">
+              <button class="sample-card" data-sample="wirtschaft">
+                <span class="sample-card-sector sample-card-sector--wirtschaft">Wirtschaft</span>
+                <span class="sample-card-title">Handelsunternehmen</span>
+                <span class="sample-card-meta">28 Datenflüsse · 12 Akteure</span>
+              </button>
+              <button class="sample-card" data-sample="zivilgesellschaft">
+                <span class="sample-card-sector sample-card-sector--zivi">Zivilgesellschaft</span>
+                <span class="sample-card-title">Wohlfahrtsverband</span>
+                <span class="sample-card-meta">30 Datenflüsse · 12 Akteure</span>
+              </button>
+              <button class="sample-card" data-sample="verwaltung">
+                <span class="sample-card-sector sample-card-sector--verwaltung">Verwaltung</span>
+                <span class="sample-card-title">Stadtverwaltung</span>
+                <span class="sample-card-meta">28 Datenflüsse · 12 Akteure</span>
+              </button>
+              <button class="sample-card" data-sample="wissenschaft">
+                <span class="sample-card-sector sample-card-sector--wissenschaft">Wissenschaft</span>
+                <span class="sample-card-title">Forschungsinstitut</span>
+                <span class="sample-card-meta">27 Datenflüsse · 12 Akteure</span>
+              </button>
+              <button class="sample-card" data-sample="medien">
+                <span class="sample-card-sector sample-card-sector--medien">Medien</span>
+                <span class="sample-card-title">Regionalredaktion</span>
+                <span class="sample-card-meta">28 Datenflüsse · 12 Akteure</span>
+              </button>
+            </div>
+          </div>
+
           <div id="status-message"></div>
         </div>
+      </div>
+
+      <!-- Beispiel-Infopanel -->
+      <div class="example-info hidden" id="example-info">
+        <div class="example-info-header">
+          <span class="example-info-sector" id="example-info-sector"></span>
+          <div class="example-info-titles">
+            <h3 class="example-info-title" id="example-info-title"></h3>
+            <p class="example-info-subtitle" id="example-info-subtitle"></p>
+          </div>
+        </div>
+        <p class="example-info-context" id="example-info-context"></p>
+        <div class="example-info-findings" id="example-info-findings"></div>
       </div>
 
       <!-- View Switcher – nur sichtbar wenn Daten geladen -->
@@ -261,6 +325,13 @@
           <button class="view-tab" data-tab="network"><i class="fas fa-circle-nodes fa-fw"></i> Netzwerkkarte</button>
           <button class="view-tab" data-tab="insights"><i class="fas fa-chart-bar fa-fw"></i> Netzwerk-Insights</button>
         </div>
+      </div>
+
+      <!-- Active Filter Banner -->
+      <div class="active-filter-banner hidden" id="active-filter-banner">
+        <i class="fas fa-filter"></i>
+        <span id="filter-banner-text"></span>
+        <button class="filter-banner-reset" id="filter-banner-reset"><i class="fas fa-xmark"></i> Filter zurücksetzen</button>
       </div>
 
       <!-- Legend -->
@@ -291,8 +362,43 @@
           <button class="btn btn-icon btn-secondary" id="btn-zoom-out"   title="−">−</button>
           <button class="btn btn-icon btn-secondary" id="btn-zoom-fit"   title="Anpassen">=</button>
           <button class="btn btn-icon btn-secondary" id="btn-fullscreen" title="Vollbild"><i class="fas fa-expand"></i></button>
+          <div class="network-toolbar-sep"></div>
+          <button class="btn btn-secondary btn-sm" id="btn-export-png" title="Als PNG herunterladen"><i class="fas fa-image"></i> PNG</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-svg" title="Als SVG herunterladen"><i class="fas fa-vector-square"></i> SVG</button>
+          <div class="network-toolbar-sep"></div>
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-pathfinder" title="Kürzesten Pfad zwischen zwei Knoten suchen"><i class="fas fa-route"></i> Pfadfinder</button>
+          <button class="btn btn-secondary btn-sm" id="btn-color-by-org" title="Knoten nach Organisation einfärben"><i class="fas fa-palette"></i> Org-Farben</button>
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-hierarchy" title="Knoten nach Bereich gruppieren"><i class="fas fa-object-group"></i> Hierarchie</button>
+        </div>
+        <div class="pathfinder-bar hidden" id="pathfinder-bar">
+          <span class="pathfinder-label"><i class="fas fa-route fa-fw"></i> Von</span>
+          <select id="path-from" class="pathfinder-select"><option value="">Knoten wählen…</option></select>
+          <i class="fas fa-arrow-right" style="color:var(--c-muted)"></i>
+          <span class="pathfinder-label">Nach</span>
+          <select id="path-to" class="pathfinder-select"><option value="">Knoten wählen…</option></select>
+          <button class="btn btn-primary btn-sm" id="btn-find-path"><i class="fas fa-magnifying-glass"></i> Suchen</button>
+          <button class="btn btn-secondary btn-sm btn-icon" id="btn-clear-path" title="Pfad zurücksetzen"><i class="fas fa-xmark"></i></button>
+          <span class="pathfinder-result" id="pathfinder-result"></span>
         </div>
         <div id="network-container"></div>
+
+        <!-- Org-Legende -->
+        <div class="org-legend hidden" id="org-legend">
+          <div class="org-legend-title">Organisationen</div>
+          <div id="org-legend-items"></div>
+        </div>
+
+        <!-- Knoten-Detailpanel -->
+        <div class="node-detail hidden" id="node-detail" role="region" aria-label="Knotendetails">
+          <div class="node-detail-header">
+            <div>
+              <div class="node-detail-name" id="nd-name"></div>
+              <div class="node-detail-metrics" id="nd-metrics"></div>
+            </div>
+            <button class="node-detail-close" id="nd-close" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
+          </div>
+          <div class="node-detail-flows" id="nd-flows"></div>
+        </div>
       </div>
 
       <div class="tab-panel" id="panel-insights">
@@ -325,15 +431,14 @@
     </div>
     <div class="theory-modal-body">
 
-      <p class="theory-intro">Das Netzwerkdiagramm zeigt Akteure (Systeme, Abteilungen, Personen) als Knoten und Datenflüsse als gerichtete Pfeile. Die folgenden Beispiele zeigen, wie typische Muster in der Praxis zu lesen sind.</p>
+      <p class="theory-intro">Das Netzwerkdiagramm zeigt Akteure (Systeme, Abteilungen, Personen) als Knoten und Datenflüsse als gerichtete Pfeile. Die folgenden Beispiele zeigen, wie typische Muster erkannt und gezielt verbessert werden können.</p>
 
       <!-- Legende -->
       <div class="theory-legend">
         <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent)"></span> Knoten = Akteur (System, Abteilung, Person)</div>
-        <div class="theory-legend-item"><span class="theory-legend-arrow">→</span> Pfeil = Datenfluss (Richtung des Datentransfers)</div>
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#e53e3e"></span> Rot = DSGVO-relevant</div>
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#d97706"></span> Orange = Intern</div>
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:#38a169"></span> Grün = Öffentlich</div>
+        <div class="theory-legend-item"><span class="theory-legend-arrow">→</span> Pfeil = Datenfluss (Richtung des Transfers)</div>
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent); opacity:0.9"></span> Lila Rahmen = hohe Zentralität (Hub / Gatekeeper)</div>
+        <div class="theory-legend-item"><span class="theory-legend-arrow" style="font-size:13px">⇄</span> Doppelpfeil = bidirektionaler Fluss</div>
       </div>
 
       <!-- Beispiel 1 -->
@@ -429,39 +534,67 @@
       <div class="theory-example">
         <div class="theory-example-header">
           <span class="theory-example-badge">Beispiel 5</span>
-          <h3>Der DSGVO-Pfad – personenbezogene Daten verfolgen</h3>
+          <h3>Die überlange Kette – Felddaten auf dem Umweg (NGO)</h3>
         </div>
         <div class="theory-example-diagram">
-          <div class="theory-node theory-node-dsgvo">Bewerbungsformular</div>
-          <span class="theory-arrow theory-arrow-dsgvo">→</span>
-          <div class="theory-node theory-node-dsgvo">HR-System</div>
-          <span class="theory-arrow theory-arrow-dsgvo">→</span>
-          <div class="theory-node theory-node-dsgvo">Lohnbuchhaltung</div>
+          <div class="theory-node">Feldteam</div>
           <span class="theory-arrow">→</span>
-          <div class="theory-node">Steuerberater</div>
+          <div class="theory-node theory-node-hub">Regionalkoord.</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">Landesbüro</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">M&amp;E-Abt.</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node">Geschäftsführung</div>
         </div>
-        <p><strong>Was zu sehen ist:</strong> Eine Kette von Knoten, bei denen die Kanten als „DSGVO-relevant" markiert sind. Durch den Schutzbedarf-Filter in der Sidebar lässt sich genau dieser Pfad isoliert darstellen.</p>
-        <p><strong>Was es bedeutet:</strong> Personenbezogene Bewerbungsdaten wandern vom Formular ins HR-System, von dort in die Lohnbuchhaltung und schließlich zum Steuerberater. Jede dieser Übergaben muss rechtlich abgesichert sein – Auftragsverarbeitung, Löschfristen, technische Schutzmaßnahmen.</p>
-        <p><strong>Handlungsempfehlung:</strong> Den Filter „DSGVO-relevant" aktivieren und prüfen, ob für alle markierten Flüsse ein Verarbeitungsverzeichniseintrag existiert und ob Datenminimierung möglich ist.</p>
+        <p><strong>Was zu sehen ist:</strong> Eine lineare Kette mit vier Hops – jede Zwischenstation hat hohe Betweenness Centrality, obwohl sie keine eigene inhaltliche Leistung erbringt. Im Insights-Panel erscheinen Regionalkoordination, Landesbüro und M&amp;E gleichauf als „Gatekeeper".</p>
+        <p><strong>Was es bedeutet:</strong> In der NGO erfassen Feldteams Projektdaten auf Papier, tippen sie lokal ab, schicken sie per E-Mail ans Landesbüro, das sie erneut in ein anderes Format überträgt. An jeder Station entstehen Verzögerungen von mehreren Tagen, Übertragungsfehler und Informationsverluste. Die Geschäftsführung sieht Felddaten im Schnitt drei Wochen nach der Erhebung.</p>
+        <p><strong>Verbesserungspotenzial:</strong> Pfadlänge aktiv reduzieren: eine gemeinsame Eingabeplattform direkt für Feldteams verkürzt die Kette auf einen Hop. Die Betweenness-Werte der Zwischenstationen sinken auf null – ein messbares Zeichen für schlanker gewordene Datenflüsse.</p>
       </div>
 
       <!-- Beispiel 6 -->
       <div class="theory-example">
         <div class="theory-example-header">
           <span class="theory-example-badge">Beispiel 6</span>
-          <h3>Die verwaiste Insel – Akteur ohne Verbindung</h3>
+          <h3>Das Spinnennetz – organisch gewachsene Vernetzung ohne Struktur</h3>
         </div>
-        <div class="theory-example-diagram">
-          <div class="theory-node">Vertrieb</div><span class="theory-arrow">→</span>
-          <div class="theory-node">CRM</div><span class="theory-arrow">→</span>
-          <div class="theory-node">Reporting</div>
-          <div class="theory-node theory-node-isolated" style="margin-top: 16px; margin-left: 40px;">Legacy-System</div>
+        <div class="theory-example-diagram theory-example-diagram--clusters">
+          <div class="theory-cluster" style="flex-direction: row; flex-wrap: wrap; max-width: 300px; border-color: var(--c-border-s);">
+            <div class="theory-node">Team A</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team B</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team C</div>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:6px">
+              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
+              <div class="theory-node theory-node-hub" style="margin:0 8px">Koordination</div>
+              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
+            </div>
+            <div class="theory-node">Team D</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team E</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team F</div>
+          </div>
         </div>
-        <p><strong>Was zu sehen ist:</strong> Ein Knoten ohne eingehende oder ausgehende Kanten – er steht allein im Diagramm. Degree = 0, Betweenness = 0.</p>
-        <p><strong>Was es bedeutet:</strong> Entweder wurde dieser Akteur noch nicht vollständig erfasst (fehlende Datenflüsse) – oder er ist tatsächlich isoliert. Legacy-Systeme, die niemand mehr anbindet, aber deren Daten dennoch existieren, sind ein häufiger Befund.</p>
-        <p><strong>Handlungsempfehlung:</strong> Klären, ob das System noch aktiv ist. Falls ja: fehlende Verbindungen nacherfassen. Falls nein: Außerbetriebnahme und Datenlöschung prüfen.</p>
+        <p><strong>Was zu sehen ist:</strong> Ein sehr dichter Graph – fast jeder Knoten ist mit jedem anderen verbunden, überwiegend bidirektional. Die Kantendichte liegt weit über dem Durchschnitt vergleichbarer Netzwerke. Community Detection findet keine stabilen Cluster, weil die Grenzen ständig fließen.</p>
+        <p><strong>Was es bedeutet:</strong> In einer gewachsenen Organisation (häufig bei NGOs, Vereinen oder Start-ups) hat jedes Team direkte Absprachen mit jedem anderen entwickelt – per E-Mail, geteilte Tabellen, mündlich. Es gibt keine klare Dateneigentümerschaft: dieselbe Information existiert in fünf Versionen, niemand weiß, welche aktuell ist. Hohe Verbundenheit klingt gut, bedeutet hier aber vor allem: hohe Redundanz und hoher Abstimmungsaufwand.</p>
+        <p><strong>Verbesserungspotenzial:</strong> Kantenzahl aktiv reduzieren. Im gemeinsamen Workshop lässt sich mit dem Netzwerkdiagramm sichtbar machen, welche Verbindungen inhaltlich notwendig sind und welche durch eine klare Dateneigentümerschaft ersetzt werden können. Ziel: ein schlankes Netz mit weniger, aber definierten Flüssen – sichtbar als deutlich aufgeräumteres Diagramm nach der Überarbeitung.</p>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ── Snapshot Modal ────────────────────────────────────────── -->
+<div class="modal-backdrop hidden" id="snapshot-backdrop">
+  <div class="snapshot-modal" role="dialog" aria-modal="true" aria-label="Datensatz-Snapshots">
+    <div class="snapshot-modal-header">
+      <h2><i class="fas fa-camera"></i> Datensatz-Snapshots</h2>
+      <button class="snapshot-close" id="snapshot-close-btn" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="snapshot-modal-body">
+      <div class="snapshot-save-row">
+        <input type="text" id="snapshot-name-input" placeholder="Snapshot-Name…" class="snapshot-name-field">
+        <button class="btn btn-primary btn-sm" id="snapshot-save-btn"><i class="fas fa-floppy-disk"></i> Speichern</button>
+      </div>
+      <div class="snapshot-list" id="snapshot-list"></div>
     </div>
   </div>
 </div>
@@ -480,6 +613,6 @@
   <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
 </footer>
 
-<script src="js/app.js"></script>
+<script src="js/app.js?v=14"></script>
 </body>
 </html>
