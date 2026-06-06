@@ -123,6 +123,7 @@
       <button class="btn btn-secondary btn-sm" id="pdf-report-btn"><i class="fas fa-file-pdf"></i> PDF-Bericht</button>
       <button class="btn btn-secondary btn-sm" id="save-local-btn"><i class="fas fa-floppy-disk"></i> Im Browser speichern</button>
       <button class="btn btn-secondary btn-sm" id="load-local-btn"><i class="fas fa-folder-open"></i> Aus Browser laden</button>
+      <button class="btn btn-secondary btn-sm" id="open-snapshots-btn"><i class="fas fa-camera"></i> Snapshots</button>
     </div>
   </aside>
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
@@ -324,6 +325,13 @@
           <button class="view-tab" data-tab="network"><i class="fas fa-circle-nodes fa-fw"></i> Netzwerkkarte</button>
           <button class="view-tab" data-tab="insights"><i class="fas fa-chart-bar fa-fw"></i> Netzwerk-Insights</button>
         </div>
+      </div>
+
+      <!-- Active Filter Banner -->
+      <div class="active-filter-banner hidden" id="active-filter-banner">
+        <i class="fas fa-filter"></i>
+        <span id="filter-banner-text"></span>
+        <button class="filter-banner-reset" id="filter-banner-reset"><i class="fas fa-xmark"></i> Filter zurücksetzen</button>
       </div>
 
       <!-- Legend -->
@@ -569,6 +577,23 @@
         <p><strong>Verbesserungspotenzial:</strong> Kantenzahl aktiv reduzieren. Im gemeinsamen Workshop lässt sich mit dem Netzwerkdiagramm sichtbar machen, welche Verbindungen inhaltlich notwendig sind und welche durch eine klare Dateneigentümerschaft ersetzt werden können. Ziel: ein schlankes Netz mit weniger, aber definierten Flüssen – sichtbar als deutlich aufgeräumteres Diagramm nach der Überarbeitung.</p>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ── Snapshot Modal ────────────────────────────────────────── -->
+<div class="modal-backdrop hidden" id="snapshot-backdrop">
+  <div class="snapshot-modal" role="dialog" aria-modal="true" aria-label="Datensatz-Snapshots">
+    <div class="snapshot-modal-header">
+      <h2><i class="fas fa-camera"></i> Datensatz-Snapshots</h2>
+      <button class="snapshot-close" id="snapshot-close-btn" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="snapshot-modal-body">
+      <div class="snapshot-save-row">
+        <input type="text" id="snapshot-name-input" placeholder="Snapshot-Name…" class="snapshot-name-field">
+        <button class="btn btn-primary btn-sm" id="snapshot-save-btn"><i class="fas fa-floppy-disk"></i> Speichern</button>
+      </div>
+      <div class="snapshot-list" id="snapshot-list"></div>
     </div>
   </div>
 </div>

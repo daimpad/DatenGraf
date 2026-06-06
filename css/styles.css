@@ -1783,4 +1783,94 @@ textarea.csv-textarea:focus {
   .cta-btn { width: 100%; justify-content: center; }
   .theory-modal-header { padding: 16px 18px; }
   .theory-modal-body { padding: 16px 18px; font-size: 13px; }
+  .snapshot-modal { max-height: 90vh; }
 }
+
+/* ── Active Filter Banner ─────────────────────────────────────── */
+.active-filter-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  background: rgba(66,0,147,0.07);
+  border: 1px solid rgba(66,0,147,0.2);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--c-accent);
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.active-filter-banner.hidden { display: none; }
+.filter-banner-reset {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--c-accent);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.filter-banner-reset:hover { background: rgba(66,0,147,0.1); }
+
+/* ── Badge: Owner/Ansprechpartner ────────────────────────────── */
+.badge-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(66,0,147,0.08);
+  color: var(--c-accent);
+  border: 1px solid rgba(66,0,147,0.15);
+}
+
+/* ── Snapshot Modal ──────────────────────────────────────────── */
+.snapshot-modal {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  width: 460px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.snapshot-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--c-border-s);
+  font-weight: 700;
+  font-size: 15px;
+}
+.snapshot-modal-header h2 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.snapshot-close {
+  background: none; border: none; cursor: pointer; color: var(--c-muted);
+  font-size: 18px; padding: 4px; border-radius: 6px; transition: color 0.2s;
+}
+.snapshot-close:hover { color: var(--c-text); }
+.snapshot-modal-body { padding: 18px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+.snapshot-save-row { display: flex; gap: 8px; }
+.snapshot-name-field {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--c-border-s);
+  border-radius: var(--radius); font-size: 13px; font-family: inherit;
+  background: rgba(255,255,255,0.6);
+}
+.snapshot-name-field:focus { outline: none; border-color: var(--c-accent); background: rgba(255,255,255,0.9); box-shadow: 0 0 0 3px rgba(66,0,147,0.1); }
+.snapshot-list { display: flex; flex-direction: column; gap: 6px; }
+.snapshot-empty { font-size: 13px; color: var(--c-muted); text-align: center; padding: 16px 0; }
+.snapshot-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: rgba(255,255,255,0.5);
+  border: 1px solid var(--c-border-s); border-radius: var(--radius);
+}
+.snapshot-name { font-size: 13px; font-weight: 500; }
+.snapshot-item-actions { display: flex; gap: 6px; }

@@ -37,40 +37,45 @@ let activeFilters = {
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
 function parseCSV(csv) {
-  const lines = csv.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = splitCSVLine(lines[0]).map(h => h.trim());
-  const result = [];
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    const values = splitCSVLine(lines[i]);
+  const rows = [];
+  let i = 0;
+  const n = csv.length;
+  while (i < n) {
+    const fields = [];
+    while (true) {
+      let field = '';
+      if (i < n && csv[i] === '"') {
+        i++;
+        while (i < n) {
+          if (csv[i] === '"') {
+            if (i + 1 < n && csv[i + 1] === '"') { field += '"'; i += 2; }
+            else { i++; break; }
+          } else { field += csv[i++]; }
+        }
+      } else {
+        while (i < n && csv[i] !== ',' && csv[i] !== '\n' && csv[i] !== '\r') field += csv[i++];
+        field = field.trim();
+      }
+      fields.push(field);
+      if (i < n && csv[i] === ',') { i++; continue; }
+      if (i < n && csv[i] === '\r') i++;
+      if (i < n && csv[i] === '\n') i++;
+      break;
+    }
+    if (fields.some(f => f !== '')) rows.push(fields);
+  }
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).map(fields => {
     const obj = {};
-    headers.forEach((h, j) => { obj[h] = (values[j] ?? '').trim(); });
-    result.push(obj);
-  }
-  return result;
-}
-
-function splitCSVLine(line) {
-  const values = [];
-  let inQuotes = false, temp = '';
-  for (const ch of line) {
-    if (ch === '"') { inQuotes = !inQuotes; }
-    else if (ch === ',' && !inQuotes) { values.push(unquote(temp)); temp = ''; }
-    else { temp += ch; }
-  }
-  values.push(unquote(temp));
-  return values;
-}
-
-function unquote(s) {
-  s = s.trim();
-  return (s.startsWith('"') && s.endsWith('"')) ? s.slice(1, -1) : s;
+    headers.forEach((h, j) => { obj[h] = fields[j] ?? ''; });
+    return obj;
+  });
 }
 
 function toCSV(data) {
   const headers = ['Quelle','QuelleAbteilung','QuelleBereich','QuelleOrganisation','QuelleRolle',
-    'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen'];
+    'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen','Ansprechpartner'];
   const escape = v => {
     if (!v) return '';
     if (v.includes(',') || v.includes('"') || v.includes('\n')) {
@@ -97,7 +102,25 @@ function applyFilters() {
     }
     return true;
   });
+  updateFilterBanner();
   renderAll();
+}
+
+function updateFilterBanner() {
+  const banner = document.getElementById('active-filter-banner');
+  if (!banner || !allData.length) { if (banner) banner.classList.add('hidden'); return; }
+  const count = activeFilters.relation.size + activeFilters.schutz.size + activeFilters.erfassung.size +
+    (activeFilters.organization !== 'all' ? 1 : 0) + (activeFilters.department !== 'all' ? 1 : 0) +
+    (activeFilters.frequency !== 'all' ? 1 : 0) + (activeFilters.format !== 'all' ? 1 : 0) +
+    (activeFilters.search ? 1 : 0);
+  if (count === 0) {
+    banner.classList.add('hidden');
+  } else {
+    const hidden = allData.length - filteredData.length;
+    document.getElementById('filter-banner-text').textContent =
+      `${count} Filter aktiv – ${filteredData.length} von ${allData.length} Einträgen sichtbar${hidden > 0 ? ` (${hidden} ausgeblendet)` : ''}`;
+    banner.classList.remove('hidden');
+  }
 }
 
 function clearFilters() {
@@ -277,15 +300,22 @@ const CY_STYLE = [
   { selector: '.path-edge',   style: { 'line-color': '#2e9e60', 'target-arrow-color': '#2e9e60', width: 4, opacity: 1, 'z-index': 998 } },
 ];
 
-function prepareElements(data) {
+function prepareElements(data, useHierarchy = false) {
   const nodes = new Map();
   const edges = [];
 
   data.forEach(row => {
     if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
-    if (!nodes.has(row.Quelle)) nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '', out: 0, inn: 0 });
+    if (!nodes.has(row.Quelle)) {
+      nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '', bereich: row.QuelleBereich || '', out: 0, inn: 0 });
+    } else {
+      // Update org/bereich if previously registered only as Ziel (no org data)
+      const n = nodes.get(row.Quelle);
+      if (!n.org && row.QuelleOrganisation) n.org = row.QuelleOrganisation;
+      if (!n.bereich && row.QuelleBereich)  n.bereich = row.QuelleBereich;
+    }
     nodes.get(row.Quelle).out++;
-    if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { dept: '', org: '', out: 0, inn: 0 });
+    if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { dept: '', org: '', bereich: '', out: 0, inn: 0 });
     nodes.get(row.Ziel).inn++;
     edges.push(row);
   });
@@ -512,7 +542,8 @@ const WIZARD_STEPS = [
         <select name="Beziehung">${BEZIEHUNG_OPTS.map(b => `<option>${b}</option>`).join('')}</select>
       </div>
       <div class="form-row"><label>Datentyp</label><input type="text" name="Datentyp" placeholder="z. B. Finanzmittel"></div>
-      <div class="form-row"><label>Anmerkungen</label><textarea name="Anmerkungen" placeholder="Optionale Anmerkungen…"></textarea></div>`
+      <div class="form-row"><label>Anmerkungen</label><textarea name="Anmerkungen" placeholder="Optionale Anmerkungen…"></textarea></div>
+      <div class="form-row"><label>Ansprechpartner</label><input type="text" name="Ansprechpartner" placeholder="z. B. Max Mustermann"></div>`
   },
   {
     label: 'Format & Häufigkeit',
@@ -537,9 +568,9 @@ const WIZARD_STEPS = [
             { val: 'DSGVO-relevant', icon: 'fa-shield-halved', desc: 'Personenbezogene oder besonders schützenswerte Daten (Art. 9 DSGVO)' },
             { val: 'Intern',         icon: 'fa-lock',          desc: 'Daten für den internen Gebrauch, nicht öffentlich zugänglich' },
             { val: 'Öffentlich',     icon: 'fa-globe',         desc: 'Daten, die ohne Einschränkung veröffentlicht werden können' }
-          ].map(o => `
+          ].map((o, idx) => `
             <label class="radio-option">
-              <input type="radio" name="Schutzbedarf" value="${o.val}">
+              <input type="radio" name="Schutzbedarf" value="${o.val}"${idx === 0 ? ' required' : ''}>
               <div><div class="radio-option-label"><i class="fas ${o.icon}"></i> ${o.val}</div><div class="radio-option-desc">${o.desc}</div></div>
             </label>`).join('')}
         </div>
@@ -550,9 +581,9 @@ const WIZARD_STEPS = [
           ${[
             { val: 'Manuell',       icon: 'fa-hand',  desc: 'Daten werden durch menschliches Eingreifen erfasst oder übertragen' },
             { val: 'Automatisiert', icon: 'fa-robot', desc: 'Daten fließen automatisch über Schnittstellen oder Batch-Prozesse' }
-          ].map(o => `
+          ].map((o, idx) => `
             <label class="radio-option">
-              <input type="radio" name="Erfassungsart" value="${o.val}">
+              <input type="radio" name="Erfassungsart" value="${o.val}"${idx === 0 ? ' required' : ''}>
               <div><div class="radio-option-label"><i class="fas ${o.icon}"></i> ${o.val}</div><div class="radio-option-desc">${o.desc}</div></div>
             </label>`).join('')}
         </div>
@@ -829,6 +860,7 @@ function toggleSidebar(forceClose) {
 document.getElementById('sidebar-toggle-btn').addEventListener('click', () => toggleSidebar());
 sidebarOverlay.addEventListener('click', () => toggleSidebar(true));
 document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+document.getElementById('filter-banner-reset').addEventListener('click', clearFilters);
 document.getElementById('filter-organization').addEventListener('change', e => { activeFilters.organization = e.target.value; applyFilters(); });
 document.getElementById('filter-department').addEventListener('change',   e => { activeFilters.department   = e.target.value; applyFilters(); });
 document.getElementById('filter-frequency').addEventListener('change',    e => { activeFilters.frequency    = e.target.value; applyFilters(); });
