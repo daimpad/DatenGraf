@@ -269,6 +269,44 @@ function esc(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── Snapshots ─────────────────────────────────────────────────────────────────
+const LS_SNAP_PREFIX = 'datengraf_snap_';
+
+function listSnapshots() {
+  return Object.keys(localStorage)
+    .filter(k => k.startsWith(LS_SNAP_PREFIX))
+    .map(k => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(k));
+        if (Array.isArray(parsed)) {
+          return { key: k, name: k.slice(LS_SNAP_PREFIX.length), data: parsed, savedAt: 0 };
+        }
+        return { key: k, name: parsed.name || k.slice(LS_SNAP_PREFIX.length), data: parsed.data || [], savedAt: parsed.savedAt || 0 };
+      } catch { return null; }
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.savedAt - a.savedAt);
+}
+
+function formatSnapAge(savedAt) {
+  if (!savedAt) return '';
+  const days = Math.floor((Date.now() - savedAt) / 86400000);
+  if (days === 0) return 'heute';
+  if (days === 1) return 'gestern';
+  if (days < 7)  return `vor ${days} Tagen`;
+  return new Date(savedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function diffSnapshots(prev, curr) {
+  const key  = r => `${r.Quelle}|||${r.Ziel}|||${r.Datentyp}`;
+  const prevMap = new Map(prev.map(r => [key(r), r]));
+  const currMap = new Map(curr.map(r => [key(r), r]));
+  const added   = curr.filter(r => !prevMap.has(key(r)));
+  const removed = prev.filter(r => !currMap.has(key(r)));
+  const schutzChanged = curr.filter(r => { const p = prevMap.get(key(r)); return p && p.Schutzbedarf !== r.Schutzbedarf; });
+  return { added, removed, schutzChanged };
+}
+
 // ── Analyse-Briefing ──────────────────────────────────────────────────────────
 function runAnalysis(data) {
   if (!data.length) return [];
@@ -1642,44 +1680,6 @@ function loadFromShareHash() {
   } catch {
     setStatus('Link-Daten konnten nicht geladen werden.', 'error');
   }
-}
-
-// ── Snapshots ─────────────────────────────────────────────────────────────────
-const LS_SNAP_PREFIX = 'datengraf_snap_';
-
-function listSnapshots() {
-  return Object.keys(localStorage)
-    .filter(k => k.startsWith(LS_SNAP_PREFIX))
-    .map(k => {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(k));
-        if (Array.isArray(parsed)) {
-          return { key: k, name: k.slice(LS_SNAP_PREFIX.length), data: parsed, savedAt: 0 };
-        }
-        return { key: k, name: parsed.name || k.slice(LS_SNAP_PREFIX.length), data: parsed.data || [], savedAt: parsed.savedAt || 0 };
-      } catch { return null; }
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.savedAt - a.savedAt);
-}
-
-function formatSnapAge(savedAt) {
-  if (!savedAt) return '';
-  const days = Math.floor((Date.now() - savedAt) / 86400000);
-  if (days === 0) return 'heute';
-  if (days === 1) return 'gestern';
-  if (days < 7)  return `vor ${days} Tagen`;
-  return new Date(savedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function diffSnapshots(prev, curr) {
-  const key  = r => `${r.Quelle}|||${r.Ziel}|||${r.Datentyp}`;
-  const prevMap = new Map(prev.map(r => [key(r), r]));
-  const currMap = new Map(curr.map(r => [key(r), r]));
-  const added   = curr.filter(r => !prevMap.has(key(r)));
-  const removed = prev.filter(r => !currMap.has(key(r)));
-  const schutzChanged = curr.filter(r => { const p = prevMap.get(key(r)); return p && p.Schutzbedarf !== r.Schutzbedarf; });
-  return { added, removed, schutzChanged };
 }
 
 function renderSnapshotList() {
