@@ -151,7 +151,7 @@ function buildChipGroup(containerId, values, filterKey) {
   container.innerHTML = '';
   values.forEach(val => {
     const chip = document.createElement('button');
-    chip.className   = 'chip';
+    chip.className = 'chip' + (activeFilters[filterKey].has(val) ? ' active' : '');
     chip.textContent = val;
     chip.addEventListener('click', () => {
       if (activeFilters[filterKey].has(val)) { activeFilters[filterKey].delete(val); chip.classList.remove('active'); }
@@ -267,6 +267,154 @@ function renderList(data) {
 function esc(str) {
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Analyse-Briefing ──────────────────────────────────────────────────────────
+function runAnalysis(data) {
+  if (!data.length) return [];
+  const findings = [];
+
+  const outDeg = {}, inDeg = {}, adj = {};
+  data.forEach(r => {
+    if (!r.Quelle || !r.Ziel) return;
+    outDeg[r.Quelle] = (outDeg[r.Quelle] || 0) + 1;
+    inDeg[r.Ziel]    = (inDeg[r.Ziel]    || 0) + 1;
+    if (!adj[r.Quelle]) adj[r.Quelle] = {};
+    adj[r.Quelle][r.Ziel] = 1;
+  });
+  const nodes = [...new Set([...Object.keys(outDeg), ...Object.keys(inDeg)])];
+
+  // Hub: out-degree > max(4, 2× Durchschnitt)
+  const avgOut = Object.values(outDeg).reduce((a, b) => a + b, 0) / (Object.keys(outDeg).length || 1);
+  const hubThreshold = Math.max(4, avgOut * 2);
+  const hubs = Object.entries(outDeg).filter(([, d]) => d >= hubThreshold).sort((a, b) => b[1] - a[1]);
+  if (hubs.length) {
+    const [name, deg] = hubs[0];
+    findings.push({
+      type: 'hub', severity: 'high', icon: 'fa-arrows-to-dot',
+      title: `Zentraler Hub: ${name}`,
+      text: `${deg} ausgehende Verbindungen – bei Ausfall sind sofort ${deg} nachgelagerte Systeme betroffen.`,
+      action: { label: 'Im Netzwerk zeigen', type: 'highlight', nodeId: name }
+    });
+  }
+
+  // Gatekeeper: Betweenness deutlich über Durchschnitt
+  const bc = betweennessCentrality(nodes, adj);
+  const avgBC = Object.values(bc).reduce((a, b) => a + b, 0) / (nodes.length || 1);
+  const gatekeepers = Object.entries(bc)
+    .filter(([n, v]) => v > avgBC * 3 && v > 0 && !hubs.some(([h]) => h === n))
+    .sort((a, b) => b[1] - a[1]);
+  if (gatekeepers.length) {
+    const [name] = gatekeepers[0];
+    findings.push({
+      type: 'gatekeeper', severity: 'high', icon: 'fa-code-branch',
+      title: `Flaschenhals: ${name}`,
+      text: `Liegt auf den meisten Verbindungspfaden – Ausfall oder Überlastung blockiert das gesamte Netzwerk.`,
+      action: { label: 'Im Netzwerk zeigen', type: 'highlight', nodeId: name }
+    });
+  }
+
+  // DSGVO-Flüsse ohne Ansprechpartner
+  const dsgvoNoOwner = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant' && !r.Ansprechpartner);
+  if (dsgvoNoOwner.length) {
+    findings.push({
+      type: 'dsgvo_no_owner', severity: 'high', icon: 'fa-user-shield',
+      title: `${dsgvoNoOwner.length} DSGVO-Fluss${dsgvoNoOwner.length !== 1 ? 'e' : ''} ohne Ansprechpartner`,
+      text: `DSGVO-relevante Datenflüsse benötigen eine verantwortliche Person – Compliance-Lücke.`,
+      action: { label: 'Filter: DSGVO-relevant', type: 'filter-schutz', value: 'DSGVO-relevant' }
+    });
+  }
+
+  // Fehlender Schutzbedarf
+  const missingSchutz = data.filter(r => !r.Schutzbedarf);
+  if (missingSchutz.length) {
+    findings.push({
+      type: 'missing_schutz', severity: 'medium', icon: 'fa-shield-halved',
+      title: `${missingSchutz.length} Fluss${missingSchutz.length !== 1 ? 'e' : ''} ohne Schutzklasse`,
+      text: `Ohne Schutzbedarf-Einstufung sind DSGVO-relevante Flüsse nicht identifizierbar.`,
+      action: { label: 'Insights ansehen', type: 'tab', tab: 'insights' }
+    });
+  }
+
+  // Keine Org-Daten – Hierarchie-Ansicht nicht nutzbar
+  const withOrg = data.filter(r => r.QuelleOrganisation).length;
+  if (withOrg === 0) {
+    findings.push({
+      type: 'no_org', severity: 'low', icon: 'fa-building',
+      title: 'Keine Organisations-Daten',
+      text: `Füge „QuelleOrganisation" und „QuelleBereich" hinzu um Org-Farben und Hierarchie-Ansicht zu nutzen.`,
+      action: null
+    });
+  }
+
+  // Fehlende Datentypen (>30%)
+  const missingType = data.filter(r => !r.Datentyp).length;
+  if (missingType > data.length * 0.3) {
+    findings.push({
+      type: 'missing_datentyp', severity: 'low', icon: 'fa-tag',
+      title: `${missingType} Fluss${missingType !== 1 ? 'e' : ''} ohne Datentyp`,
+      text: `Ohne Datentypangabe lassen sich Datensilos und Redundanzen schwerer erkennen.`,
+      action: { label: 'Listenansicht', type: 'tab', tab: 'list' }
+    });
+  }
+
+  const sevOrder = { high: 0, medium: 1, low: 2 };
+  return findings.sort((a, b) => sevOrder[a.severity] - sevOrder[b.severity]).slice(0, 5);
+}
+
+function showAnalyseBriefing() {
+  const findings = runAnalysis(allData);
+  const panel = document.getElementById('analyse-briefing');
+  const container = document.getElementById('briefing-findings');
+  if (!findings.length) { panel.classList.add('hidden'); return; }
+
+  const sevIcon = { high: 'fa-circle-exclamation', medium: 'fa-triangle-exclamation', low: 'fa-circle-info' };
+  const sevClass = { high: 'finding-high', medium: 'finding-medium', low: 'finding-low' };
+
+  container.innerHTML = findings.map((f, i) => `
+    <div class="briefing-finding ${sevClass[f.severity]}" data-finding="${i}">
+      <div class="finding-icon-wrap">
+        <i class="fas ${f.icon}"></i>
+        <i class="fas ${sevIcon[f.severity]} finding-sev-dot"></i>
+      </div>
+      <div class="finding-body">
+        <div class="finding-title">${esc(f.title)}</div>
+        <div class="finding-text">${esc(f.text)}</div>
+      </div>
+      ${f.action ? `<button class="btn btn-secondary btn-sm finding-action" data-finding="${i}">${esc(f.action.label)} <i class="fas fa-arrow-right" style="font-size:9px"></i></button>` : ''}
+    </div>`).join('');
+
+  container.querySelectorAll('.finding-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const f = findings[parseInt(btn.dataset.finding)];
+      if (!f?.action) return;
+      const { type, tab, nodeId, value } = f.action;
+      if (type === 'tab') { switchTab(tab); }
+      if (type === 'highlight') {
+        switchTab('network');
+        setTimeout(() => {
+          if (!networkChart) return;
+          const node = networkChart.$id(nodeId);
+          if (!node.length) return;
+          const edges = node.connectedEdges(), nbrs = edges.connectedNodes();
+          networkChart.elements().removeClass('highlighted faded');
+          networkChart.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
+          node.union(edges).union(nbrs).addClass('highlighted');
+          networkChart.animate({ fit: { eles: node.union(nbrs), padding: 80 }, duration: 400 });
+          showNodeDetail(nodeId, filteredData.length ? filteredData : allData);
+        }, 200);
+      }
+      if (type === 'filter-schutz') {
+        activeFilters.schutz.clear();
+        activeFilters.schutz.add(value);
+        buildSidebarFilters();
+        applyFilters();
+        if (document.getElementById('sidebar').classList.contains('collapsed')) toggleSidebar();
+      }
+    });
+  });
+
+  panel.classList.remove('hidden');
 }
 
 // ── Network view ─────────────────────────────────────────────────────────────
@@ -803,6 +951,7 @@ document.getElementById('btn-visualize').addEventListener('click', () => {
     allData = parseCSV(text);
     buildSidebarFilters();
     applyFilters();
+    showAnalyseBriefing();
     setStatus(`${allData.length} Zeilen geladen.`, 'success');
   }).catch(e => setStatus(e.message, 'error'));
 });
@@ -814,6 +963,7 @@ document.getElementById('btn-append').addEventListener('click', () => {
     allData = [...allData, ...newRows];
     buildSidebarFilters();
     applyFilters();
+    showAnalyseBriefing();
     setStatus(`${newRows.length} Zeilen hinzugefügt (gesamt: ${allData.length}).`, 'success');
   }).catch(e => setStatus(e.message, 'error'));
 });
@@ -891,6 +1041,9 @@ document.getElementById('sidebar-toggle-btn').addEventListener('click', () => to
 sidebarOverlay.addEventListener('click', () => toggleSidebar(true));
 document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
 document.getElementById('filter-banner-reset').addEventListener('click', clearFilters);
+document.getElementById('briefing-dismiss').addEventListener('click', () => {
+  document.getElementById('analyse-briefing').classList.add('hidden');
+});
 document.getElementById('filter-organization').addEventListener('change', e => { activeFilters.organization = e.target.value; applyFilters(); });
 document.getElementById('filter-department').addEventListener('change',   e => { activeFilters.department   = e.target.value; applyFilters(); });
 document.getElementById('filter-frequency').addEventListener('change',    e => { activeFilters.frequency    = e.target.value; applyFilters(); });
@@ -1073,6 +1226,7 @@ document.getElementById('load-local-btn').addEventListener('click', () => {
     allData = JSON.parse(saved);
     buildSidebarFilters();
     applyFilters();
+    showAnalyseBriefing();
     setStatus(`${allData.length} Einträge geladen.`, 'success');
   } catch (e) {
     setStatus('Fehler beim Laden der Daten: Speicher beschädigt.', 'error');
@@ -1173,6 +1327,7 @@ function loadExample(key) {
       allData = parseCSV(text);
       buildSidebarFilters();
       applyFilters();
+      showAnalyseBriefing();
       setStatus(`${allData.length} Datenflüsse geladen.`, 'success');
       showExampleInfo(ex);
       switchTab('list');
@@ -1379,6 +1534,7 @@ function loadFromShareHash() {
     allData = data;
     buildSidebarFilters();
     applyFilters();
+    showAnalyseBriefing();
     setStatus(`${data.length} Datenflüsse aus geteiltem Link geladen.`, 'success');
     history.replaceState(null, '', location.pathname);
   } catch {
@@ -1420,6 +1576,7 @@ function renderSnapshotList() {
         allData = JSON.parse(saved);
         buildSidebarFilters();
         applyFilters();
+        showAnalyseBriefing();
         setStatus(`Snapshot „${btn.dataset.snapName}" geladen (${allData.length} Einträge).`, 'success');
         closeSnapshotModal();
       } catch { setStatus('Snapshot konnte nicht geladen werden.', 'error'); }
