@@ -105,6 +105,18 @@ function applyFilters() {
   });
   updateFilterBanner();
   renderAll();
+  try {
+    localStorage.setItem(LS_FILTERS_KEY, JSON.stringify({
+      relation: [...activeFilters.relation],
+      schutz: [...activeFilters.schutz],
+      erfassung: [...activeFilters.erfassung],
+      organization: activeFilters.organization,
+      department: activeFilters.department,
+      frequency: activeFilters.frequency,
+      format: activeFilters.format,
+      search: activeFilters.search
+    }));
+  } catch { /* ignore quota errors */ }
 }
 
 function updateFilterBanner() {
@@ -133,7 +145,39 @@ function clearFilters() {
   document.getElementById('filter-frequency').value    = 'all';
   document.getElementById('filter-format').value       = 'all';
   document.getElementById('filter-search').value       = '';
+  try { localStorage.removeItem(LS_FILTERS_KEY); } catch { /* ignore */ }
   applyFilters();
+}
+
+function restoreFilters() {
+  try {
+    const raw = localStorage.getItem(LS_FILTERS_KEY);
+    if (!raw) return;
+    const f = JSON.parse(raw);
+    if (!f) return;
+    if (Array.isArray(f.relation))   activeFilters.relation   = new Set(f.relation);
+    if (Array.isArray(f.schutz))     activeFilters.schutz     = new Set(f.schutz);
+    if (Array.isArray(f.erfassung))  activeFilters.erfassung  = new Set(f.erfassung);
+    if (f.organization) activeFilters.organization = f.organization;
+    if (f.department)   activeFilters.department   = f.department;
+    if (f.frequency)    activeFilters.frequency    = f.frequency;
+    if (f.format)       activeFilters.format       = f.format;
+    if (f.search)       activeFilters.search       = f.search;
+    // sync UI chips
+    document.querySelectorAll('.chip').forEach(c => {
+      const key = c.dataset.filter, val = c.dataset.value;
+      if (key && val && activeFilters[key] instanceof Set) {
+        c.classList.toggle('active', activeFilters[key].has(val));
+      }
+    });
+    const selectors = ['organization','department','frequency','format'];
+    selectors.forEach(k => {
+      const el = document.getElementById('filter-' + k);
+      if (el) el.value = activeFilters[k];
+    });
+    const searchEl = document.getElementById('filter-search');
+    if (searchEl) searchEl.value = activeFilters.search;
+  } catch { /* ignore */ }
 }
 
 // ── Sidebar filter UI ─────────────────────────────────────────────────────────
@@ -274,6 +318,7 @@ function esc(str) {
 const LS_SNAP_PREFIX   = 'datengraf_snap_';
 const LS_BASELINE_KEY  = 'datengraf_baseline';
 const LS_API_KEY       = 'datengraf_api_key';
+const LS_FILTERS_KEY   = 'datengraf_filters';
 
 function listSnapshots() {
   return Object.keys(localStorage)
@@ -451,6 +496,50 @@ function runAnalysis(data) {
       rows: missingTypeRows.slice(0, 5).map(r => `${r.Quelle} → ${r.Ziel}`),
       action: { label: 'Listenansicht', type: 'tab', tab: 'list' }
     });
+  }
+
+  // Isolierte Teilgraphen: zusammenhangslose Cluster = Datensilos
+  const allNodes = new Set([...Object.keys(outDeg), ...Object.keys(inDeg)]);
+  if (allNodes.size >= 3) {
+    // BFS über undirektiertes Adjazenz-Build
+    const undirAdj = {};
+    allNodes.forEach(n => { undirAdj[n] = new Set(); });
+    data.forEach(r => {
+      if (!r.Quelle || !r.Ziel || r.Quelle === r.Ziel) return;
+      undirAdj[r.Quelle].add(r.Ziel);
+      undirAdj[r.Ziel].add(r.Quelle);
+    });
+    const visited = new Set();
+    const components = [];
+    allNodes.forEach(start => {
+      if (visited.has(start)) return;
+      const comp = [];
+      const queue = [start];
+      while (queue.length) {
+        const n = queue.shift();
+        if (visited.has(n)) continue;
+        visited.add(n);
+        comp.push(n);
+        (undirAdj[n] || new Set()).forEach(nb => { if (!visited.has(nb)) queue.push(nb); });
+      }
+      components.push(comp);
+    });
+    if (components.length > 1) {
+      components.sort((a, b) => b.length - a.length);
+      const isolated = components.slice(1); // alle außer dem größten
+      const isolatedNodes = isolated.flatMap(c => c).slice(0, 8);
+      const clusterCount = isolated.length;
+      findings.push({
+        type: 'isolated', severity: 'medium', icon: 'fa-circle-dot',
+        title: `${clusterCount} isolierter Teilgraph${clusterCount !== 1 ? 'en' : ''} (Datensilo${clusterCount !== 1 ? 's' : ''})`,
+        text: `${clusterCount === 1 ? 'Ein Cluster' : `${clusterCount} Cluster`} mit ${isolated.reduce((s, c) => s + c.length, 0)} Knoten ${clusterCount === 1 ? 'ist' : 'sind'} nicht mit dem Hauptnetzwerk verbunden.`,
+        explain: 'Das Netzwerk zerfällt in mehrere voneinander getrennte Teilgraphen. Das Hauptnetzwerk (größter Cluster) und die isolierten Cluster tauschen keinerlei Daten aus. Das kann auf Datensilos, fehlende Verbindungen oder separate Teilorganisationen hindeuten.',
+        recommendation: 'Prüfe ob zwischen den isolierten Clustern und dem Hauptnetzwerk Verbindungen fehlen oder ob die Trennung gewollt ist. Falls es sich um Tippfehler in Knotennamen handelt, korrigiere die betroffenen Einträge.',
+        nodes: isolatedNodes,
+        rows: [],
+        action: { label: 'Netzwerk ansehen', type: 'tab', tab: 'network' }
+      });
+    }
   }
 
   // Snapshot-Diff gegen Vergleichsbasis
@@ -1595,6 +1684,7 @@ document.getElementById('load-local-btn').addEventListener('click', () => {
   try {
     allData = JSON.parse(saved);
     buildSidebarFilters();
+    restoreFilters();
     applyFilters();
     showAnalyseBriefing();
     setStatus(`${allData.length} Einträge geladen.`, 'success');
@@ -1773,6 +1863,27 @@ function buildReportHTML(networkImgUri) {
   const isFiltered = filteredData.length !== allData.length && allData.length > 0;
   const e = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+  // Briefing section (always on allData for full-picture analysis)
+  const briefingFindings = runAnalysis(allData);
+  const { score, categories, gaps } = calcVollstaendigkeit(allData);
+  const sevColor = { high: '#c0392b', medium: '#d4820a', low: '#2e9e60' };
+  const sevLabel = { high: 'Hoch', medium: 'Mittel', low: 'Niedrig' };
+  const findingsHTML = briefingFindings.map(f => `
+    <tr>
+      <td><span style="color:${sevColor[f.severity] || '#420093'};font-weight:700;">${e(sevLabel[f.severity] || f.severity)}</span></td>
+      <td><strong>${e(f.title)}</strong><br><span style="color:#7a7591;">${e(f.text)}</span></td>
+    </tr>`).join('') || '<tr><td colspan="2" style="color:#7a7591;">Keine Befunde.</td></tr>';
+
+  const scoreBarWidth = score;
+  const scoreColor = score >= 75 ? '#2e9e60' : score >= 50 ? '#d4820a' : '#c0392b';
+  const categoriesHTML = categories.map(c => `
+    <tr>
+      <td>${e(c.label)}</td>
+      <td style="width:120px;"><div style="background:#ede9f8;border-radius:4px;height:8px;"><div style="background:${c.pct >= 75 ? '#2e9e60' : c.pct >= 50 ? '#d4820a' : '#c0392b'};width:${c.pct}%;height:8px;border-radius:4px;"></div></div></td>
+      <td class="num">${c.pct}%</td>
+      <td class="num" style="color:#7a7591;">${c.missing > 0 ? c.missing + ' fehlend' : '✓'}</td>
+    </tr>`).join('');
+
   const nodes = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean));
   const dsgvoCount = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length;
   const orgs = new Set(data.map(r => r.QuelleOrganisation).filter(Boolean));
@@ -1821,6 +1932,10 @@ tr:nth-child(even) td { background: #f8f6fc; }
 .badge-intern { background: #fef3e2; color: #d4820a; }
 .badge-public { background: #e8f8ee; color: #2e9e60; }
 .filter-note { font-size: 11px; color: #7a7591; font-style: italic; margin-top: 8px; }
+.score-wrap { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+.score-num { font-size: 28px; font-weight: 800; color: #420093; min-width: 48px; }
+.score-bar-bg { flex: 1; background: #ede9f8; border-radius: 6px; height: 12px; }
+.score-bar-fill { height: 12px; border-radius: 6px; transition: width 0.3s; }
 @media print { @page { margin: 15mm 18mm; size: A4; } body { padding: 0; } }
 </style></head><body>
 <h1>DatenGraf – Datenfluss-Bericht</h1>
@@ -1839,6 +1954,24 @@ ${networkImgUri ? `
 <div class="section-title">Netzwerkkarte</div>
 <img class="net" src="${networkImgUri}" alt="Netzwerkkarte">
 ` : ''}
+
+<div class="section-title">Analyse-Briefing – Vollständigkeit</div>
+<div class="score-wrap">
+  <div class="score-num">${score}%</div>
+  <div class="score-bar-bg"><div class="score-bar-fill" style="background:${scoreColor};width:${scoreBarWidth}%;"></div></div>
+</div>
+<table>
+  <thead><tr><th>Kategorie</th><th>Abdeckung</th><th class="num">%</th><th class="num">Status</th></tr></thead>
+  <tbody>${categoriesHTML}</tbody>
+</table>
+${gaps.length > 0 ? `<p class="filter-note" style="margin-top:8px;">Lücken: ${e(gaps.map(g => g.label).join(', '))}</p>` : ''}
+
+<div class="section-title">Analyse-Briefing – Befunde</div>
+<table>
+  <thead><tr><th style="width:80px;">Priorität</th><th>Befund</th></tr></thead>
+  <tbody>${findingsHTML}</tbody>
+</table>
+${isFiltered ? '<p class="filter-note">* Befunde basieren auf dem vollständigen Datensatz (nicht auf dem gefilterten).</p>' : ''}
 
 <div class="section-title">Top-Knoten nach Vernetzungsgrad</div>
 <table>
