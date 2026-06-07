@@ -29,6 +29,7 @@ let allData      = [];
 let filteredData = [];
 let networkChart = null;
 let pendingFileText = null;
+let lastBriefing = null; // { findings, vs } — cached from last showAnalyseBriefing() call
 let activeFilters = {
   relation: new Set(), schutz: new Set(), erfassung: new Set(),
   organization: 'all', department: 'all', frequency: 'all', format: 'all',
@@ -173,7 +174,11 @@ function restoreFilters() {
     const selectors = ['organization','department','frequency','format'];
     selectors.forEach(k => {
       const el = document.getElementById('filter-' + k);
-      if (el) el.value = activeFilters[k];
+      if (!el) return;
+      // only restore if the value exists as an option; otherwise fall back to 'all'
+      const valid = [...el.options].some(o => o.value === activeFilters[k]);
+      el.value = valid ? activeFilters[k] : 'all';
+      if (!valid) activeFilters[k] = 'all';
     });
     const searchEl = document.getElementById('filter-search');
     if (searchEl) searchEl.value = activeFilters.search;
@@ -515,8 +520,9 @@ function runAnalysis(data) {
       if (visited.has(start)) return;
       const comp = [];
       const queue = [start];
-      while (queue.length) {
-        const n = queue.shift();
+      let head = 0;
+      while (head < queue.length) {
+        const n = queue[head++];
         if (visited.has(n)) continue;
         visited.add(n);
         comp.push(n);
@@ -713,9 +719,10 @@ function showAnalyseBriefing() {
   const findings = runAnalysis(allData);
   const panel    = document.getElementById('analyse-briefing');
   const container = document.getElementById('briefing-findings');
-  if (!allData.length) { panel.classList.add('hidden'); return; }
+  if (!allData.length) { panel.classList.add('hidden'); lastBriefing = null; return; }
 
   const vs        = calcVollstaendigkeit(allData);
+  lastBriefing = { findings, vs };
   const narrative = generateNarrative(allData, findings, vs);
   const scoreColor = vs.score >= 80 ? 'var(--c-success)' : vs.score >= 60 ? 'var(--c-warn)' : 'var(--c-danger)';
 
@@ -1400,6 +1407,7 @@ document.getElementById('btn-visualize').addEventListener('click', () => {
     if (!text) { setStatus('Keine Daten.', 'error'); return; }
     allData = parseCSV(text);
     buildSidebarFilters();
+    restoreFilters();
     applyFilters();
     showAnalyseBriefing();
     setStatus(`${allData.length} Zeilen geladen.`, 'success');
@@ -1412,6 +1420,7 @@ document.getElementById('btn-append').addEventListener('click', () => {
     const newRows = parseCSV(text);
     allData = [...allData, ...newRows];
     buildSidebarFilters();
+    restoreFilters();
     applyFilters();
     showAnalyseBriefing();
     setStatus(`${newRows.length} Zeilen hinzugefügt (gesamt: ${allData.length}).`, 'success');
@@ -1786,6 +1795,7 @@ function loadExample(key) {
       if (!text) { setStatus('Beispieldaten leer.', 'error'); return; }
       allData = parseCSV(text);
       buildSidebarFilters();
+      restoreFilters();
       applyFilters();
       showAnalyseBriefing();
       setStatus(`${allData.length} Datenflüsse geladen.`, 'success');
@@ -1863,9 +1873,9 @@ function buildReportHTML(networkImgUri) {
   const isFiltered = filteredData.length !== allData.length && allData.length > 0;
   const e = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  // Briefing section (always on allData for full-picture analysis)
-  const briefingFindings = runAnalysis(allData);
-  const { score, categories, gaps } = calcVollstaendigkeit(allData);
+  // Briefing section — reuse cached results from showAnalyseBriefing() if available
+  const briefingFindings = lastBriefing ? lastBriefing.findings : runAnalysis(allData);
+  const { score, categories, gaps } = lastBriefing ? lastBriefing.vs : calcVollstaendigkeit(allData);
   const sevColor = { high: '#c0392b', medium: '#d4820a', low: '#2e9e60' };
   const sevLabel = { high: 'Hoch', medium: 'Mittel', low: 'Niedrig' };
   const findingsHTML = briefingFindings.map(f => `
@@ -2036,6 +2046,7 @@ function loadFromShareHash() {
     if (!Array.isArray(data) || !data.length) return;
     allData = data;
     buildSidebarFilters();
+    restoreFilters();
     applyFilters();
     showAnalyseBriefing();
     switchTab('list');
@@ -2095,6 +2106,7 @@ function renderSnapshotList() {
       if (!s) return;
       allData = s.data;
       buildSidebarFilters();
+      restoreFilters();
       applyFilters();
       showAnalyseBriefing();
       switchTab('list');
