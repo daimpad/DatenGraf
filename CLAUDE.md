@@ -12,7 +12,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Styles:** `css/styles.css` (~2100 Zeilen)
 - **Logik:** `js/app.js` (~2070 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
-- **Aktuelle Version:** `v25` (Script-Tag: `<script src="js/app.js?v=25">`)
+- **Aktuelle Version:** `v26` (Script-Tag: `<script src="js/app.js?v=26">`)
 
 ---
 
@@ -82,6 +82,7 @@ CSV-Import / Wizard
 | `LS_SNAP_PREFIX` | `datengraf_snap_` | Snapshot-Prefix (+ Name) |
 | `LS_BASELINE_KEY` | `datengraf_baseline` | Key des aktiven Baseline-Snapshots |
 | `LS_API_KEY` | `datengraf_api_key` | Anthropic API-Key (opt-in) |
+| `LS_FILTERS_KEY` | `datengraf_filters` | Persistierte Filter-Einstellungen (JSON) |
 
 ### CSV-Spalten (Row-Schema)
 
@@ -273,7 +274,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v25)
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v26)
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **`networkChart = null`:** Nach `renderNetwork([])` korrekt gesetzt; alle Handler mit `if (networkChart)` schützen
 - **Datenmutationsreihenfolge:** Immer `buildSidebarFilters()` vor `applyFilters()` — nie umgekehrt
@@ -301,3 +302,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v23 | 8 Bugs aus Max-Effort Code-Review: toCSV "0"-Bug, delete-Reihenfolge, Pathfinder-Bar, localStorage try/catch, switchTab in shareHash, wizard-back guard, mobile-nav-settings CSS |
 | v24 | Settings-Modal CSS wiederhergestellt (Squash-Merge-Verlust) + Zahnrad-Button nach rechts |
 | v25 | Analyse-Briefing: Finding-Karten klappbar (Erklärung + Knoten-Chips + Empfehlung), Score-Aufschlüsselung mit allen 5 Kategorien |
+| v26 | `isolated`-Finding (BFS-Komponentenanalyse für isolierte Teilgraphen), PDF-Bericht mit Briefing-Sektion (Score + Findings), Filter-Persistenz via `LS_FILTERS_KEY` |
