@@ -2033,3 +2033,5 @@ textarea.csv-textarea:focus {
 .snapshot-name { font-size: 13px; font-weight: 500; }
 .snapshot-age  { font-size: 11px; color: var(--c-muted); }
 .snapshot-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.snapshot-baseline-active { background: rgba(66,0,147,0.1) !important; color: var(--c-accent) !important; border-color: var(--c-accent) !important; }
+.snapshot-baseline-badge  { font-size: 10px; font-weight: 600; color: var(--c-accent); text-transform: uppercase; letter-spacing: 0.4px; }

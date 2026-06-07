@@ -270,7 +270,8 @@ function esc(str) {
 }
 
 // ── Snapshots ─────────────────────────────────────────────────────────────────
-const LS_SNAP_PREFIX = 'datengraf_snap_';
+const LS_SNAP_PREFIX   = 'datengraf_snap_';
+const LS_BASELINE_KEY  = 'datengraf_baseline';
 
 function listSnapshots() {
   return Object.keys(localStorage)
@@ -295,6 +296,35 @@ function formatSnapAge(savedAt) {
   if (days === 1) return 'gestern';
   if (days < 7)  return `vor ${days} Tagen`;
   return new Date(savedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function getBaselineSnapshot() {
+  const snaps = listSnapshots();
+  if (!snaps.length) return null;
+  const key = localStorage.getItem(LS_BASELINE_KEY);
+  if (key) {
+    const found = snaps.find(s => s.key === key);
+    if (found) return found;
+    localStorage.removeItem(LS_BASELINE_KEY); // stale key – clean up
+  }
+  return snaps[0];
+}
+
+function computeTopologyRisks(data) {
+  const outDeg = {}, adj = {};
+  data.forEach(r => {
+    if (!r.Quelle || !r.Ziel) return;
+    outDeg[r.Quelle] = (outDeg[r.Quelle] || 0) + 1;
+    if (!adj[r.Quelle]) adj[r.Quelle] = {};
+    adj[r.Quelle][r.Ziel] = 1;
+  });
+  const nodes = [...new Set([...Object.keys(outDeg), ...data.map(r => r.Ziel).filter(Boolean)])];
+  const avgOut  = Object.values(outDeg).reduce((a, b) => a + b, 0) / (Object.keys(outDeg).length || 1);
+  const hubs    = new Set(Object.keys(outDeg).filter(n => outDeg[n] >= Math.max(4, avgOut * 2)));
+  const bc      = betweennessCentrality(nodes, adj);
+  const avgBC   = Object.values(bc).reduce((a, b) => a + b, 0) / (nodes.length || 1);
+  const gatekeepers = new Set(Object.keys(bc).filter(n => bc[n] > avgBC * 3 && bc[n] > 0 && !hubs.has(n)));
+  return { hubs, gatekeepers };
 }
 
 function diffSnapshots(prev, curr) {
@@ -396,24 +426,42 @@ function runAnalysis(data) {
     });
   }
 
-  // Snapshot-Diff gegen neuesten Snapshot
-  const snapshots = listSnapshots();
-  if (snapshots.length) {
-    const newest = snapshots[0];
-    const diff = diffSnapshots(newest.data, data);
+  // Snapshot-Diff gegen Vergleichsbasis
+  const baseline = getBaselineSnapshot();
+  if (baseline) {
+    const diff = diffSnapshots(baseline.data, data);
     const parts = [];
     if (diff.added.length)         parts.push(`+${diff.added.length} neu`);
     if (diff.removed.length)       parts.push(`−${diff.removed.length} entfernt`);
     if (diff.schutzChanged.length) parts.push(`${diff.schutzChanged.length} Schutzklasse${diff.schutzChanged.length !== 1 ? 'n' : ''} geändert`);
+    const age = baseline.savedAt ? ` (${formatSnapAge(baseline.savedAt)})` : '';
     if (parts.length) {
-      const age = newest.savedAt ? ` (${formatSnapAge(newest.savedAt)})` : '';
       findings.push({
         type: 'diff_changes',
         severity: diff.removed.length > 0 || diff.schutzChanged.length > 0 ? 'medium' : 'low',
         icon: 'fa-clock-rotate-left',
-        title: `Änderungen seit „${newest.name}"${age}`,
+        title: `Änderungen seit „${baseline.name}"${age}`,
         text: parts.join(' · '),
         action: { label: 'Listenansicht', type: 'tab', tab: 'list' }
+      });
+    }
+
+    // Neue Hubs oder Gatekeeper seit Vergleichsbasis
+    const prevRisks = computeTopologyRisks(baseline.data);
+    const currHubNames = hubs.map(([n]) => n);
+    const currGKNames  = gatekeepers.map(([n]) => n);
+    const newRisks = [
+      ...currHubNames.filter(n => !prevRisks.hubs.has(n)),
+      ...currGKNames.filter(n  => !prevRisks.gatekeepers.has(n) && !prevRisks.hubs.has(n))
+    ];
+    if (newRisks.length) {
+      findings.push({
+        type: 'diff_topology', severity: 'medium', icon: 'fa-diagram-project',
+        title: `${newRisks.length} neuer Risikoknoten seit „${baseline.name}"${age}`,
+        text: newRisks.join(', '),
+        action: newRisks.length === 1
+          ? { label: 'Im Netzwerk zeigen', type: 'highlight', nodeId: newRisks[0] }
+          : { label: 'Netzwerk ansehen', type: 'tab', tab: 'network' }
       });
     }
   }
@@ -1681,25 +1729,48 @@ function loadFromShareHash() {
 }
 
 function renderSnapshotList() {
-  const listEl = document.getElementById('snapshot-list');
-  const snaps  = listSnapshots();
+  const listEl      = document.getElementById('snapshot-list');
+  const snaps       = listSnapshots();
+  const baselineKey = localStorage.getItem(LS_BASELINE_KEY);
+
   if (!snaps.length) {
     listEl.innerHTML = '<p class="snapshot-empty">Noch keine Snapshots gespeichert.</p>';
     return;
   }
-  listEl.innerHTML = snaps.map((s, i) => `
+
+  listEl.innerHTML = snaps.map((s, i) => {
+    const isBase = s.key === baselineKey;
+    return `
     <div class="snapshot-item">
       <div class="snapshot-meta">
         <span class="snapshot-name">${esc(s.name)}</span>
-        ${s.savedAt ? `<span class="snapshot-age">${esc(formatSnapAge(s.savedAt))} · ${s.data.length} Einträge</span>` : `<span class="snapshot-age">${s.data.length} Einträge</span>`}
+        <span class="snapshot-age">
+          ${s.savedAt ? `${esc(formatSnapAge(s.savedAt))} · ` : ''}${s.data.length} Einträge${isBase ? ' · <span class="snapshot-baseline-badge">Vergleichsbasis</span>' : ''}
+        </span>
       </div>
       <div class="snapshot-item-actions">
+        <button class="btn btn-secondary btn-sm${isBase ? ' snapshot-baseline-active' : ''}" data-snap-base="${i}" title="${isBase ? 'Vergleichsbasis entfernen' : 'Als Vergleichsbasis setzen'}">${isBase ? '✓ Basis' : 'Als Basis'}</button>
         <button class="btn btn-primary btn-sm" data-snap-idx="${i}">Laden</button>
         <button class="btn btn-secondary btn-sm" data-snap-del="${esc(s.key)}">✕</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const snapArr = snaps;
+
+  listEl.querySelectorAll('[data-snap-base]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const s = snapArr[parseInt(btn.dataset.snapBase)];
+      if (!s) return;
+      if (localStorage.getItem(LS_BASELINE_KEY) === s.key) {
+        localStorage.removeItem(LS_BASELINE_KEY);
+      } else {
+        localStorage.setItem(LS_BASELINE_KEY, s.key);
+      }
+      renderSnapshotList();
+    });
+  });
+
   listEl.querySelectorAll('[data-snap-idx]').forEach(btn => {
     btn.addEventListener('click', () => {
       const s = snapArr[parseInt(btn.dataset.snapIdx)];
@@ -1716,7 +1787,9 @@ function renderSnapshotList() {
 
   listEl.querySelectorAll('[data-snap-del]').forEach(btn => {
     btn.addEventListener('click', () => {
-      localStorage.removeItem(btn.dataset.snapDel);
+      const key = btn.dataset.snapDel;
+      if (localStorage.getItem(LS_BASELINE_KEY) === key) localStorage.removeItem(LS_BASELINE_KEY);
+      localStorage.removeItem(key);
       renderSnapshotList();
     });
   });
