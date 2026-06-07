@@ -3,6 +3,7 @@
 # DatenGraf – der Datenökosystem-Mapper
 
 **DatenGraf** ist ein browserbasiertes, datenbankfreies Werkzeug zur Kartierung und Analyse von Datenflüssen innerhalb von Organisationen. Es unterstützt Datenschutzbeauftragte, Architekten und Analysten dabei, Datenökosysteme sichtbar zu machen – ohne Server, ohne Login, ohne Cloud.
+
 <br>
 
 [![Stack](https://img.shields.io/badge/stack-HTML%20%2F%20JS-420093?style=flat-square&logo=javascript&logoColor=white)](https://github.com/daimpad/DatenGraf)
@@ -31,11 +32,15 @@
 | 🎨 | **Org-Farben** | Knoten nach Organisation einfärben mit automatischer Legende (10-Farben-Palette) |
 | 📊 | **Netzwerk-Insights** | Automatische Berechnung von Out-/In-Degree, Betweenness Centrality und Community Clusters |
 | 🔍 | **Filter-Sidebar** | Dynamisches Filtern nach Beziehungstyp, Schutzbedarf, Erfassungsart, Organisation, Häufigkeit u. v. m. |
+| 🧠 | **Analyse-Briefing (3 Schichten)** | Regelbasierte Befunde → Snapshot-Differenzanalyse → optionales LLM-Narrativ via Anthropic API |
+| 📸 | **Snapshots & Vergleichsbasis** | Datensatz-Snapshots benennen und speichern; Vergleichsbasis für Diff-Analyse festlegen |
+| 🤖 | **KI-Narrativ (opt-in)** | Mit eigenem Anthropic API-Key erstellt Claude Haiku ein kontextbezogenes Netzwerk-Narrativ |
 | 🧪 | **5 Beispieldatensätze** | Wirtschaft, Zivilgesellschaft, Verwaltung, Wissenschaft, Medien – jeweils mit Analyse-Infopanel |
 | 📥 | **Flexibler CSV-Import** | Einfügen per Paste, Laden per URL oder lokaler Dateiupload – plus CSV-Vorlage zum Download |
 | 📤 | **Mehrfach-Export** | CSV-Export, PNG/SVG-Netzwerkbild, PDF-Bericht (mit Stats, Graph und Tabelle) |
 | 🔗 | **Sharable Link** | Datensatz als komprimierten URL-Hash teilen – kein Backend nötig |
-| 🛡️ | **Datenschutz-Dimensionen** | Schutzbedarf (DSGVO-relevant / Intern / Öffentlich) und Erfassungsart (Manuell / Automatisiert) |
+| 🛡️ | **Datenschutz-Dimensionen** | Schutzbedarf (DSGVO-relevant / Intern / Öffentlich), Erfassungsart, Ansprechpartner (Art. 30) |
+| 📱 | **Mobile-Navigation** | Responsives Layout mit mobilem Menü-Dropdown für Tab-Wechsel und Wizard-Zugang |
 | 🔒 | **Local-First / No-Database** | Alle Daten bleiben im Browser (LocalStorage) – kein Backend, kein Account erforderlich |
 
 ---
@@ -48,7 +53,7 @@
 https://datengraf.nozilla.net
 ```
 
-Klicken Sie auf **Beispieldaten laden**, wählen Sie einen der 5 Sektordatensätze, oder nutzen Sie **Datenfluss erfassen** für manuelle Einträge. Die Filter-Sidebar ist über das Menü-Symbol oben links erreichbar.
+Klicke auf **Beispieldaten laden**, wähle einen der 5 Sektordatensätze, oder nutze **Datenfluss erfassen** für manuelle Einträge. Die Filter-Sidebar ist über das Menü-Symbol oben links erreichbar.
 
 ### Option B – lokal ausführen
 
@@ -65,29 +70,44 @@ python3 -m http.server 8080
 
 ```
 Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,
-Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
+Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner
 ```
 
-Importieren Sie Ihre Datei über den **CSV-Import-Bereich** (Einfügen / URL / Datei), oder nutzen Sie den **Wizard** für die manuelle Einzelerfassung. Eine Vorlage zum kollaborativen Befüllen (Google Sheets / Excel) steht direkt in der App zum Download bereit.
+Importiere deine Datei über den **CSV-Import-Bereich** (Einfügen / URL / Datei), oder nutze den **Wizard** für die manuelle Einzelerfassung. Eine Vorlage zum kollaborativen Befüllen steht direkt in der App zum Download bereit.
+
+---
+
+## Analyse-Briefing
+
+Das Analyse-Briefing ist das Kernstück der automatischen Netzwerkanalyse und arbeitet in drei Schichten:
+
+**Schicht 1 – Regelbasierte Befunde**
+Erkennt automatisch Hubs (Knoten mit überdurchschnittlich vielen Verbindungen), Gatekeeper (hohe Betweenness), DSGVO-Lücken (fehlende Ansprechpartner), isolierte Knoten, Datenduplikate und mehr.
+
+**Schicht 2 – Snapshot-Differenzanalyse**
+Vergleicht den aktuellen Datensatz mit einem gespeicherten Snapshot (Vergleichsbasis). Meldet neue/entfernte Verbindungen und neu entstandene Risikoknoten seit dem letzten Stand.
+
+**Schicht 3 – LLM-Narrativ (opt-in)**
+Mit einem eigenen Anthropic API-Key (`sk-ant-…`) in den Einstellungen (Zahnrad-Icon, oben rechts) generiert Claude Haiku ein deutschsprachiges Fließtext-Narrativ, das den Zustand des Netzwerks kontextualisiert. Der Key wird ausschließlich im Browser-LocalStorage gespeichert – kein DatenGraf-Backend ist beteiligt.
 
 ---
 
 ## Technischer Stack
 
-| Technologie | Zweck |
-|---|---|
-| **[Cytoscape.js](https://cytoscape.org/)** v3.23 | Graphvisualisierung, Netzwerkrendering, A*-Pfadsuche |
-| **[LZ-String](https://pieroxy.net/blog/pages/lz-string/index.html)** v1.5 | URL-sichere Komprimierung für Sharable Links |
-| **Vanilla JS** (ES2020+) | Gesamte Anwendungslogik ohne Framework |
-| **CSS Custom Properties** | Design-System mit Glasmorphismus-Effekten |
-| **Inter Font** | Moderne Schriftart (Google Fonts) |
-| **Font Awesome 6.4** | Icon-Library |
-| **FileReader API** | Lokaler Dateiimport ohne Upload |
-| **LocalStorage API** | Persistenz ohne Backend |
-| **Fetch API** | CSV-Import per URL und Beispieldaten |
-| **Clipboard API** | Link-Teilen mit Fallback auf `prompt()` |
+| Technologie | Version | Zweck |
+|---|---|---|
+| **[Cytoscape.js](https://cytoscape.org/)** | 3.23 | Graphvisualisierung, Netzwerkrendering, A*-Pfadsuche |
+| **[LZ-String](https://pieroxy.net/blog/pages/lz-string/index.html)** | 1.5 | URL-sichere Komprimierung für Sharable Links |
+| **Vanilla JS** | ES2020+ | Gesamte Anwendungslogik ohne Framework |
+| **CSS Custom Properties** | — | Design-System mit Glasmorphismus-Effekten |
+| **Inter** | 6.x (lokal) | Schriftart (latin + latin-ext, 400/500/600/700) |
+| **Font Awesome** | 6.7.2 (lokal) | Icon-Library (solid, regular, brands) |
+| **FileReader API** | — | Lokaler Dateiimport ohne Upload |
+| **LocalStorage API** | — | Persistenz ohne Backend |
+| **Fetch API** | — | CSV-Import per URL, Beispieldaten, Anthropic API |
+| **Clipboard API** | — | Link-Teilen mit Fallback auf `prompt()` |
 
-> Keine Build-Tools, kein npm-Workflow zur Laufzeit, keine Transpiler — nur HTML, CSS und JS.
+> Keine Build-Tools, kein npm-Workflow zur Laufzeit, keine Transpiler — nur HTML, CSS und JS. Inter und Font Awesome werden lokal aus `assets/fonts/` ausgeliefert, nicht per CDN.
 
 ---
 
@@ -135,25 +155,31 @@ Der Pfadfinder nutzt den A*-Algorithmus von Cytoscape.js (`cy.elements().aStar()
 
 ```
 DatenGraf/
-├── index.html                      # Einstiegspunkt – HTML-Struktur
+├── index.html                        # Einstiegspunkt – HTML-Struktur
 ├── css/
-│   └── styles.css                  # Styles & Design-Tokens
+│   └── styles.css                    # Styles & Design-Tokens (~2100 Zeilen)
 ├── js/
-│   └── app.js                      # Gesamte Anwendungslogik
+│   └── app.js                        # Gesamte Anwendungslogik (~1950 Zeilen)
+├── assets/
+│   └── fonts/
+│       ├── fa/all.min.css            # Font Awesome 6.7.2 CSS
+│       ├── webfonts/                 # Font Awesome woff2-Dateien (solid/regular/brands)
+│       └── inter/                   # Inter-Schriftdateien (woff2) + inter.css
 ├── data/
-│   ├── template.csv                # Leere Vorlage für eigene Erfassung
-│   ├── sample-wirtschaft.csv       # Beispiel: Globex Handels GmbH
-│   ├── sample-zivilgesellschaft.csv# Beispiel: Nachbarschaftshilfe e.V.
-│   ├── sample-verwaltung.csv       # Beispiel: Stadtverwaltung Musterstadt
-│   ├── sample-wissenschaft.csv     # Beispiel: Institut für Klimaforschung
-│   └── sample-medien.csv           # Beispiel: Tagesblatt Regional GmbH
+│   ├── template.csv                  # Leere Vorlage für eigene Erfassung
+│   ├── sample-wirtschaft.csv         # Beispiel: Globex Handels GmbH
+│   ├── sample-zivilgesellschaft.csv  # Beispiel: Nachbarschaftshilfe e.V.
+│   ├── sample-verwaltung.csv         # Beispiel: Stadtverwaltung Musterstadt
+│   ├── sample-wissenschaft.csv       # Beispiel: Institut für Klimaforschung
+│   └── sample-medien.csv             # Beispiel: Tagesblatt Regional GmbH
 ├── .github/
 │   ├── workflows/
-│   │   └── static.yml              # GitHub Pages Deployment
-│   └── CONTRIBUTING.md             # Beitragsrichtlinien
-├── SECURITY.md                     # Sicherheitsrichtlinie
-├── LICENSE                         # GPL-3.0
-└── README.md                       # Diese Datei
+│   │   └── static.yml                # GitHub Pages Deployment
+│   └── CONTRIBUTING.md               # Beitragsrichtlinien
+├── CLAUDE.md                         # AI-Entwicklungs-Kontext & Architektur
+├── SECURITY.md                       # Sicherheitsrichtlinie
+├── LICENSE                           # GPL-3.0
+└── README.md                         # Diese Datei
 ```
 
 ---
