@@ -272,6 +272,7 @@ function esc(str) {
 // ── Snapshots ─────────────────────────────────────────────────────────────────
 const LS_SNAP_PREFIX   = 'datengraf_snap_';
 const LS_BASELINE_KEY  = 'datengraf_baseline';
+const LS_API_KEY       = 'datengraf_api_key';
 
 function listSnapshots() {
   return Object.keys(localStorage)
