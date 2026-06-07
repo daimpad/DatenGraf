@@ -1868,11 +1868,20 @@ textarea.csv-textarea:focus {
   line-height: 1.55;
   color: var(--c-text);
 }
-.briefing-score-wrap {
+.briefing-score-toggle {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 6px 0 0;
+  border-radius: var(--radius);
+  transition: opacity 0.15s;
 }
+.briefing-score-toggle:hover { opacity: 0.8; }
 .briefing-score-label {
   font-size: 11px;
   font-weight: 600;
@@ -1900,6 +1909,63 @@ textarea.csv-textarea:focus {
   min-width: 36px;
   text-align: right;
 }
+.briefing-score-chevron {
+  font-size: 11px;
+  color: var(--c-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.briefing-score-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 0 4px;
+}
+.briefing-score-detail.hidden { display: none; }
+.score-cat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.score-cat-label {
+  font-size: 11px;
+  color: var(--c-muted);
+  width: 145px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.score-cat-bar {
+  flex: 1;
+  height: 5px;
+  background: rgba(66,0,147,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.score-cat-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s var(--ease-fluid);
+}
+.score-cat-pct {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 32px;
+  text-align: right;
+}
+.score-cat-missing {
+  font-size: 10px;
+  color: var(--c-danger);
+  white-space: nowrap;
+  min-width: 60px;
+}
+.score-cat-ok {
+  font-size: 10px;
+  color: var(--c-success);
+  min-width: 60px;
+}
 
 .briefing-findings {
   display: flex;
@@ -1908,14 +1974,24 @@ textarea.csv-textarea:focus {
 
 .briefing-finding {
   display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid rgba(180,170,210,0.15);
+}
+.briefing-finding:last-child { border-bottom: none; }
+.finding-header {
+  display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 11px 16px;
-  border-bottom: 1px solid rgba(180,170,210,0.15);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
   transition: background 0.15s;
+  font-family: inherit;
 }
-.briefing-finding:last-child { border-bottom: none; }
-.briefing-finding:hover { background: rgba(66,0,147,0.03); }
+.finding-header:hover { background: rgba(66,0,147,0.03); }
 
 .finding-icon-wrap {
   position: relative;
@@ -1944,12 +2020,80 @@ textarea.csv-textarea:focus {
 .finding-body { flex: 1; min-width: 0; }
 .finding-title { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 2px; }
 .finding-text  { font-size: 12px; color: var(--c-muted); line-height: 1.45; }
-
-.finding-action {
+.finding-chevron {
+  font-size: 11px;
+  color: var(--c-muted);
   flex-shrink: 0;
+  align-self: center;
+  transition: transform 0.2s;
+  margin-left: auto;
+}
+
+.finding-detail {
+  padding: 0 16px 14px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.finding-detail.hidden { display: none; }
+.finding-explain {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text);
+  background: rgba(66,0,147,0.04);
+  border-left: 3px solid var(--c-accent);
+  border-radius: 0 4px 4px 0;
+  padding: 8px 10px;
+  margin: 0;
+}
+.finding-detail-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.finding-node-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: rgba(66,0,147,0.08);
+  border: 1px solid rgba(66,0,147,0.2);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-accent);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.finding-node-chip:hover { background: rgba(66,0,147,0.15); }
+.finding-detail-rows {
+  margin: 0;
+  padding: 0 0 0 14px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.finding-detail-rows li {
+  font-size: 12px;
+  color: var(--c-muted);
+  font-family: monospace;
+}
+.finding-rows-more { font-style: italic; }
+.finding-recommendation {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--c-text);
+  margin: 0;
+  display: flex;
+  gap: 7px;
+}
+.finding-recommendation i { color: var(--c-warn); flex-shrink: 0; margin-top: 1px; }
+.finding-action {
+  align-self: flex-start;
   white-space: nowrap;
   font-size: 11px;
-  align-self: center;
 }
 
 /* ── Active Filter Banner ─────────────────────────────────────── */

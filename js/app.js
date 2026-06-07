@@ -364,6 +364,10 @@ function runAnalysis(data) {
       type: 'hub', severity: 'high', icon: 'fa-arrows-to-dot',
       title: `Zentraler Hub: ${name}`,
       text: `${deg} ausgehende Verbindungen – bei Ausfall sind sofort ${deg} nachgelagerte Systeme betroffen.`,
+      explain: 'Ein Hub bündelt deutlich mehr ausgehende Verbindungen als der Durchschnitt. Er bildet das Zentrum eines Hub-and-Spoke-Musters und ist ein Single Point of Failure: Fällt er aus oder wird er überlastet, verlieren alle nachgelagerten Systeme ihren Datenzugang gleichzeitig.',
+      recommendation: 'Prüfe ob kritische Flüsse redundant ausgelegt werden können. Direkte Verbindungen zwischen Quelle und Ziel reduzieren die Hub-Abhängigkeit.',
+      nodes: hubs.map(([n]) => n),
+      rows: [],
       action: { label: 'Im Netzwerk zeigen', type: 'highlight', nodeId: name }
     });
   }
@@ -380,6 +384,10 @@ function runAnalysis(data) {
       type: 'gatekeeper', severity: 'high', icon: 'fa-code-branch',
       title: `Flaschenhals: ${name}`,
       text: `Liegt auf den meisten Verbindungspfaden – Ausfall oder Überlastung blockiert das gesamte Netzwerk.`,
+      explain: 'Ein Gatekeeper hat eine hohe Betweenness Centrality: Er liegt auf den meisten kürzesten Pfaden zwischen anderen Knoten. Er ist kein offensichtlicher Hub, aber ein versteckter Engpass – Ausfälle blockieren viele indirekte Kommunikationswege, die auf den ersten Blick unabhängig wirken.',
+      recommendation: 'Prüfe ob der Gatekeeper Zuständigkeiten abgeben kann. Direkte Verbindungen zwischen häufig kommunizierenden Knoten verringern die Betweenness.',
+      nodes: gatekeepers.map(([n]) => n),
+      rows: [],
       action: { label: 'Im Netzwerk zeigen', type: 'highlight', nodeId: name }
     });
   }
@@ -391,6 +399,10 @@ function runAnalysis(data) {
       type: 'dsgvo_no_owner', severity: 'high', icon: 'fa-user-shield',
       title: `${dsgvoNoOwner.length} DSGVO-Fluss${dsgvoNoOwner.length !== 1 ? 'e' : ''} ohne Ansprechpartner`,
       text: `DSGVO-relevante Datenflüsse benötigen eine verantwortliche Person – Compliance-Lücke.`,
+      explain: 'Nach Art. 30 DSGVO müssen Verarbeitungstätigkeiten dokumentiert und einer verantwortlichen Person zugeordnet sein. Fehlt der Ansprechpartner, ist die Nachweispflicht gegenüber Aufsichtsbehörden nicht erfüllt.',
+      recommendation: 'Trage für jeden DSGVO-relevanten Fluss einen Ansprechpartner ein. Nutze den Filter „DSGVO-relevant" in der Sidebar um gezielt zu suchen.',
+      nodes: [],
+      rows: dsgvoNoOwner.slice(0, 5).map(r => `${r.Quelle} → ${r.Ziel}`),
       action: { label: 'Filter: DSGVO-relevant', type: 'filter-schutz', value: 'DSGVO-relevant' }
     });
   }
@@ -402,6 +414,10 @@ function runAnalysis(data) {
       type: 'missing_schutz', severity: 'medium', icon: 'fa-shield-halved',
       title: `${missingSchutz.length} Fluss${missingSchutz.length !== 1 ? 'e' : ''} ohne Schutzklasse`,
       text: `Ohne Schutzbedarf-Einstufung sind DSGVO-relevante Flüsse nicht identifizierbar.`,
+      explain: 'Die Schutzklasse (DSGVO-relevant / Intern / Öffentlich) ist die Grundlage für alle Compliance-Auswertungen. Ohne sie können weder der Vollständigkeits-Score noch die DSGVO-Lücken korrekt berechnet werden.',
+      recommendation: 'Bearbeite die betroffenen Einträge im Wizard und vergib jedem Fluss eine Schutzklasse. Nutze die Listenansicht um schnell alle unkategorisierten Einträge zu finden.',
+      nodes: [],
+      rows: missingSchutz.slice(0, 5).map(r => `${r.Quelle} → ${r.Ziel}`),
       action: { label: 'Insights ansehen', type: 'tab', tab: 'insights' }
     });
   }
@@ -413,6 +429,10 @@ function runAnalysis(data) {
       type: 'no_org', severity: 'low', icon: 'fa-building',
       title: 'Keine Organisations-Daten',
       text: `Füge „QuelleOrganisation" und „QuelleBereich" hinzu um Org-Farben und Hierarchie-Ansicht zu nutzen.`,
+      explain: 'Organisations-Metadaten schalten zwei Netzwerk-Features frei: Org-Farben (Knoten werden nach Zugehörigkeit eingefärbt) und Hierarchie-Ansicht (Org als übergeordnete Compound-Nodes). Beide Features helfen dabei, organisations-übergreifende Datenflüsse sofort zu erkennen.',
+      recommendation: 'Ergänze das Feld „QuelleOrganisation" beim CSV-Import oder direkt im Wizard. Auch ein nachträgliches Bearbeiten bestehender Einträge ist möglich.',
+      nodes: [],
+      rows: [],
       action: null
     });
   }
@@ -420,10 +440,15 @@ function runAnalysis(data) {
   // Fehlende Datentypen (>30%)
   const missingType = data.filter(r => !r.Datentyp).length;
   if (missingType > data.length * 0.3) {
+    const missingTypeRows = data.filter(r => !r.Datentyp);
     findings.push({
       type: 'missing_datentyp', severity: 'low', icon: 'fa-tag',
       title: `${missingType} Fluss${missingType !== 1 ? 'e' : ''} ohne Datentyp`,
       text: `Ohne Datentypangabe lassen sich Datensilos und Redundanzen schwerer erkennen.`,
+      explain: 'Der Datentyp beschreibt, welche Art von Informationen fließt (z. B. Bestellungen, Kundendaten, Berichte). Ohne ihn können Redundanzen (gleiche Daten auf verschiedenen Wegen) und Silos (Daten die nur an einem Ort ankommen) nicht automatisch erkannt werden.',
+      recommendation: 'Ergänze den Datentyp in den betroffenen Einträgen. Nutze den Wizard oder bearbeite die CSV direkt.',
+      nodes: [],
+      rows: missingTypeRows.slice(0, 5).map(r => `${r.Quelle} → ${r.Ziel}`),
       action: { label: 'Listenansicht', type: 'tab', tab: 'list' }
     });
   }
@@ -438,12 +463,18 @@ function runAnalysis(data) {
     if (diff.schutzChanged.length) parts.push(`${diff.schutzChanged.length} Schutzklasse${diff.schutzChanged.length !== 1 ? 'n' : ''} geändert`);
     const age = baseline.savedAt ? ` (${formatSnapAge(baseline.savedAt)})` : '';
     if (parts.length) {
+      const addedRows  = diff.added.slice(0, 5).map(r  => `+ ${r.Quelle} → ${r.Ziel}`);
+      const removedRows = diff.removed.slice(0, 5).map(r => `− ${r.Quelle} → ${r.Ziel}`);
       findings.push({
         type: 'diff_changes',
         severity: diff.removed.length > 0 || diff.schutzChanged.length > 0 ? 'medium' : 'low',
         icon: 'fa-clock-rotate-left',
         title: `Änderungen seit „${baseline.name}"${age}`,
         text: parts.join(' · '),
+        explain: `Dieser Vergleich zeigt die Differenz zwischen dem aktuellen Stand und dem Snapshot „${baseline.name}"${age}. Neue Flüsse können auf Erweiterungen hinweisen, entfernte auf Umstrukturierungen oder Fehler.`,
+        recommendation: 'Prüfe die neuen und entfernten Flüsse auf Richtigkeit. Erstelle einen neuen Snapshot um den aktuellen Stand als neue Vergleichsbasis zu setzen.',
+        nodes: [],
+        rows: [...addedRows, ...removedRows],
         action: { label: 'Listenansicht', type: 'tab', tab: 'list' }
       });
     }
@@ -461,6 +492,10 @@ function runAnalysis(data) {
         type: 'diff_topology', severity: 'medium', icon: 'fa-diagram-project',
         title: `${newRisks.length} neuer Risikoknoten seit „${baseline.name}"${age}`,
         text: newRisks.join(', '),
+        explain: `Seit dem Snapshot „${baseline.name}"${age} haben sich neue topologische Risiken entwickelt: Knoten, die jetzt als Hub oder Gatekeeper eingestuft werden, es vorher aber nicht waren.`,
+        recommendation: 'Untersuche die neuen Risikoknoten im Netzwerk. Prüfe ob die erhöhte Zentralität durch neue Flüsse entstanden ist und ob diese gewollt sind.',
+        nodes: newRisks,
+        rows: [],
         action: newRisks.length === 1
           ? { label: 'Im Netzwerk zeigen', type: 'highlight', nodeId: newRisks[0] }
           : { label: 'Netzwerk ansehen', type: 'tab', tab: 'network' }
@@ -473,21 +508,26 @@ function runAnalysis(data) {
 }
 
 function calcVollstaendigkeit(data) {
-  if (!data.length) return { score: 0, gaps: [] };
+  if (!data.length) return { score: 0, gaps: [], categories: [] };
   const n = data.length;
   const dsgvo = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant');
   const checks = [
     { label: 'Schutzklasse',            weight: 25, ok: data.filter(r => r.Schutzbedarf).length },
-    { label: 'Erfassungsart',           weight: 15, ok: data.filter(r => r.Erfassungsart).length },
     { label: 'Datentyp',               weight: 20, ok: data.filter(r => r.Datentyp).length },
     { label: 'Ansprechpartner (DSGVO)', weight: 25, ok: dsgvo.length === 0 ? n : (dsgvo.filter(r => r.Ansprechpartner).length / dsgvo.length) * n },
+    { label: 'Erfassungsart',           weight: 15, ok: data.filter(r => r.Erfassungsart).length },
     { label: 'Organisation',           weight: 15, ok: data.filter(r => r.QuelleOrganisation).length },
   ];
   const score = Math.round(checks.reduce((s, c) => s + (c.ok / n) * c.weight, 0));
-  const gaps  = checks.filter(c => c.ok < n)
-    .map(c => ({ label: c.label, missing: n - c.ok, pct: Math.round((1 - c.ok / n) * 100) }))
-    .sort((a, b) => b.missing - a.missing);
-  return { score, gaps };
+  const categories = checks.map(c => ({
+    label:   c.label,
+    weight:  c.weight,
+    pct:     Math.round((c.ok / n) * 100),
+    missing: Math.round(n - c.ok),
+    contrib: Math.round((c.ok / n) * c.weight)
+  }));
+  const gaps = categories.filter(c => c.missing > 0).sort((a, b) => b.missing - a.missing);
+  return { score, gaps, categories };
 }
 
 function generateNarrative(data, findings, vs) {
@@ -601,29 +641,60 @@ function showAnalyseBriefing() {
     ? `<p class="briefing-filter-note"><i class="fas fa-filter"></i> Analyse basiert auf allen ${allData.length} Datenflüssen – aktive Filter gelten nur für die Ansichten.</p>`
     : '';
 
+  const scoreCatsHTML = vs.categories.map(c => {
+    const catColor = c.pct >= 80 ? 'var(--c-success)' : c.pct >= 50 ? 'var(--c-warn)' : 'var(--c-danger)';
+    return `<div class="score-cat-row">
+      <span class="score-cat-label">${esc(c.label)}</span>
+      <div class="score-cat-bar"><div class="score-cat-fill" style="width:${c.pct}%;background:${catColor}"></div></div>
+      <span class="score-cat-pct" style="color:${catColor}">${c.pct} %</span>
+      ${c.missing > 0 ? `<span class="score-cat-missing">${c.missing} fehlend</span>` : '<span class="score-cat-ok"><i class="fas fa-check"></i></span>'}
+    </div>`;
+  }).join('');
+
   const narrativeHTML = narrative ? `
     <div class="briefing-narrative">
       ${filterNote}
       <p class="briefing-narrative-text">${esc(narrative)}</p>
-      <div class="briefing-score-wrap">
+      <button class="briefing-score-toggle" aria-expanded="false">
         <span class="briefing-score-label">Vollständigkeit</span>
         <div class="briefing-score-bar"><div class="briefing-score-fill" style="width:${vs.score}%;background:${scoreColor}"></div></div>
         <span class="briefing-score-pct" style="color:${scoreColor}">${vs.score} %</span>
-      </div>
+        <i class="fas fa-chevron-down briefing-score-chevron"></i>
+      </button>
+      <div class="briefing-score-detail hidden">${scoreCatsHTML}</div>
     </div>` : '';
 
-  container.innerHTML = narrativeHTML + (findings.length ? findings.map((f, i) => `
+  container.innerHTML = narrativeHTML + (findings.length ? findings.map((f, i) => {
+    const nodesHTML = f.nodes?.length ? `<div class="finding-detail-nodes">
+      ${f.nodes.map(n => `<button class="finding-node-chip" data-nodeid="${esc(n)}">${esc(n)}</button>`).join('')}
+    </div>` : '';
+    const extraRows = (f.rows?.length > 5 ? f.rows.length - 5 : 0);
+    const rowsHTML = f.rows?.length ? `<ul class="finding-detail-rows">
+      ${f.rows.slice(0, 5).map(r => `<li>${esc(r)}</li>`).join('')}
+      ${extraRows > 0 ? `<li class="finding-rows-more">… und ${extraRows} weitere</li>` : ''}
+    </ul>` : '';
+    return `
     <div class="briefing-finding ${sevClass[f.severity]}" data-finding="${i}">
-      <div class="finding-icon-wrap">
-        <i class="fas ${f.icon}"></i>
-        <i class="fas ${sevIcon[f.severity]} finding-sev-dot"></i>
+      <button class="finding-header" data-finding="${i}" aria-expanded="false">
+        <div class="finding-icon-wrap">
+          <i class="fas ${f.icon}"></i>
+          <i class="fas ${sevIcon[f.severity]} finding-sev-dot"></i>
+        </div>
+        <div class="finding-body">
+          <div class="finding-title">${esc(f.title)}</div>
+          <div class="finding-text">${esc(f.text)}</div>
+        </div>
+        <i class="fas fa-chevron-down finding-chevron"></i>
+      </button>
+      <div class="finding-detail hidden">
+        ${f.explain ? `<p class="finding-explain">${esc(f.explain)}</p>` : ''}
+        ${nodesHTML}
+        ${rowsHTML}
+        ${f.recommendation ? `<p class="finding-recommendation"><i class="fas fa-lightbulb"></i> ${esc(f.recommendation)}</p>` : ''}
+        ${f.action ? `<button class="btn btn-secondary btn-sm finding-action" data-finding="${i}">${esc(f.action.label)} <i class="fas fa-arrow-right" style="font-size:9px"></i></button>` : ''}
       </div>
-      <div class="finding-body">
-        <div class="finding-title">${esc(f.title)}</div>
-        <div class="finding-text">${esc(f.text)}</div>
-      </div>
-      ${f.action ? `<button class="btn btn-secondary btn-sm finding-action" data-finding="${i}">${esc(f.action.label)} <i class="fas fa-arrow-right" style="font-size:9px"></i></button>` : ''}
-    </div>`).join('') : '');
+    </div>`;
+  }).join('') : '');
 
   panel.classList.remove('hidden');
 
@@ -640,26 +711,58 @@ function showAnalyseBriefing() {
     }
   }
 
-  container.querySelectorAll('.finding-action').forEach(btn => {
+  // Score-Toggle
+  const scoreToggle = container.querySelector('.briefing-score-toggle');
+  const scoreDetail = container.querySelector('.briefing-score-detail');
+  if (scoreToggle && scoreDetail) {
+    scoreToggle.addEventListener('click', () => {
+      const open = !scoreDetail.classList.contains('hidden');
+      scoreDetail.classList.toggle('hidden', open);
+      scoreToggle.setAttribute('aria-expanded', String(!open));
+      scoreToggle.querySelector('.briefing-score-chevron').style.transform = open ? '' : 'rotate(180deg)';
+    });
+  }
+
+  // Finding-Header Toggle
+  container.querySelectorAll('.finding-header').forEach(btn => {
     btn.addEventListener('click', () => {
+      const card   = btn.closest('.briefing-finding');
+      const detail = card.querySelector('.finding-detail');
+      const open   = !detail.classList.contains('hidden');
+      detail.classList.toggle('hidden', open);
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.querySelector('.finding-chevron').style.transform = open ? '' : 'rotate(180deg)';
+    });
+  });
+
+  // Node-Chip → Highlight im Netzwerk
+  const highlightNode = nodeId => {
+    switchTab('network');
+    setTimeout(() => {
+      if (!networkChart) return;
+      const node = networkChart.$id(nodeId);
+      if (!node.length) return;
+      const edges = node.connectedEdges(), nbrs = edges.connectedNodes();
+      networkChart.elements().removeClass('highlighted faded');
+      networkChart.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
+      node.union(edges).union(nbrs).addClass('highlighted');
+      networkChart.animate({ fit: { eles: node.union(nbrs), padding: 80 }, duration: 400 });
+      showNodeDetail(nodeId, filteredData.length ? filteredData : allData);
+    }, 200);
+  };
+  container.querySelectorAll('.finding-node-chip').forEach(chip => {
+    chip.addEventListener('click', e => { e.stopPropagation(); highlightNode(chip.dataset.nodeid); });
+  });
+
+  // Finding-Action Button
+  container.querySelectorAll('.finding-action').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
       const f = findings[parseInt(btn.dataset.finding)];
       if (!f?.action) return;
       const { type, tab, nodeId, value } = f.action;
       if (type === 'tab') { switchTab(tab); }
-      if (type === 'highlight') {
-        switchTab('network');
-        setTimeout(() => {
-          if (!networkChart) return;
-          const node = networkChart.$id(nodeId);
-          if (!node.length) return;
-          const edges = node.connectedEdges(), nbrs = edges.connectedNodes();
-          networkChart.elements().removeClass('highlighted faded');
-          networkChart.elements().difference(node.union(edges).union(nbrs)).addClass('faded');
-          node.union(edges).union(nbrs).addClass('highlighted');
-          networkChart.animate({ fit: { eles: node.union(nbrs), padding: 80 }, duration: 400 });
-          showNodeDetail(nodeId, filteredData.length ? filteredData : allData);
-        }, 200);
-      }
+      if (type === 'highlight') { highlightNode(nodeId); }
       if (type === 'filter-schutz') {
         activeFilters.schutz.clear();
         activeFilters.schutz.add(value);
