@@ -272,6 +272,7 @@ function esc(str) {
 // ── Snapshots ─────────────────────────────────────────────────────────────────
 const LS_SNAP_PREFIX   = 'datengraf_snap_';
 const LS_BASELINE_KEY  = 'datengraf_baseline';
+const LS_API_KEY       = 'datengraf_api_key';
 
 function listSnapshots() {
   return Object.keys(localStorage)
@@ -530,6 +531,54 @@ function generateNarrative(data, findings, vs) {
   return parts.join(' ');
 }
 
+async function generateNarrativeLLM(data, findings, vs) {
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  if (!apiKey) return null;
+
+  const outDeg = {};
+  data.forEach(r => { if (r.Quelle) outDeg[r.Quelle] = (outDeg[r.Quelle] || 0) + 1; });
+  const topHubs = Object.entries(outDeg).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([n, d]) => `${n} (Out: ${d})`);
+  const context = {
+    nodeCount:        [...new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean))].length,
+    edgeCount:        data.length,
+    dsgvoCount:       data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length,
+    topHubs,
+    findingTypes:     findings.map(f => f.type),
+    completenessScore: vs.score,
+    completenessGaps: vs.gaps.map(g => g.label)
+  };
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: `Du analysierst ein Datenflussnetzwerk einer Organisation. Kennzahlen:\n${JSON.stringify(context, null, 2)}\n\nSchreibe eine präzise Analyse in 3–4 deutschen Sätzen: Netzwerktopologie und wichtigste Risiken, Compliance-Status, konkrete Handlungsempfehlung. Nur Fließtext, kein Markdown, keine Aufzählung.`
+        }]
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const json = await res.json();
+    return json.content?.[0]?.text?.trim() || null;
+  } catch (err) {
+    console.warn('LLM-Narrativ:', err.message);
+    updateKeyStatus(err.message.includes('401') || err.message.toLowerCase().includes('auth') ? 'error' : null);
+    return null;
+  }
+}
+
 function showAnalyseBriefing() {
   const findings = runAnalysis(allData);
   const panel    = document.getElementById('analyse-briefing');
@@ -567,6 +616,20 @@ function showAnalyseBriefing() {
     </div>`).join('') : '');
 
   panel.classList.remove('hidden');
+
+  // Kick off LLM narrative if API key is set (async, updates in-place)
+  if (narrative && localStorage.getItem(LS_API_KEY)) {
+    const narrativeEl = container.querySelector('.briefing-narrative-text');
+    if (narrativeEl) {
+      narrativeEl.classList.add('briefing-narrative-loading');
+      generateNarrativeLLM(allData, findings, vs).then(text => {
+        if (!narrativeEl.isConnected) return;
+        narrativeEl.classList.remove('briefing-narrative-loading');
+        if (text) narrativeEl.textContent = text;
+      });
+    }
+  }
+
   container.querySelectorAll('.finding-action').forEach(btn => {
     btn.addEventListener('click', () => {
       const f = findings[parseInt(btn.dataset.finding)];
@@ -1818,6 +1881,59 @@ document.getElementById('snapshot-save-btn').addEventListener('click', () => {
 document.getElementById('open-snapshots-btn').addEventListener('click', openSnapshotModal);
 document.getElementById('snapshot-close-btn').addEventListener('click', closeSnapshotModal);
 document.getElementById('snapshot-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeSnapshotModal(); });
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function updateKeyStatus(forceError) {
+  const status = document.getElementById('settings-key-status');
+  if (!status) return;
+  const hasKey = !!localStorage.getItem(LS_API_KEY);
+  if (forceError === 'error') {
+    status.textContent = 'Ungültiger API-Key – bitte prüfen.';
+    status.className = 'settings-key-status key-error';
+  } else if (hasKey) {
+    status.textContent = 'API-Key gespeichert — Claude-Analyse aktiv.';
+    status.className = 'settings-key-status has-key';
+  } else {
+    status.textContent = 'Kein API-Key gesetzt — Template-Narrativ aktiv.';
+    status.className = 'settings-key-status no-key';
+  }
+}
+
+function openSettingsModal() {
+  const input = document.getElementById('settings-api-key');
+  input.value = localStorage.getItem(LS_API_KEY) ? '(gesetzt – zum Ändern neu eingeben)' : '';
+  updateKeyStatus();
+  document.getElementById('settings-backdrop').classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+  document.getElementById('settings-backdrop').classList.add('hidden');
+}
+
+document.getElementById('settings-btn').addEventListener('click', () => { openSettingsModal(); });
+document.getElementById('mobile-settings-btn').addEventListener('click', () => {
+  mobileNav.classList.add('hidden');
+  openSettingsModal();
+});
+document.getElementById('settings-close-btn').addEventListener('click', closeSettingsModal);
+document.getElementById('settings-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeSettingsModal(); });
+
+document.getElementById('settings-save-key-btn').addEventListener('click', () => {
+  const val = document.getElementById('settings-api-key').value.trim();
+  if (!val || val.startsWith('(gesetzt')) return;
+  if (!val.startsWith('sk-ant-')) {
+    updateKeyStatus('error');
+    return;
+  }
+  localStorage.setItem(LS_API_KEY, val);
+  document.getElementById('settings-api-key').value = '(gesetzt – zum Ändern neu eingeben)';
+  updateKeyStatus();
+  setStatus('API-Key gespeichert. KI-Analyse wird beim nächsten Datenladen aktiv.', 'success');
+});
+
+document.getElementById('settings-api-key').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('settings-save-key-btn').click();
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadFromShareHash();

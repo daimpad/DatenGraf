@@ -137,6 +137,7 @@
         <span class="topbar-brand-text">DatenGraf</span>
       </div>
       <div class="topbar-spacer"></div>
+      <button class="btn btn-secondary btn-icon" id="settings-btn" title="Einstellungen" aria-label="Einstellungen"><i class="fas fa-gear"></i></button>
       <button class="btn btn-primary btn-sm" id="open-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
       <button class="btn btn-secondary btn-icon mobile-nav-btn" id="mobile-nav-btn" aria-label="Navigation öffnen"><i class="fas fa-ellipsis-vertical"></i></button>
     </div>
@@ -147,6 +148,7 @@
       <button class="mobile-nav-tab" data-tab="insights"><i class="fas fa-chart-bar fa-fw"></i> Netzwerk-Insights</button>
       <hr class="mobile-nav-divider">
       <button class="btn btn-primary btn-sm mobile-nav-wizard" id="mobile-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
+      <button class="mobile-nav-settings" id="mobile-settings-btn"><i class="fas fa-gear fa-fw"></i> Einstellungen</button>
     </div>
 
     <div class="content">
@@ -612,6 +614,30 @@
   </div>
 </div>
 
+<!-- ── Settings Modal ────────────────────────────────────────── -->
+<div class="modal-backdrop hidden" id="settings-backdrop">
+  <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Einstellungen">
+    <div class="settings-modal-header">
+      <h2><i class="fas fa-gear"></i> Einstellungen</h2>
+      <button class="settings-close" id="settings-close-btn" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="settings-modal-body">
+      <div class="settings-section">
+        <h3>KI-Analyse <span class="settings-badge-opt">optional</span></h3>
+        <p class="settings-hint">Mit einem eigenen Anthropic-API-Key analysiert Claude dein Datenflussnetzwerk und liefert eine kontextbezogene Einschätzung im Briefing. Der Key wird ausschließlich in diesem Browser gespeichert und direkt an die Anthropic-API gesendet – kein DatenGraf-Backend ist beteiligt.</p>
+        <div class="settings-field">
+          <label for="settings-api-key">Anthropic API-Key</label>
+          <div class="settings-api-row">
+            <input type="password" id="settings-api-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+            <button class="btn btn-primary btn-sm" id="settings-save-key-btn">Speichern</button>
+          </div>
+        </div>
+        <div class="settings-key-status" id="settings-key-status"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── Footer ─────────────────────────────────────────────────── -->
 <footer class="site-footer">
   <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
@@ -624,9 +650,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v20</span>
+  <span class="footer-version">v21</span>
 </footer>
 
-<script src="js/app.js?v=20"></script>
+<script src="js/app.js?v=21"></script>
 </body>
 </html>
