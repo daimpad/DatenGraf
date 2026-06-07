@@ -10,9 +10,9 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 
 - **Einstiegspunkt:** `index.html`
 - **Styles:** `css/styles.css` (~2100 Zeilen)
-- **Logik:** `js/app.js` (~1950 Zeilen, eine einzige Datei)
+- **Logik:** `js/app.js` (~2070 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
-- **Aktuelle Version:** `v24` (Script-Tag: `<script src="js/app.js?v=24">`)
+- **Aktuelle Version:** `v25` (Script-Tag: `<script src="js/app.js?v=25">`)
 
 ---
 
@@ -273,7 +273,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v24)
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v25)
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **`networkChart = null`:** Nach `renderNetwork([])` korrekt gesetzt; alle Handler mit `if (networkChart)` schützen
 - **Datenmutationsreihenfolge:** Immer `buildSidebarFilters()` vor `applyFilters()` — nie umgekehrt
@@ -300,3 +300,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v22 | `LS_API_KEY`-Fix (Squash-Merge-Verlust) + Inter & FA lokal hosten |
 | v23 | 8 Bugs aus Max-Effort Code-Review: toCSV "0"-Bug, delete-Reihenfolge, Pathfinder-Bar, localStorage try/catch, switchTab in shareHash, wizard-back guard, mobile-nav-settings CSS |
 | v24 | Settings-Modal CSS wiederhergestellt (Squash-Merge-Verlust) + Zahnrad-Button nach rechts |
+| v25 | Analyse-Briefing: Finding-Karten klappbar (Erklärung + Knoten-Chips + Empfehlung), Score-Aufschlüsselung mit allen 5 Kategorien |
