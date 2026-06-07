@@ -77,13 +77,14 @@ function toCSV(data) {
   const headers = ['Quelle','QuelleAbteilung','QuelleBereich','QuelleOrganisation','QuelleRolle',
     'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen','Ansprechpartner'];
   const escape = v => {
-    if (!v) return '';
-    if (v.includes(',') || v.includes('"') || v.includes('\n')) {
-      return `"${v.replace(/"/g, '""')}"`;
+    if (v == null || v === '') return '';
+    const s = String(v);
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+      return `"${s.replace(/"/g, '""')}"`;
     }
-    return v;
+    return s;
   };
-  return [headers.join(','), ...data.map(r => headers.map(h => escape(r[h] || '')).join(','))].join('\n');
+  return [headers.join(','), ...data.map(r => headers.map(h => escape(r[h])).join(','))].join('\n');
 }
 
 // ── Filters ──────────────────────────────────────────────────────────────────
@@ -258,8 +259,8 @@ function renderList(data) {
       const row = filteredData[parseInt(btn.dataset.del)];
       const idx = allData.indexOf(row);
       if (idx !== -1) allData.splice(idx, 1);
-      applyFilters();
       buildSidebarFilters();
+      applyFilters();
     });
   });
 }
@@ -592,8 +593,17 @@ function showAnalyseBriefing() {
   const sevIcon  = { high: 'fa-circle-exclamation', medium: 'fa-triangle-exclamation', low: 'fa-circle-info' };
   const sevClass = { high: 'finding-high', medium: 'finding-medium', low: 'finding-low' };
 
+  const filterCount = activeFilters.relation.size + activeFilters.schutz.size + activeFilters.erfassung.size +
+    (activeFilters.organization !== 'all' ? 1 : 0) + (activeFilters.department !== 'all' ? 1 : 0) +
+    (activeFilters.frequency !== 'all' ? 1 : 0) + (activeFilters.format !== 'all' ? 1 : 0) +
+    (activeFilters.search ? 1 : 0);
+  const filterNote = filterCount > 0
+    ? `<p class="briefing-filter-note"><i class="fas fa-filter"></i> Analyse basiert auf allen ${allData.length} Datenflüssen – aktive Filter gelten nur für die Ansichten.</p>`
+    : '';
+
   const narrativeHTML = narrative ? `
     <div class="briefing-narrative">
+      ${filterNote}
       <p class="briefing-narrative-text">${esc(narrative)}</p>
       <div class="briefing-score-wrap">
         <span class="briefing-score-label">Vollständigkeit</span>
@@ -742,11 +752,14 @@ function prepareElements(data, useHierarchy = false) {
 function renderNetwork(data) {
   const container = document.getElementById('network-container');
   container.innerHTML = '';
-  document.getElementById('pathfinder-bar').classList.add('hidden');
-  document.getElementById('pathfinder-result').textContent = '';
-  document.getElementById('pathfinder-result').className = 'pathfinder-result';
   document.getElementById('org-legend').classList.add('hidden');
-  if (!data.length) { networkChart = null; return; }
+  if (!data.length) {
+    document.getElementById('pathfinder-bar').classList.add('hidden');
+    document.getElementById('pathfinder-result').textContent = '';
+    document.getElementById('pathfinder-result').className = 'pathfinder-result';
+    networkChart = null;
+    return;
+  }
 
   networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: CY_STYLE, layout: COSE_OPTS });
   if (colorByOrg) applyOrgColors();
@@ -1139,6 +1152,7 @@ document.getElementById('wizard-next').addEventListener('click', () => {
 });
 
 document.getElementById('wizard-back').addEventListener('click', () => {
+  if (wizardStep === 0) return;
   collectWizardStep();
   wizardStep--;
   wizardDuplicateConfirmed = false;
@@ -1464,8 +1478,12 @@ document.getElementById('btn-fullscreen').addEventListener('click', () => {
 
 // ── LocalStorage ──────────────────────────────────────────────────────────────
 document.getElementById('save-local-btn').addEventListener('click', () => {
-  localStorage.setItem(LS_KEY, JSON.stringify(allData));
-  setStatus(`${allData.length} Einträge gespeichert.`, 'success');
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(allData));
+    setStatus(`${allData.length} Einträge gespeichert.`, 'success');
+  } catch {
+    setStatus('Speichern fehlgeschlagen – Browser-Speicher voll.', 'error');
+  }
 });
 
 document.getElementById('load-local-btn').addEventListener('click', () => {
@@ -1784,6 +1802,7 @@ function loadFromShareHash() {
     buildSidebarFilters();
     applyFilters();
     showAnalyseBriefing();
+    switchTab('list');
     setStatus(`${data.length} Datenflüsse aus geteiltem Link geladen.`, 'success');
     history.replaceState(null, '', location.pathname);
   } catch {
@@ -1872,8 +1891,13 @@ document.getElementById('snapshot-save-btn').addEventListener('click', () => {
   const name = document.getElementById('snapshot-name-input').value.trim();
   if (!name) { document.getElementById('snapshot-name-input').focus(); return; }
   if (!allData.length) { setStatus('Keine Daten zum Speichern.', 'error'); return; }
-  localStorage.setItem(LS_SNAP_PREFIX + name, JSON.stringify({ data: allData, savedAt: Date.now(), name }));
-  setStatus(`Snapshot „${name}" gespeichert (${allData.length} Einträge).`, 'success');
+  try {
+    localStorage.setItem(LS_SNAP_PREFIX + name, JSON.stringify({ data: allData, savedAt: Date.now(), name }));
+    setStatus(`Snapshot „${name}" gespeichert (${allData.length} Einträge).`, 'success');
+  } catch {
+    setStatus('Snapshot-Speichern fehlgeschlagen – Browser-Speicher voll.', 'error');
+    return;
+  }
   document.getElementById('snapshot-name-input').value = '';
   renderSnapshotList();
 });
