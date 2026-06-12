@@ -12,7 +12,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Styles:** `css/styles.css` (~2100 Zeilen)
 - **Logik:** `js/app.js` (~2070 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
-- **Aktuelle Version:** `v26` (Script-Tag: `<script src="js/app.js?v=26">`)
+- **Aktuelle Version:** `v27` (Script-Tag: `<script src="js/app.js?v=27">`)
 
 ---
 
@@ -274,7 +274,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v26)
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v27)
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **`networkChart = null`:** Nach `renderNetwork([])` korrekt gesetzt; alle Handler mit `if (networkChart)` schützen
 - **Datenmutationsreihenfolge:** Immer `buildSidebarFilters()` vor `applyFilters()` — nie umgekehrt
@@ -303,3 +303,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v24 | Settings-Modal CSS wiederhergestellt (Squash-Merge-Verlust) + Zahnrad-Button nach rechts |
 | v25 | Analyse-Briefing: Finding-Karten klappbar (Erklärung + Knoten-Chips + Empfehlung), Score-Aufschlüsselung mit allen 5 Kategorien |
 | v26 | `isolated`-Finding (BFS-Komponentenanalyse für isolierte Teilgraphen), PDF-Bericht mit Briefing-Sektion (Score + Findings), Filter-Persistenz via `LS_FILTERS_KEY` |
+| v27 | Häufigkeits-Visualisierung: Kanten nach Häufigkeit in Dicke, Linienstil und Transparenz kodiert; Toggle-Button + SVG-Legende; `stackLegends()` für Org- und Häufigkeits-Legende gleichzeitig |

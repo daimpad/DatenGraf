@@ -802,6 +802,26 @@ textarea.csv-textarea:focus {
 .org-legend-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: var(--c-text); }
 .org-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
+.freq-legend {
+  position: absolute;
+  top: 60px;
+  left: 12px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 10px 14px;
+  z-index: 10;
+  min-width: 150px;
+  max-width: 220px;
+}
+.freq-legend.hidden { display: none; }
+.freq-legend-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); margin-bottom: 8px; }
+.freq-legend-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: var(--c-text); }
+.freq-legend-line { width: 32px; height: 8px; flex-shrink: 0; }
+
 #network-container {
   background: rgba(255,255,255,0.55);
   backdrop-filter: blur(8px);
