@@ -9,6 +9,19 @@ const REL_COLORS_HEX = {
   'verarbeitet': '#9b72b8'
 };
 
+const FREQ_VIS = {
+  'sofort':        { width: 5, lineStyle: 'solid',  opacity: 0.9 },
+  'stündlich':     { width: 4, lineStyle: 'solid',  opacity: 0.85 },
+  'täglich':       { width: 3, lineStyle: 'solid',  opacity: 0.8 },
+  'wöchentlich':   { width: 2.5, lineStyle: 'solid',  opacity: 0.75 },
+  'monatlich':     { width: 2, lineStyle: 'dashed', opacity: 0.7 },
+  'quartalsweise': { width: 1.5, lineStyle: 'dashed', opacity: 0.65 },
+  'halbjährlich':  { width: 1.5, lineStyle: 'dotted', opacity: 0.6 },
+  'jährlich':      { width: 1, lineStyle: 'dotted', opacity: 0.55 },
+  'bei Bedarf':    { width: 1, lineStyle: 'dotted', opacity: 0.5 },
+  'unregelmäßig':  { width: 1, lineStyle: 'dotted', opacity: 0.5 },
+};
+
 const SCHUTZ_OPTS    = ['DSGVO-relevant', 'Intern', 'Öffentlich'];
 const ERFASSUNG_OPTS = ['Manuell', 'Automatisiert'];
 const ROLLEN_OPTS    = ['Datenproduzent', 'Datenkonsument', 'Gatekeeper', 'Datenverwalter', 'Datenverarbeiter', 'Datenersteller', 'Datennutzer'];
@@ -30,6 +43,7 @@ let filteredData = [];
 let networkChart = null;
 let pendingFileText = null;
 let lastBriefing = null; // { findings, vs } — cached from last showAnalyseBriefing() call
+let frequencyVisMode = false;
 let activeFilters = {
   relation: new Set(), schutz: new Set(), erfassung: new Set(),
   organization: 'all', department: 'all', frequency: 'all', format: 'all',
@@ -943,7 +957,7 @@ function prepareElements(data, useHierarchy = false) {
   }
 
   edges.forEach((row, i) => {
-    elements.push({ data: { id: `e${i}`, source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: REL_COLORS_HEX[row.Beziehung] || '#999' } });
+    elements.push({ data: { id: `e${i}`, source: row.Quelle, target: row.Ziel, type: row.Beziehung, color: REL_COLORS_HEX[row.Beziehung] || '#999', haeufigkeit: row.Häufigkeit || '' } });
   });
   return elements;
 }
@@ -962,6 +976,7 @@ function renderNetwork(data) {
 
   networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: CY_STYLE, layout: COSE_OPTS });
   if (colorByOrg) applyOrgColors();
+  if (frequencyVisMode) applyFrequencyVis();
 
   networkChart.on('tap', 'node', evt => {
     const node  = evt.target;
@@ -1578,9 +1593,9 @@ document.getElementById('btn-toggle-pathfinder').addEventListener('click', () =>
   } else {
     clearPath();
   }
-  // Keep org-legend below the pathfinder bar when both are visible
-  const legend = document.getElementById('org-legend');
-  legend.style.top = isOpen ? (bar.offsetHeight + 58) + 'px' : '';
+  // Stack legends below pathfinder bar when it is open
+  const barOffset = isOpen ? (bar.offsetHeight + 58) : 60;
+  stackLegends(barOffset);
 });
 
 document.getElementById('btn-find-path').addEventListener('click', () => {
@@ -1648,6 +1663,7 @@ function applyOrgColors() {
     `<div class="org-legend-item"><span class="org-legend-dot" style="background:${c.bg}"></span><span>${esc(org)}</span></div>`
   ).join('');
   document.getElementById('org-legend').classList.remove('hidden');
+  requestAnimationFrame(() => stackLegends());
 }
 
 function clearOrgColors() {
@@ -1659,11 +1675,73 @@ function clearOrgColors() {
   document.getElementById('org-legend').classList.add('hidden');
 }
 
+function stackLegends(topStart = 60) {
+  let cursor = topStart;
+  const orgLeg  = document.getElementById('org-legend');
+  const freqLeg = document.getElementById('freq-legend');
+  [orgLeg, freqLeg].forEach(el => {
+    if (!el.classList.contains('hidden')) {
+      el.style.top = cursor + 'px';
+      cursor += el.offsetHeight + 8;
+    } else {
+      el.style.top = '';
+    }
+  });
+}
+
+function applyFrequencyVis() {
+  if (!networkChart) return;
+  networkChart.edges().forEach(edge => {
+    const h = edge.data('haeufigkeit') || '';
+    const vis = FREQ_VIS[h] || { width: 1.5, lineStyle: 'solid', opacity: 0.6 };
+    edge.style({ width: vis.width, 'line-style': vis.lineStyle, opacity: vis.opacity });
+  });
+  const legendItems = document.getElementById('freq-legend-items');
+  const shown = new Map();
+  networkChart.edges().forEach(edge => {
+    const h = edge.data('haeufigkeit') || '(keine Angabe)';
+    if (!shown.has(h)) shown.set(h, FREQ_VIS[h] || { width: 1.5, lineStyle: 'solid', opacity: 0.6 });
+  });
+  const order = ['sofort','stündlich','täglich','wöchentlich','monatlich','quartalsweise','halbjährlich','jährlich','bei Bedarf','unregelmäßig','(keine Angabe)'];
+  const sorted = [...shown.entries()].sort((a, b) => {
+    const ai = order.indexOf(a[0]), bi = order.indexOf(b[0]);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+  legendItems.innerHTML = sorted.map(([label, vis]) =>
+    `<div class="freq-legend-item">
+       <svg class="freq-legend-line" viewBox="0 0 32 8" xmlns="http://www.w3.org/2000/svg">
+         <line x1="2" y1="4" x2="30" y2="4"
+           stroke="#420093" stroke-width="${Math.min(vis.width, 3)}"
+           stroke-dasharray="${vis.lineStyle === 'dashed' ? '6,3' : vis.lineStyle === 'dotted' ? '2,3' : 'none'}"
+           stroke-opacity="${vis.opacity}" stroke-linecap="round"/>
+       </svg>
+       <span>${esc(label)}</span>
+     </div>`
+  ).join('');
+  document.getElementById('freq-legend').classList.remove('hidden');
+  requestAnimationFrame(() => stackLegends());
+}
+
+function clearFrequencyVis() {
+  if (!networkChart) return;
+  networkChart.edges().forEach(edge => {
+    edge.style({ width: 2, 'line-style': 'solid', opacity: 0.7 });
+  });
+  document.getElementById('freq-legend').classList.add('hidden');
+}
+
 document.getElementById('btn-color-by-org').addEventListener('click', () => {
   colorByOrg = !colorByOrg;
   document.getElementById('btn-color-by-org').classList.toggle('active', colorByOrg);
-  if (colorByOrg) applyOrgColors();
-  else clearOrgColors();
+  if (colorByOrg) applyOrgColors(); else clearOrgColors();
+  stackLegends();
+});
+
+document.getElementById('btn-freq-vis').addEventListener('click', () => {
+  frequencyVisMode = !frequencyVisMode;
+  document.getElementById('btn-freq-vis').classList.toggle('active', frequencyVisMode);
+  if (frequencyVisMode) applyFrequencyVis(); else clearFrequencyVis();
+  stackLegends();
 });
 
 document.getElementById('btn-toggle-hierarchy').addEventListener('click', () => {
