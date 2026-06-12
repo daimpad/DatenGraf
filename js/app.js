@@ -914,7 +914,7 @@ const CY_STYLE = [
   { selector: '.faded',       style: { opacity: 0.12, 'z-index': 0 } },
   { selector: '.path-node',   style: { 'background-color': '#2e9e60', 'border-color': '#fff', 'border-width': 3, opacity: 1, 'z-index': 999, color: '#fff', 'text-outline-color': '#1a6640' } },
   { selector: '.path-edge',   style: { 'line-color': '#2e9e60', 'target-arrow-color': '#2e9e60', width: 4, opacity: 1, 'z-index': 998 } },
-  { selector: ':parent',      style: { 'background-color': 'rgba(66,0,147,0.04)', 'background-opacity': 1, 'border-color': 'rgba(66,0,147,0.25)', 'border-width': 1, 'padding': '18px', label: 'data(label)', 'text-valign': 'top', 'text-halign': 'center', color: '#420093', 'font-size': '11px', 'font-weight': 600, 'text-outline-width': 0 } },
+  { selector: ':parent',      style: { 'background-color': '#420093', 'background-opacity': 0.04, 'border-color': 'rgba(66,0,147,0.25)', 'border-width': 1, 'padding': '18px', label: 'data(label)', 'text-valign': 'top', 'text-halign': 'center', color: '#420093', 'font-size': '11px', 'font-weight': 600, 'text-outline-width': 0 } },
 ];
 
 function prepareElements(data, useHierarchy = false) {
