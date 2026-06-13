@@ -967,6 +967,7 @@ function renderNetwork(data) {
   container.innerHTML = '';
   document.getElementById('org-legend').classList.add('hidden');
   document.getElementById('rel-legend').classList.add('hidden');
+  document.getElementById('hier-legend').classList.toggle('hidden', !orgHierarchyMode);
   if (!data.length) {
     document.getElementById('pathfinder-bar').classList.add('hidden');
     document.getElementById('pathfinder-result').textContent = '';
@@ -1695,7 +1696,7 @@ function renderRelLegend(data) {
 
 function stackLegends(topStart = 60) {
   let cursor = topStart;
-  ['rel-legend', 'org-legend', 'freq-legend'].forEach(id => {
+  ['rel-legend', 'org-legend', 'freq-legend', 'hier-legend'].forEach(id => {
     const el = document.getElementById(id);
     if (!el.classList.contains('hidden')) {
       el.style.top = cursor + 'px';
@@ -1764,7 +1765,9 @@ document.getElementById('btn-freq-vis').addEventListener('click', () => {
 document.getElementById('btn-toggle-hierarchy').addEventListener('click', () => {
   orgHierarchyMode = !orgHierarchyMode;
   document.getElementById('btn-toggle-hierarchy').classList.toggle('active', orgHierarchyMode);
+  document.getElementById('hier-legend').classList.toggle('hidden', !orgHierarchyMode);
   renderNetwork(filteredData);
+  if (orgHierarchyMode) requestAnimationFrame(() => stackLegends());
 });
 
 document.getElementById('btn-fullscreen').addEventListener('click', () => {

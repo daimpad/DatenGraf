@@ -822,6 +822,11 @@ textarea.csv-textarea:focus {
 .freq-legend-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: var(--c-text); }
 .freq-legend-line { width: 32px; height: 8px; flex-shrink: 0; }
 
+.hier-legend-body { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--c-text); margin-bottom: 6px; }
+.hier-legend-box { width: 22px; height: 16px; border: 2px solid rgba(66,0,147,0.4); background: rgba(66,0,147,0.07); border-radius: 3px; flex-shrink: 0; }
+.hier-legend-hint { font-size: 11px; color: var(--c-muted); line-height: 1.4; margin: 0; }
+.hier-legend-hint code { font-family: monospace; font-size: 10px; background: rgba(66,0,147,0.08); padding: 1px 4px; border-radius: 3px; }
+
 #network-container {
   background: rgba(255,255,255,0.55);
   backdrop-filter: blur(8px);
