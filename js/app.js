@@ -1658,7 +1658,8 @@ document.getElementById('btn-clear-path').addEventListener('click', clearPath);
 // ── Org-Farben ────────────────────────────────────────────────────────────────
 function buildOrgColorMap() {
   if (!networkChart) return {};
-  const orgs = [...new Set(networkChart.nodes().map(n => n.data('org') || '—'))].sort((a, b) => a.localeCompare(b));
+  // nur Knoten mit tatsächlicher Org-Angabe — leere/unbekannte behalten Standard-Farbe
+  const orgs = [...new Set(networkChart.nodes().map(n => n.data('org')).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const map = {};
   orgs.forEach((org, i) => { map[org] = ORG_PALETTE[i % ORG_PALETTE.length]; });
   return map;
@@ -1668,9 +1669,15 @@ function applyOrgColors() {
   if (!networkChart) return;
   const map = buildOrgColorMap();
   networkChart.nodes().forEach(node => {
-    const c = map[node.data('org') || '—'];
-    node.data('orgColor',        c.bg);
-    node.data('orgOutlineColor', c.outline);
+    const org = node.data('org');
+    const c = org && map[org] ? map[org] : null;
+    if (c) {
+      node.data('orgColor',        c.bg);
+      node.data('orgOutlineColor', c.outline);
+    } else {
+      node.data('orgColor',        '#7a6fa8');
+      node.data('orgOutlineColor', '#5c5080');
+    }
   });
   const legendItems = document.getElementById('org-legend-items');
   legendItems.innerHTML = Object.entries(map).map(([org, c]) =>
