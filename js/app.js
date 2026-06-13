@@ -966,6 +966,7 @@ function renderNetwork(data) {
   const container = document.getElementById('network-container');
   container.innerHTML = '';
   document.getElementById('org-legend').classList.add('hidden');
+  document.getElementById('rel-legend').classList.add('hidden');
   if (!data.length) {
     document.getElementById('pathfinder-bar').classList.add('hidden');
     document.getElementById('pathfinder-result').textContent = '';
@@ -977,6 +978,7 @@ function renderNetwork(data) {
   networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: CY_STYLE, layout: COSE_OPTS });
   if (colorByOrg) applyOrgColors();
   if (frequencyVisMode) applyFrequencyVis();
+  renderRelLegend(data);
 
   networkChart.on('tap', 'node', evt => {
     const node  = evt.target;
@@ -1675,11 +1677,26 @@ function clearOrgColors() {
   document.getElementById('org-legend').classList.add('hidden');
 }
 
+function renderRelLegend(data) {
+  const usedRels = [...new Set(data.map(r => r.Beziehung).filter(Boolean))];
+  if (!usedRels.length) return;
+  const relOrder = ['übergibt', 'nutzt', 'erstellt', 'empfängt', 'verarbeitet'];
+  const sorted = usedRels.sort((a, b) => {
+    const ai = relOrder.indexOf(a), bi = relOrder.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+  document.getElementById('rel-legend-items').innerHTML = sorted.map(rel => {
+    const color = REL_COLORS_HEX[rel] || '#999';
+    return `<div class="org-legend-item"><span class="org-legend-dot" style="background:${color}"></span><span>${esc(rel)}</span></div>`;
+  }).join('');
+  document.getElementById('rel-legend').classList.remove('hidden');
+  requestAnimationFrame(() => stackLegends());
+}
+
 function stackLegends(topStart = 60) {
   let cursor = topStart;
-  const orgLeg  = document.getElementById('org-legend');
-  const freqLeg = document.getElementById('freq-legend');
-  [orgLeg, freqLeg].forEach(el => {
+  ['rel-legend', 'org-legend', 'freq-legend'].forEach(id => {
+    const el = document.getElementById(id);
     if (!el.classList.contains('hidden')) {
       el.style.top = cursor + 'px';
       cursor += el.offsetHeight + 8;
