@@ -983,6 +983,17 @@ function renderNetwork(data) {
 
   networkChart.on('tap', 'node', evt => {
     const node  = evt.target;
+    // Compound-Nodes (Bereich-Container) haben keine Datenflussdaten — Kinder hervorheben
+    if (node.isParent()) {
+      const children = node.descendants();
+      const childEdges = children.connectedEdges();
+      const childNbrs  = childEdges.connectedNodes();
+      networkChart.elements().removeClass('highlighted faded');
+      networkChart.elements().difference(node.union(children).union(childEdges).union(childNbrs)).addClass('faded');
+      node.union(children).union(childEdges).union(childNbrs).addClass('highlighted');
+      document.getElementById('node-detail').classList.add('hidden');
+      return;
+    }
     const edges = node.connectedEdges();
     const nbrs  = edges.connectedNodes();
     networkChart.elements().removeClass('highlighted faded');
