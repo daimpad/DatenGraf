@@ -913,6 +913,10 @@ textarea.csv-textarea:focus {
   background: rgba(66,0,147,0.08);
   color: var(--c-accent);
 }
+.nd-badge-hub        { background: rgba(212,130,10,0.12); color: #d4820a; }
+.nd-badge-gatekeeper { background: rgba(192,57,43,0.10);  color: #c0392b; }
+.nd-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.nd-dblclick-hint { color: var(--c-muted); font-size: 13px; cursor: default; opacity: 0.6; }
 .node-detail-close {
   background: none;
   border: none;
