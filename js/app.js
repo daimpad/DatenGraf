@@ -911,6 +911,8 @@ const CY_STYLE = [
       'text-background-shape': 'roundrectangle'
     }
   },
+  { selector: '[nodeType="hub"]',        style: { 'border-color': '#d4820a', 'border-width': 3 } },
+  { selector: '[nodeType="gatekeeper"]', style: { 'border-color': '#c0392b', 'border-width': 3 } },
   { selector: '.highlighted', style: { 'background-color': '#420093', 'line-color': '#420093', 'target-arrow-color': '#420093', opacity: 1, 'z-index': 999, 'border-color': '#fff', 'border-width': 2 } },
   { selector: '.faded',       style: { opacity: 0.12, 'z-index': 0 } },
   { selector: '.path-node',   style: { 'background-color': '#2e9e60', 'border-color': '#fff', 'border-width': 3, opacity: 1, 'z-index': 999, color: '#fff', 'text-outline-color': '#1a6640' } },
@@ -919,6 +921,7 @@ const CY_STYLE = [
 ];
 
 function prepareElements(data, useHierarchy = false) {
+  const { hubs, gatekeepers } = computeTopologyRisks(data);
   const nodes = new Map();
   const edges = [];
 
@@ -947,13 +950,15 @@ function prepareElements(data, useHierarchy = false) {
       elements.push({ data: { id, label: bereich, isParent: true } });
     });
     nodes.forEach((n, id) => {
-      const nodeData = { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) };
+      const nodeType = hubs.has(id) ? 'hub' : gatekeepers.has(id) ? 'gatekeeper' : 'normal';
+      const nodeData = { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3), nodeType };
       if (n.bereich && bereiche.has(n.bereich)) nodeData.parent = bereiche.get(n.bereich);
       elements.push({ data: nodeData });
     });
   } else {
     nodes.forEach((n, id) => {
-      elements.push({ data: { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3) } });
+      const nodeType = hubs.has(id) ? 'hub' : gatekeepers.has(id) ? 'gatekeeper' : 'normal';
+      elements.push({ data: { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3), nodeType } });
     });
   }
 
@@ -970,6 +975,7 @@ function renderNetwork(data) {
   document.getElementById('network-node-search').value = '';
   document.getElementById('org-legend').classList.add('hidden');
   document.getElementById('rel-legend').classList.add('hidden');
+  document.getElementById('topo-legend').classList.add('hidden');
   document.getElementById('hier-legend').classList.toggle('hidden', !orgHierarchyMode);
   if (!data.length) {
     document.getElementById('pathfinder-bar').classList.add('hidden');
@@ -983,6 +989,7 @@ function renderNetwork(data) {
   if (colorByOrg) applyOrgColors();
   if (frequencyVisMode) applyFrequencyVis();
   renderRelLegend(data);
+  renderTopoLegend(data);
 
   networkChart.on('tap', 'node', evt => {
     const node  = evt.target;
@@ -1716,6 +1723,13 @@ function renderRelLegend(data) {
   requestAnimationFrame(() => stackLegends());
 }
 
+function renderTopoLegend(data) {
+  const { hubs, gatekeepers } = computeTopologyRisks(data);
+  if (!hubs.size && !gatekeepers.size) return;
+  document.getElementById('topo-legend').classList.remove('hidden');
+  requestAnimationFrame(() => stackLegends());
+}
+
 function applyRelFilter(rel) {
   if (!networkChart) return;
   if (activeRelFilter === rel) {
@@ -1766,7 +1780,7 @@ function clearNetworkSearch() {
 
 function stackLegends(topStart = 60) {
   let cursor = topStart;
-  ['rel-legend', 'org-legend', 'freq-legend', 'hier-legend'].forEach(id => {
+  ['rel-legend', 'org-legend', 'freq-legend', 'hier-legend', 'topo-legend'].forEach(id => {
     const el = document.getElementById(id);
     if (!el.classList.contains('hidden')) {
       el.style.top = cursor + 'px';
@@ -2392,6 +2406,20 @@ document.getElementById('settings-save-key-btn').addEventListener('click', () =>
 
 document.getElementById('settings-api-key').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('settings-save-key-btn').click();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const pairs = [
+    ['wizard-backdrop',   closeWizard],
+    ['snapshot-backdrop', closeSnapshotModal],
+    ['settings-backdrop', closeSettingsModal],
+    ['faq-backdrop',      closeFaqModal],
+    ['theory-backdrop',   () => document.getElementById('theory-backdrop').classList.add('hidden')],
+  ];
+  for (const [id, fn] of pairs) {
+    if (!document.getElementById(id).classList.contains('hidden')) { fn(); break; }
+  }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
