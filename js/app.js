@@ -44,6 +44,7 @@ let networkChart = null;
 let pendingFileText = null;
 let lastBriefing = null; // { findings, vs } — cached from last showAnalyseBriefing() call
 let frequencyVisMode = false;
+let activeRelFilter = null;
 let activeFilters = {
   relation: new Set(), schutz: new Set(), erfassung: new Set(),
   organization: 'all', department: 'all', frequency: 'all', format: 'all',
@@ -965,6 +966,8 @@ function prepareElements(data, useHierarchy = false) {
 function renderNetwork(data) {
   const container = document.getElementById('network-container');
   container.innerHTML = '';
+  activeRelFilter = null;
+  document.getElementById('network-node-search').value = '';
   document.getElementById('org-legend').classList.add('hidden');
   document.getElementById('rel-legend').classList.add('hidden');
   document.getElementById('hier-legend').classList.toggle('hidden', !orgHierarchyMode);
@@ -1005,6 +1008,7 @@ function renderNetwork(data) {
     if (evt.target === networkChart) {
       networkChart.elements().removeClass('highlighted faded');
       document.getElementById('node-detail').classList.add('hidden');
+      clearNetworkSearch();
     }
   });
 }
@@ -1706,10 +1710,58 @@ function renderRelLegend(data) {
   });
   document.getElementById('rel-legend-items').innerHTML = sorted.map(rel => {
     const color = REL_COLORS_HEX[rel] || '#999';
-    return `<div class="org-legend-item"><span class="org-legend-dot" style="background:${color}"></span><span>${esc(rel)}</span></div>`;
+    return `<div class="org-legend-item rel-legend-item" data-rel="${esc(rel)}" title="Klicken zum Filtern"><span class="org-legend-dot" style="background:${color}"></span><span>${esc(rel)}</span></div>`;
   }).join('');
   document.getElementById('rel-legend').classList.remove('hidden');
   requestAnimationFrame(() => stackLegends());
+}
+
+function applyRelFilter(rel) {
+  if (!networkChart) return;
+  if (activeRelFilter === rel) {
+    activeRelFilter = null;
+    networkChart.elements().removeClass('highlighted faded');
+  } else {
+    activeRelFilter = rel;
+    const matchEdges = networkChart.edges().filter(e => e.data('type') === rel);
+    const matchNodes = matchEdges.connectedNodes();
+    networkChart.elements().removeClass('highlighted faded');
+    networkChart.elements().difference(matchEdges.union(matchNodes)).addClass('faded');
+    matchEdges.union(matchNodes).addClass('highlighted');
+  }
+  document.querySelectorAll('.rel-legend-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.rel === activeRelFilter);
+  });
+  const searchInput = document.getElementById('network-node-search');
+  if (searchInput) searchInput.value = '';
+}
+
+function applyNodeSearch(query) {
+  if (!networkChart) return;
+  activeRelFilter = null;
+  document.querySelectorAll('.rel-legend-item').forEach(el => el.classList.remove('active'));
+  if (!query) {
+    networkChart.elements().removeClass('highlighted faded');
+    return;
+  }
+  const q = query.toLowerCase();
+  const matchNodes = networkChart.nodes().filter(n => n.id().toLowerCase().includes(q));
+  if (!matchNodes.length) {
+    networkChart.elements().removeClass('highlighted faded');
+    return;
+  }
+  const matchEdges = matchNodes.connectedEdges();
+  const neighbors = matchEdges.connectedNodes();
+  networkChart.elements().removeClass('highlighted faded');
+  networkChart.elements().difference(matchNodes.union(matchEdges).union(neighbors)).addClass('faded');
+  matchNodes.addClass('highlighted');
+}
+
+function clearNetworkSearch() {
+  activeRelFilter = null;
+  document.querySelectorAll('.rel-legend-item').forEach(el => el.classList.remove('active'));
+  const searchInput = document.getElementById('network-node-search');
+  if (searchInput) searchInput.value = '';
 }
 
 function stackLegends(topStart = 60) {
@@ -2307,6 +2359,15 @@ function closeFaqModal() {
 document.getElementById('faq-btn').addEventListener('click', openFaqModal);
 document.getElementById('faq-close-btn').addEventListener('click', closeFaqModal);
 document.getElementById('faq-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeFaqModal(); });
+
+document.getElementById('rel-legend').addEventListener('click', e => {
+  const item = e.target.closest('.rel-legend-item');
+  if (item) applyRelFilter(item.dataset.rel);
+});
+
+document.getElementById('network-node-search').addEventListener('input', e => {
+  applyNodeSearch(e.target.value.trim());
+});
 
 document.getElementById('settings-btn').addEventListener('click', () => { openSettingsModal(); });
 document.getElementById('mobile-settings-btn').addEventListener('click', () => {

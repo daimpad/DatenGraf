@@ -800,6 +800,30 @@ textarea.csv-textarea:focus {
 .org-legend.hidden { display: none; }
 .org-legend-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); margin-bottom: 8px; }
 .org-legend-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: var(--c-text); }
+.rel-legend-item { cursor: pointer; border-radius: 4px; padding: 3px 6px; margin: 0 -6px; transition: background 0.15s; }
+.rel-legend-item:hover { background: rgba(66,0,147,0.07); }
+.rel-legend-item.active { background: rgba(66,0,147,0.12); color: var(--c-accent); font-weight: 600; }
+.network-search-wrap { display: flex; align-items: center; gap: 6px; position: relative; }
+.network-search-icon { color: var(--c-muted); font-size: 12px; pointer-events: none; }
+.network-search-input {
+  font: inherit;
+  font-size: 13px;
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--radius);
+  padding: 3px 8px 3px 6px;
+  background: rgba(255,255,255,0.6);
+  color: var(--c-text);
+  width: 140px;
+  transition: border-color 0.2s, box-shadow 0.2s, width 0.2s;
+}
+.network-search-input:focus {
+  outline: none;
+  border-color: var(--c-accent);
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 3px rgba(66,0,147,0.1);
+  width: 180px;
+}
+.network-search-input::-webkit-search-cancel-button { cursor: pointer; }
 .org-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
 .freq-legend {
