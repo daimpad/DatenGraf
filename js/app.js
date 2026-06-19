@@ -1018,16 +1018,34 @@ function renderNetwork(data) {
       clearNetworkSearch();
     }
   });
+  networkChart.on('dblclick', 'node', evt => {
+    const node = evt.target;
+    if (node.isParent()) return;
+    const nodeId = node.id();
+    const idx = allData.findIndex(r => r.Quelle === nodeId);
+    if (idx !== -1) {
+      openWizard(null, idx);
+    } else {
+      openWizard({ Quelle: nodeId });
+    }
+  });
 }
 
 function showNodeDetail(nodeId, data) {
   const outFlows = data.filter(r => r.Quelle === nodeId);
   const inFlows  = data.filter(r => r.Ziel   === nodeId);
+  const { hubs, gatekeepers } = computeTopologyRisks(data);
+  const roleHtml = hubs.has(nodeId)
+    ? `<span class="nd-badge nd-badge-hub"><i class="fas fa-circle-radiation" style="font-size:9px"></i> Hub</span>`
+    : gatekeepers.has(nodeId)
+    ? `<span class="nd-badge nd-badge-gatekeeper"><i class="fas fa-code-branch" style="font-size:9px"></i> Gatekeeper</span>`
+    : '';
 
   document.getElementById('nd-name').textContent = nodeId;
   document.getElementById('nd-metrics').innerHTML =
     `<span class="nd-badge"><i class="fas fa-arrow-up-from-bracket" style="font-size:9px"></i> ${outFlows.length} ausgehend</span>` +
-    `<span class="nd-badge"><i class="fas fa-arrow-down-to-bracket" style="font-size:9px"></i> ${inFlows.length} eingehend</span>`;
+    `<span class="nd-badge"><i class="fas fa-arrow-down-to-bracket" style="font-size:9px"></i> ${inFlows.length} eingehend</span>` +
+    roleHtml;
 
   const flowHtml = (flows, dir) => flows.map(r => `
     <div class="nd-flow">
