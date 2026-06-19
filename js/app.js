@@ -2298,6 +2298,16 @@ function closeSettingsModal() {
   document.getElementById('settings-backdrop').classList.add('hidden');
 }
 
+function openFaqModal() {
+  document.getElementById('faq-backdrop').classList.remove('hidden');
+}
+function closeFaqModal() {
+  document.getElementById('faq-backdrop').classList.add('hidden');
+}
+document.getElementById('faq-btn').addEventListener('click', openFaqModal);
+document.getElementById('faq-close-btn').addEventListener('click', closeFaqModal);
+document.getElementById('faq-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeFaqModal(); });
+
 document.getElementById('settings-btn').addEventListener('click', () => { openSettingsModal(); });
 document.getElementById('mobile-settings-btn').addEventListener('click', () => {
   mobileNav.classList.add('hidden');

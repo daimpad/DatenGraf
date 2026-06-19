@@ -136,6 +136,7 @@
       </div>
       <div class="topbar-spacer"></div>
       <button class="btn btn-primary btn-sm" id="open-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
+      <button class="btn btn-secondary btn-icon" id="faq-btn" title="Häufige Fragen" aria-label="Häufige Fragen"><i class="fas fa-question"></i></button>
       <button class="btn btn-secondary btn-icon" id="settings-btn" title="Einstellungen" aria-label="Einstellungen"><i class="fas fa-gear"></i></button>
       <button class="btn btn-secondary btn-icon mobile-nav-btn" id="mobile-nav-btn" aria-label="Navigation öffnen"><i class="fas fa-ellipsis-vertical"></i></button>
     </div>
@@ -659,6 +660,129 @@
   </div>
 </div>
 
+<!-- ── FAQ Modal ──────────────────────────────────────────────── -->
+<div class="modal-backdrop hidden" id="faq-backdrop">
+  <div class="faq-modal" role="dialog" aria-modal="true" aria-labelledby="faq-title">
+    <div class="faq-modal-header">
+      <h2 id="faq-title"><i class="fas fa-question-circle"></i> Häufige Fragen</h2>
+      <button class="faq-close" id="faq-close-btn" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="faq-modal-body">
+
+      <details class="faq-item">
+        <summary class="faq-q">Was zeigen die Farben der Pfeile (Kanten)?</summary>
+        <div class="faq-a">
+          <p>Die Pfeilfarbe kodiert den <strong>Beziehungstyp</strong> – also die Art, wie Daten fließen:</p>
+          <ul>
+            <li><span class="faq-dot" style="background:#e67e22"></span> <strong>übergibt</strong> – Quelle gibt Daten aktiv weiter</li>
+            <li><span class="faq-dot" style="background:#2980b9"></span> <strong>nutzt</strong> – Quelle liest Daten aus dem Ziel</li>
+            <li><span class="faq-dot" style="background:#27ae60"></span> <strong>erstellt</strong> – Quelle erzeugt neue Daten im Ziel</li>
+            <li><span class="faq-dot" style="background:#8e44ad"></span> <strong>empfängt</strong> – Quelle bekommt Daten vom Ziel</li>
+            <li><span class="faq-dot" style="background:#c0392b"></span> <strong>verarbeitet</strong> – Quelle transformiert Daten</li>
+          </ul>
+          <p>Die automatische Legende (links unten im Netzwerk) zeigt nur die Beziehungstypen, die im aktuellen Datensatz tatsächlich vorkommen.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Was bedeutet die Dicke und der Stil der Pfeile?</summary>
+        <div class="faq-a">
+          <p>Mit dem Button <strong>„Häufigkeit einblenden"</strong> wird die <strong>Häufigkeit</strong> des Datenflusses visuell kodiert:</p>
+          <ul>
+            <li><strong>Dicke</strong> – je häufiger, desto dicker (sofort &gt; stündlich &gt; täglich …)</li>
+            <li><strong>Linienstil</strong> – häufige Flüsse sind durchgezogen, seltene gestrichelt oder gepunktet</li>
+            <li><strong>Transparenz</strong> – seltene Flüsse erscheinen blasser</li>
+          </ul>
+          <p>Ohne Häufigkeits-Modus haben alle Kanten gleiche Dicke und Stil.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Was ist die Hierarchie-Ansicht?</summary>
+        <div class="faq-a">
+          <p>Der Button <strong>„Hierarchie"</strong> gruppiert Knoten nach ihrem <strong>Bereich</strong> (Spalte <em>QuelleBereich</em>) in rechteckige Container. So erkennt man auf einen Blick, welche Systeme zum gleichen Organisationsbereich gehören.</p>
+          <p>Ein Klick auf einen Container hebt alle darin enthaltenen Knoten und ihre Verbindungen hervor – ohne die Detail-Ansicht zu öffnen. Ein Klick auf einen einzelnen Knoten öffnet wie gewohnt das Detailfenster.</p>
+          <p>Knoten ohne Bereichsangabe erscheinen nicht gruppiert.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Was bewirkt „Org-Farben"?</summary>
+        <div class="faq-a">
+          <p>Der Button <strong>„Org-Farben"</strong> färbt jeden Knoten anhand seiner <strong>Organisation</strong> (Spalte <em>QuelleOrganisation</em>) ein. So sind Knoten verschiedener Organisationen sofort unterscheidbar.</p>
+          <p>Knoten ohne Organisationsangabe behalten die Standardfarbe (lila). In der Legende erscheinen nur Organisationen, für die mindestens ein Knoten mit Eintrag vorhanden ist.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Wie importiere ich Daten?</summary>
+        <div class="faq-a">
+          <p>Es gibt drei Wege:</p>
+          <ol>
+            <li><strong>CSV-Datei hochladen</strong> – Im Bereich „Daten importieren" (Sidebar) eine CSV-Datei auswählen oder per Drag &amp; Drop einwerfen.</li>
+            <li><strong>CSV-Text einfügen</strong> – Den CSV-Inhalt direkt in das Textfeld kopieren und auf „Visualisieren" klicken.</li>
+            <li><strong>Beispieldaten laden</strong> – Über den Bereich „Beispieldaten" einen vorgefertigten Datensatz auswählen.</li>
+          </ol>
+          <p>Die CSV-Vorlage mit allen Spalten kann über „Vorlage herunterladen" bezogen werden.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Was ist das Analyse-Briefing?</summary>
+        <div class="faq-a">
+          <p>Das <strong>Analyse-Briefing</strong> (Tab „Analyse") wertet den gesamten Datensatz automatisch aus und zeigt:</p>
+          <ul>
+            <li><strong>Vollständigkeits-Score</strong> – wie gut die Pflichtfelder ausgefüllt sind (0–100 %)</li>
+            <li><strong>Hubs</strong> – Knoten mit sehr vielen Verbindungen (Flaschenhals-Risiko)</li>
+            <li><strong>Gatekeeper</strong> – Knoten, über die viele Pfade laufen</li>
+            <li><strong>Isolierte Bereiche</strong> – Teilgraphen ohne Verbindung zum Rest</li>
+            <li><strong>DSGVO-Lücken</strong> – fehlende Schutzbedarfs- oder Ansprechpartner-Angaben</li>
+            <li><strong>Snapshot-Vergleich</strong> – was sich seit dem letzten Snapshot verändert hat</li>
+          </ul>
+          <p>Mit einem optionalen Anthropic-API-Key (Einstellungen) wird zusätzlich ein KI-Narrativ generiert.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Wie speichere und lade ich meine Daten?</summary>
+        <div class="faq-a">
+          <p>DatenGraf speichert alles lokal im Browser – kein Server, keine Cloud:</p>
+          <ul>
+            <li><strong>Lokal speichern / laden</strong> – Buttons im Import-Bereich schreiben bzw. lesen den Datensatz im Browser-Speicher (localStorage).</li>
+            <li><strong>CSV exportieren</strong> – Exportiert den aktuellen Datensatz als Datei zum Download.</li>
+            <li><strong>Share-Link</strong> – Kodiert den Datensatz komprimiert in der URL; der Link öffnet DatenGraf direkt mit den Daten.</li>
+          </ul>
+          <p>Beim Schließen des Tabs bleiben Daten nur erhalten, wenn sie vorher lokal gespeichert wurden.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Was sind Snapshots und wozu brauche ich sie?</summary>
+        <div class="faq-a">
+          <p>Ein <strong>Snapshot</strong> ist eine gespeicherte Momentaufnahme des aktuellen Datensatzes. Mit mehreren Snapshots kann DatenGraf im Analyse-Briefing automatisch zeigen, <strong>was sich verändert hat</strong> – neu hinzugekommene oder weggefallene Flüsse, veränderte Topologien.</p>
+          <p>Einen Snapshot anlegen: Netzwerkkarte → „Snapshot speichern". Als <strong>Vergleichsbasis</strong> markierte Snapshots werden im Diff bevorzugt verwendet.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">Was bedeutet der Vollständigkeits-Score?</summary>
+        <div class="faq-a">
+          <p>Der Score (0–100 %) misst, wie gut die Datensätze ausgefüllt sind. Er berücksichtigt fünf gewichtete Kategorien:</p>
+          <ul>
+            <li>Pflichtfelder (Quelle, Beziehung, Ziel)</li>
+            <li>Organisationsangabe</li>
+            <li>DSGVO-Klassifikation (Schutzbedarf)</li>
+            <li>Beziehungstyp</li>
+            <li>Ansprechpartner (DSGVO Art. 30)</li>
+          </ul>
+          <p>Im Analyse-Briefing wird aufgeschlüsselt, in welchen Kategorien Einträge fehlen.</p>
+        </div>
+      </details>
+
+    </div>
+  </div>
+</div>
+
 <!-- ── Footer ─────────────────────────────────────────────────── -->
 <footer class="site-footer">
   <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
@@ -671,9 +795,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v32</span>
+  <span class="footer-version">v33</span>
 </footer>
 
-<script src="js/app.js?v=32"></script>
+<script src="js/app.js?v=33"></script>
 </body>
 </html>
