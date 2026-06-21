@@ -262,6 +262,17 @@
             <button class="btn btn-secondary btn-sm" id="btn-append">Zu vorhandenen Daten hinzufügen</button>
           </div>
 
+          <!-- CSV-Vorschau -->
+          <div class="csv-preview hidden" id="csv-preview">
+            <div class="csv-preview-header">
+              <span class="csv-preview-title"><i class="fas fa-table"></i> Vorschau</span>
+              <span class="csv-preview-meta" id="csv-preview-meta"></span>
+            </div>
+            <div class="csv-preview-scroll">
+              <table class="csv-preview-table" id="csv-preview-table"></table>
+            </div>
+          </div>
+
           <!-- Vorlage -->
           <div class="template-hint">
             <div class="template-hint-text">
@@ -418,6 +429,7 @@
           <span class="pathfinder-result" id="pathfinder-result"></span>
         </div>
         <div id="network-container"></div>
+        <div class="cy-tooltip hidden" id="cy-tooltip"></div>
 
         <!-- Beziehungstyp-Legende (automatisch) -->
         <div class="org-legend hidden" id="rel-legend">
@@ -830,9 +842,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v41</span>
+  <span class="footer-version">v42</span>
 </footer>
 
-<script src="js/app.js?v=41"></script>
+<script src="js/app.js?v=42"></script>
 </body>
 </html>

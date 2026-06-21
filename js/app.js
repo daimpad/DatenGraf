@@ -1051,6 +1051,28 @@ function renderNetwork(data) {
       openWizard({ Quelle: nodeId });
     }
   });
+
+  const cyTooltip = document.getElementById('cy-tooltip');
+  const cyContainer = document.getElementById('network-container');
+  networkChart.on('mouseover', 'node', evt => {
+    const node = evt.target;
+    if (node.isParent()) return;
+    const d = node.data();
+    const lines = [d.org, d.dept, d.bereich].filter(Boolean);
+    if (!lines.length) return;
+    const pos  = node.renderedPosition();
+    const rect = cyContainer.getBoundingClientRect();
+    cyTooltip.textContent = lines.join(' · ');
+    cyTooltip.style.left = (rect.left + pos.x + 14) + 'px';
+    cyTooltip.style.top  = (rect.top  + pos.y - 36) + 'px';
+    cyTooltip.classList.remove('hidden');
+  });
+  networkChart.on('mouseout', 'node', () => {
+    cyTooltip.classList.add('hidden');
+  });
+  networkChart.on('pan zoom', () => {
+    cyTooltip.classList.add('hidden');
+  });
 }
 
 function showNodeDetail(nodeId, data) {
@@ -1475,6 +1497,10 @@ document.querySelectorAll('.import-method-tab').forEach(btn => {
   });
 });
 
+document.getElementById('csv-input').addEventListener('input', e => {
+  showCSVPreview(e.target.value.trim());
+});
+
 function getCSVText() {
   const active = document.querySelector('.import-method-tab.active')?.dataset.import;
   if (active === 'paste') return Promise.resolve(document.getElementById('csv-input').value.trim());
@@ -1530,9 +1556,36 @@ function loadFile(file) {
   if (!file) return;
   document.getElementById('file-name-display').textContent = file.name;
   const r = new FileReader();
-  r.onload  = e => { pendingFileText = e.target.result; setStatus('Datei bereit.', 'success'); };
+  r.onload  = e => { pendingFileText = e.target.result; showCSVPreview(pendingFileText); setStatus('Datei bereit.', 'success'); };
   r.onerror = () => setStatus('Fehler beim Lesen.', 'error');
   r.readAsText(file);
+}
+
+function showCSVPreview(text) {
+  const panel = document.getElementById('csv-preview');
+  const table = document.getElementById('csv-preview-table');
+  const meta  = document.getElementById('csv-preview-meta');
+  if (!text || !text.trim()) { panel.classList.add('hidden'); return; }
+
+  const parsed = parseCSV(text);
+  if (!parsed.length) { panel.classList.add('hidden'); return; }
+
+  const REQUIRED = ['Quelle','Beziehung','Ziel'];
+  const headers  = Object.keys(parsed[0]);
+  const missingRequired = REQUIRED.filter(h => !headers.includes(h));
+  const preview  = parsed.slice(0, 5);
+
+  const totalLines = text.trim().split('\n').length - 1;
+  meta.innerHTML = `${totalLines} Zeilen · ${headers.length} Spalten` +
+    (missingRequired.length ? ` · <span style="color:var(--c-danger)"><i class="fas fa-triangle-exclamation"></i> Pflichtfelder fehlen: ${missingRequired.join(', ')}</span>` : '');
+
+  table.innerHTML =
+    `<thead><tr>${headers.map(h => `<th class="${REQUIRED.includes(h) ? 'csv-th-required' : ''}">${esc(h)}</th>`).join('')}</tr></thead>` +
+    `<tbody>${preview.map(row =>
+      `<tr>${headers.map(h => `<td>${esc(row[h] || '')}</td>`).join('')}</tr>`
+    ).join('')}</tbody>`;
+
+  panel.classList.remove('hidden');
 }
 
 function setStatus(msg, type = '') {
