@@ -327,6 +327,7 @@ function renderList(data) {
       if (idx !== -1) allData.splice(idx, 1);
       buildSidebarFilters();
       applyFilters();
+      markBriefingStale();
     });
   });
 }
@@ -986,6 +987,10 @@ function renderNetwork(data) {
     document.getElementById('pathfinder-result').textContent = '';
     document.getElementById('pathfinder-result').className = 'pathfinder-result';
     networkChart = null;
+    const emptyMsg = allData.length > 0
+      ? `<div class="empty-state"><div class="empty-icon"><i class="fas fa-filter fa-2x"></i></div><p>Alle Einträge sind ausgefiltert. <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Filter zurücksetzen</button></p></div>`
+      : `<div class="empty-state"><div class="empty-icon"><i class="fas fa-circle-nodes fa-2x"></i></div><p>Noch keine Daten geladen.</p><button class="btn btn-primary btn-sm" onclick="openWizard()">Ersten Datenfluss erfassen</button></div>`;
+    container.innerHTML = emptyMsg;
     return;
   }
 
@@ -1411,6 +1416,7 @@ document.getElementById('wizard-next').addEventListener('click', () => {
     wizardDuplicateConfirmed = false;
     buildSidebarFilters();
     applyFilters();
+    markBriefingStale();
     closeWizard();
   }
 });
@@ -1525,6 +1531,7 @@ function switchTab(tabName) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tabName).classList.add('active');
   if (tabName === 'network' && networkChart) setTimeout(() => { networkChart.resize(); networkChart.fit(); }, 50);
+  if (tabName === 'analyse') clearBriefingStale();
 }
 
 document.querySelectorAll('.view-tab').forEach(tab => {
@@ -1748,6 +1755,19 @@ function renderRelLegend(data) {
   requestAnimationFrame(() => stackLegends());
 }
 
+function markBriefingStale() {
+  const tab = document.querySelector('[data-tab="analyse"]');
+  if (tab && !tab.querySelector('.stale-dot')) {
+    const dot = document.createElement('span');
+    dot.className = 'stale-dot';
+    dot.title = 'Briefing veraltet – Daten haben sich geändert';
+    tab.appendChild(dot);
+  }
+}
+function clearBriefingStale() {
+  document.querySelectorAll('.stale-dot').forEach(d => d.remove());
+}
+
 function updateNetworkStats(data) {
   const el = document.getElementById('network-stats');
   if (!el) return;
@@ -1926,12 +1946,15 @@ document.getElementById('load-local-btn').addEventListener('click', () => {
 // ── CSV Export ────────────────────────────────────────────────────────────────
 document.getElementById('export-csv-btn').addEventListener('click', () => {
   if (!allData.length) { setStatus('Keine Daten zum Exportieren.', 'error'); return; }
-  const blob = new Blob([toCSV(allData)], { type: 'text/csv;charset=utf-8;' });
+  const filtersActive = filteredData.length < allData.length;
+  const exportData = filtersActive ? filteredData : allData;
+  const blob = new Blob([toCSV(exportData)], { type: 'text/csv;charset=utf-8;' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
   a.download = `datengraf_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
+  if (filtersActive) setStatus(`${exportData.length} gefilterte Einträge exportiert (${allData.length - exportData.length} ausgeblendet).`, 'success');
 });
 
 // ── Sample Data ───────────────────────────────────────────────────────────────
