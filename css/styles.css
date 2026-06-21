@@ -2500,3 +2500,83 @@ textarea.csv-textarea:focus {
   vertical-align: middle;
   flex-shrink: 0;
 }
+
+/* ── CSV Import Preview ─────────────────────────────────────────────────────── */
+.csv-preview {
+  margin-top: 12px;
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  overflow: hidden;
+}
+.csv-preview.hidden { display: none; }
+.csv-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--c-border-s);
+  background: rgba(66,0,147,0.03);
+}
+.csv-preview-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.csv-preview-meta {
+  font-size: 11px;
+  color: var(--c-muted);
+}
+.csv-preview-scroll {
+  overflow-x: auto;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.csv-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.csv-preview-table th,
+.csv-preview-table td {
+  padding: 5px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--c-border-s);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--c-text);
+}
+.csv-preview-table th {
+  background: rgba(66,0,147,0.05);
+  font-weight: 600;
+  color: var(--c-muted);
+  position: sticky;
+  top: 0;
+}
+.csv-preview-table .csv-th-required {
+  color: var(--c-accent);
+}
+.csv-preview-table tr:last-child td { border-bottom: none; }
+.csv-preview-table tbody tr:hover td { background: rgba(66,0,147,0.03); }
+
+/* ── Cytoscape Node Tooltip ─────────────────────────────────────────────────── */
+.cy-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(30,20,50,0.88);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  z-index: 20;
+  transition: opacity 0.1s;
+}
+.cy-tooltip.hidden { display: none; }
