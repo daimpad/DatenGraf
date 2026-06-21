@@ -47,6 +47,7 @@ let frequencyVisMode = false;
 let edgeLabelsVisible = true;
 let activeRelFilter  = null;
 let cachedTopoRisks  = null;
+const undoStack      = [];
 let activeFilters = {
   relation: new Set(), schutz: new Set(), erfassung: new Set(),
   organization: 'all', department: 'all', frequency: 'all', format: 'all',
@@ -324,7 +325,7 @@ function renderList(data) {
     btn.addEventListener('click', () => {
       const row = filteredData[parseInt(btn.dataset.del)];
       const idx = allData.indexOf(row);
-      if (idx !== -1) allData.splice(idx, 1);
+      if (idx !== -1) { pushUndo(); allData.splice(idx, 1); }
       buildSidebarFilters();
       applyFilters();
       markBriefingStale();
@@ -1378,6 +1379,13 @@ function collectWizardStep() {
 document.getElementById('wizard-next').addEventListener('click', () => {
   if (!collectWizardStep()) return;
   if (wizardStep < WIZARD_STEPS.length - 1) {
+    // Selbstreferenz-Prüfung: Quelle darf nicht gleich Ziel sein
+    if (wizardStep === 1 && wizardData.Quelle && wizardData.Ziel && wizardData.Quelle === wizardData.Ziel) {
+      document.getElementById('wizard-dup-text').textContent =
+        'Quelle und Ziel dürfen nicht identisch sein.';
+      document.getElementById('wizard-dup-warning').classList.remove('hidden');
+      return;
+    }
     // Early dup-check after step 1 (Ziel, Datentyp collected) – warn before user fills steps 2–3
     if (wizardStep === 1 && wizardData.Quelle && wizardData.Ziel && !wizardDuplicateConfirmed) {
       const dupIdx = findDuplicate(allData, wizardData, editIndex);
@@ -1405,6 +1413,7 @@ document.getElementById('wizard-next').addEventListener('click', () => {
       wizardDuplicateConfirmed = true;
       return;
     }
+    pushUndo();
     if (editIndex >= 0) {
       allData[editIndex] = { ...wizardData };
       setStatus(`Datenfluss von „${wizardData.Quelle}" zu „${wizardData.Ziel}" aktualisiert.`, 'success');
@@ -1753,6 +1762,20 @@ function renderRelLegend(data) {
   }).join('');
   document.getElementById('rel-legend').classList.remove('hidden');
   requestAnimationFrame(() => stackLegends());
+}
+
+function pushUndo() {
+  undoStack.push(allData.map(r => ({ ...r })));
+  if (undoStack.length > 20) undoStack.shift();
+}
+
+function performUndo() {
+  if (!undoStack.length) { setStatus('Nichts zum Rückgängigmachen.', ''); return; }
+  allData = undoStack.pop();
+  buildSidebarFilters();
+  applyFilters();
+  markBriefingStale();
+  setStatus('Rückgängig gemacht.', 'success');
 }
 
 function markBriefingStale() {
@@ -2490,6 +2513,10 @@ document.addEventListener('keydown', e => {
 
   if (anyModalOpen || e.target.matches('input,textarea,select')) return;
 
+  if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+    e.preventDefault();
+    performUndo();
+  }
   if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault();
     openWizard();

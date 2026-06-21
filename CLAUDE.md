@@ -9,10 +9,10 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 **DatenGraf** ist eine browserbasierte Single-Page-Application (SPA) zur Kartierung und Analyse von Datenflüssen in Organisationen. Kein Backend, kein Build-Prozess, kein Framework — nur HTML, CSS und Vanilla JS.
 
 - **Einstiegspunkt:** `index.html`
-- **Styles:** `css/styles.css` (~2100 Zeilen)
-- **Logik:** `js/app.js` (~2070 Zeilen, eine einzige Datei)
+- **Styles:** `css/styles.css` (~2450 Zeilen)
+- **Logik:** `js/app.js` (~2600 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
-- **Aktuelle Version:** `v27` (Script-Tag: `<script src="js/app.js?v=27">`)
+- **Aktuelle Version:** `v39` (Script-Tag: `<script src="js/app.js?v=39">`)
 
 ---
 
@@ -73,6 +73,12 @@ CSV-Import / Wizard
 | `colorByOrg` | `boolean` | Org-Farben-Modus aktiv |
 | `orgHierarchyMode` | `boolean` | Compound-Node-Modus (Org-Hierarchie) aktiv |
 | `pendingFileText` | `string \| null` | Zwischenspeicher für FileReader-Ergebnis |
+| `frequencyVisMode` | `boolean` | Häufigkeits-Visualisierung auf Kanten aktiv |
+| `edgeLabelsVisible` | `boolean` | Kantenbeschriftungen sichtbar (Toggle via „Labels"-Button) |
+| `activeRelFilter` | `string \| null` | Aktiver Beziehungstyp-Filter (Klick auf Rel-Legende); `null` = kein Filter |
+| `cachedTopoRisks` | `{hubs: Set, gatekeepers: Set} \| null` | Cache für `computeTopologyRisks()`; wird einmal pro `renderNetwork()` berechnet; `null` wenn keine Daten |
+| `undoStack` | `Row[][]` | Undo-Stack (max. 20 Einträge); Push vor jeder Mutation; `Ctrl+Z` → `performUndo()` |
+| `lastBriefing` | `{findings, vs} \| null` | Cache letztes Briefing-Ergebnis für PDF-Export |
 
 ### LocalStorage-Schlüssel
 
@@ -274,7 +280,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v27)
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v39)
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **`networkChart = null`:** Nach `renderNetwork([])` korrekt gesetzt; alle Handler mit `if (networkChart)` schützen
 - **Datenmutationsreihenfolge:** Immer `buildSidebarFilters()` vor `applyFilters()` — nie umgekehrt
@@ -304,3 +310,14 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v25 | Analyse-Briefing: Finding-Karten klappbar (Erklärung + Knoten-Chips + Empfehlung), Score-Aufschlüsselung mit allen 5 Kategorien |
 | v26 | `isolated`-Finding (BFS-Komponentenanalyse für isolierte Teilgraphen), PDF-Bericht mit Briefing-Sektion (Score + Findings), Filter-Persistenz via `LS_FILTERS_KEY` |
 | v27 | Häufigkeits-Visualisierung: Kanten nach Häufigkeit in Dicke, Linienstil und Transparenz kodiert; Toggle-Button + SVG-Legende; `stackLegends()` für Org- und Häufigkeits-Legende gleichzeitig |
+| v28 | Fix: Hierarchie-Compound-Nodes waren solid lila (rgba-Bug in Cytoscape `background-opacity`) |
+| v29 | Automatische Beziehungstyp-Legende (`rel-legend`) aus Datensatz-Werten |
+| v30–31 | Hierarchie-Erklärungslegende (`hier-legend`); Fix compound-node tap zeigt nicht mehr `_p_`-Detail |
+| v32 | Fix: Org-Farben-Legende zeigte `—` für Knoten ohne Organisation |
+| v33 | FAQ-Modal: `?`-Button öffnet 9 klappbare Einträge zu Kantenfarben, Hierarchie, Import, Briefing, Snapshots etc. |
+| v34 | Klickbare Rel-Legende (Netzwerk auf Beziehungstyp filtern); Knotensuche in Toolbar (`Strg+F`) |
+| v35 | Escape schließt alle Modals; Hub-Knoten (gold) + Gatekeeper (rot) visuell markiert; Topo-Legende |
+| v36 | Doppelklick auf Knoten öffnet Wizard im Bearbeitungsmodus; Hub/Gatekeeper-Badge im Knotendetail |
+| v37 | Performance: `cachedTopoRisks` (1× statt 3×); Edge-Label-Toggle; Statistik-Chip; `Strg+N`/`Strg+F` |
+| v38 | Export filtert mit (gefilterte Daten wenn Filter aktiv); Netzwerk-Empty-States; Briefing-Stale-Punkt |
+| v39 | Undo (`Ctrl+Z`, max. 20 Schritte); Wizard-Validierung Quelle ≠ Ziel; CLAUDE.md aktualisiert |
