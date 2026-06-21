@@ -44,7 +44,9 @@ let networkChart = null;
 let pendingFileText = null;
 let lastBriefing = null; // { findings, vs } — cached from last showAnalyseBriefing() call
 let frequencyVisMode = false;
-let activeRelFilter = null;
+let edgeLabelsVisible = true;
+let activeRelFilter  = null;
+let cachedTopoRisks  = null;
 let activeFilters = {
   relation: new Set(), schutz: new Set(), erfassung: new Set(),
   organization: 'all', department: 'all', frequency: 'all', format: 'all',
@@ -921,7 +923,7 @@ const CY_STYLE = [
 ];
 
 function prepareElements(data, useHierarchy = false) {
-  const { hubs, gatekeepers } = computeTopologyRisks(data);
+  const { hubs, gatekeepers } = cachedTopoRisks || computeTopologyRisks(data);
   const nodes = new Map();
   const edges = [];
 
@@ -978,6 +980,8 @@ function renderNetwork(data) {
   document.getElementById('topo-legend').classList.add('hidden');
   document.getElementById('hier-legend').classList.toggle('hidden', !orgHierarchyMode);
   if (!data.length) {
+    cachedTopoRisks = null;
+    updateNetworkStats([]);
     document.getElementById('pathfinder-bar').classList.add('hidden');
     document.getElementById('pathfinder-result').textContent = '';
     document.getElementById('pathfinder-result').className = 'pathfinder-result';
@@ -985,11 +989,14 @@ function renderNetwork(data) {
     return;
   }
 
+  cachedTopoRisks = computeTopologyRisks(data);
   networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: CY_STYLE, layout: COSE_OPTS });
   if (colorByOrg) applyOrgColors();
   if (frequencyVisMode) applyFrequencyVis();
+  if (!edgeLabelsVisible) networkChart.edges().style({ label: '' });
   renderRelLegend(data);
   renderTopoLegend(data);
+  updateNetworkStats(data);
 
   networkChart.on('tap', 'node', evt => {
     const node  = evt.target;
@@ -1034,7 +1041,7 @@ function renderNetwork(data) {
 function showNodeDetail(nodeId, data) {
   const outFlows = data.filter(r => r.Quelle === nodeId);
   const inFlows  = data.filter(r => r.Ziel   === nodeId);
-  const { hubs, gatekeepers } = computeTopologyRisks(data);
+  const { hubs, gatekeepers } = cachedTopoRisks || computeTopologyRisks(data);
   const roleHtml = hubs.has(nodeId)
     ? `<span class="nd-badge nd-badge-hub"><i class="fas fa-circle-radiation" style="font-size:9px"></i> Hub</span>`
     : gatekeepers.has(nodeId)
@@ -1741,8 +1748,22 @@ function renderRelLegend(data) {
   requestAnimationFrame(() => stackLegends());
 }
 
+function updateNetworkStats(data) {
+  const el = document.getElementById('network-stats');
+  if (!el) return;
+  if (!data.length) { el.textContent = ''; return; }
+  const nodeCount = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean)).size;
+  const edgeCount = data.filter(r => r.Quelle && r.Ziel && r.Beziehung).length;
+  el.textContent = `${nodeCount} Knoten · ${edgeCount} Kanten`;
+}
+
+function applyEdgeLabelToggle() {
+  if (!networkChart) return;
+  networkChart.edges().style({ label: edgeLabelsVisible ? 'data(type)' : '' });
+}
+
 function renderTopoLegend(data) {
-  const { hubs, gatekeepers } = computeTopologyRisks(data);
+  const { hubs, gatekeepers } = cachedTopoRisks || computeTopologyRisks(data);
   if (!hubs.size && !gatekeepers.size) return;
   document.getElementById('topo-legend').classList.remove('hidden');
   requestAnimationFrame(() => stackLegends());
@@ -2427,17 +2448,44 @@ document.getElementById('settings-api-key').addEventListener('keydown', e => {
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape') return;
-  const pairs = [
-    ['wizard-backdrop',   closeWizard],
-    ['snapshot-backdrop', closeSnapshotModal],
-    ['settings-backdrop', closeSettingsModal],
-    ['faq-backdrop',      closeFaqModal],
-    ['theory-backdrop',   () => document.getElementById('theory-backdrop').classList.add('hidden')],
-  ];
-  for (const [id, fn] of pairs) {
-    if (!document.getElementById(id).classList.contains('hidden')) { fn(); break; }
+  const anyModalOpen = ['wizard-backdrop','snapshot-backdrop','settings-backdrop','faq-backdrop','theory-backdrop']
+    .some(id => !document.getElementById(id).classList.contains('hidden'));
+
+  if (e.key === 'Escape') {
+    const pairs = [
+      ['wizard-backdrop',   closeWizard],
+      ['snapshot-backdrop', closeSnapshotModal],
+      ['settings-backdrop', closeSettingsModal],
+      ['faq-backdrop',      closeFaqModal],
+      ['theory-backdrop',   () => document.getElementById('theory-backdrop').classList.add('hidden')],
+    ];
+    for (const [id, fn] of pairs) {
+      if (!document.getElementById(id).classList.contains('hidden')) { fn(); break; }
+    }
+    return;
   }
+
+  if (anyModalOpen || e.target.matches('input,textarea,select')) return;
+
+  if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    openWizard();
+  }
+  if (e.key === 'f' && (e.ctrlKey || e.metaKey)) {
+    const search = document.getElementById('network-node-search');
+    if (document.getElementById('panel-network').classList.contains('active')) {
+      e.preventDefault();
+      search.focus();
+      search.select();
+    }
+  }
+});
+
+document.getElementById('btn-edge-labels').addEventListener('click', () => {
+  edgeLabelsVisible = !edgeLabelsVisible;
+  applyEdgeLabelToggle();
+  document.getElementById('btn-edge-labels').classList.toggle('active', !edgeLabelsVisible);
+  document.getElementById('btn-edge-labels').title = edgeLabelsVisible ? 'Kantenbeschriftung ausblenden' : 'Kantenbeschriftung einblenden';
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
