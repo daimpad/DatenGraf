@@ -282,8 +282,9 @@ function renderList(data) {
         return av < bv ? -listSort.dir : av > bv ? listSort.dir : 0;
       })
     : data;
-  sorted.forEach((row, idx) => {
+  sorted.forEach((row) => {
     if (!row.Quelle || !row.Ziel) return;
+    const idx = data.indexOf(row);
 
     const schutzClass = row.Schutzbedarf === 'DSGVO-relevant' ? 'badge-dsgvo'
                       : row.Schutzbedarf === 'Intern'         ? 'badge-intern'
@@ -1045,7 +1046,7 @@ function renderNetwork(data) {
     const nodeId = node.id();
     const idx = allData.findIndex(r => r.Quelle === nodeId);
     if (idx !== -1) {
-      openWizard(null, idx);
+      openWizard({ ...allData[idx] }, idx);
     } else {
       openWizard({ Quelle: nodeId });
     }
@@ -1639,7 +1640,6 @@ document.getElementById('nd-show-in-list').addEventListener('click', () => {
   if (!name) return;
   activeFilters.search = name;
   document.getElementById('filter-search').value = name;
-  buildSidebarFilters();
   applyFilters();
   switchTab('list');
 });
@@ -1888,6 +1888,7 @@ function clearNetworkSearch() {
   document.querySelectorAll('.rel-legend-item').forEach(el => el.classList.remove('active'));
   const searchInput = document.getElementById('network-node-search');
   if (searchInput) searchInput.value = '';
+  if (networkChart) networkChart.elements().removeClass('highlighted faded');
 }
 
 function stackLegends(topStart = 60) {
