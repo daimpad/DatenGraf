@@ -671,11 +671,36 @@ textarea.csv-textarea:focus {
 .tab-panel.active { display: block; }
 
 /* ── List view ───────────────────────────────────────────────── */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
 .list-stats {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 0;
+}
+.list-sort-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.list-sort-label { color: var(--c-muted); font-size: 13px; cursor: default; }
+.list-sort-select {
+  font: inherit;
+  font-size: 13px;
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.6);
+  color: var(--c-text);
+  cursor: pointer;
+}
+.list-sort-select:focus { outline: none; border-color: var(--c-accent); }
+.nd-footer {
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--c-border-s);
 }
 
 .stat-pill {
