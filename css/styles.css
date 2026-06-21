@@ -2391,9 +2391,7 @@ textarea.csv-textarea:focus {
 
 /* ── FAQ Modal ──────────────────────────────────────────────── */
 .faq-modal {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #fff;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
@@ -2435,6 +2433,8 @@ textarea.csv-textarea:focus {
 .faq-modal-body {
   padding: 16px 20px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -2482,6 +2482,53 @@ textarea.csv-textarea:focus {
 .faq-a p:first-child { margin-top: 0; }
 .faq-a ul, .faq-a ol { margin: 6px 0 0 18px; padding: 0; }
 .faq-a li { margin: 4px 0; }
+.faq-cta {
+  margin-top: 12px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, rgba(66,0,147,0.06) 0%, rgba(66,0,147,0.02) 100%);
+  border: 1.5px solid rgba(66,0,147,0.18);
+  border-radius: 10px;
+  padding: 16px 18px;
+  flex-shrink: 0;
+}
+.faq-cta-icon {
+  font-size: 22px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.faq-cta-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--c-text);
+  line-height: 1.5;
+}
+.faq-cta-body strong {
+  font-size: 14px;
+  color: var(--c-accent);
+}
+.faq-cta-body p { margin: 0; color: var(--c-muted); }
+.faq-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 16px;
+  background: var(--c-accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s;
+  align-self: flex-start;
+}
+.faq-cta-btn:hover { background: #330073; transform: translateY(-1px); }
+.faq-cta-btn:active { transform: none; }
 .faq-dot {
   display: inline-block;
   width: 10px;
