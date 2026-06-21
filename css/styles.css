@@ -2435,9 +2435,11 @@ textarea.csv-textarea:focus {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  min-height: 0;
+  display: block;
+}
+.faq-item + .faq-item {
+  margin-top: 4px;
 }
 .faq-item {
   border: 1px solid var(--c-border-s);
@@ -2482,53 +2484,6 @@ textarea.csv-textarea:focus {
 .faq-a p:first-child { margin-top: 0; }
 .faq-a ul, .faq-a ol { margin: 6px 0 0 18px; padding: 0; }
 .faq-a li { margin: 4px 0; }
-.faq-cta {
-  margin-top: 12px;
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  background: linear-gradient(135deg, rgba(66,0,147,0.06) 0%, rgba(66,0,147,0.02) 100%);
-  border: 1.5px solid rgba(66,0,147,0.18);
-  border-radius: 10px;
-  padding: 16px 18px;
-  flex-shrink: 0;
-}
-.faq-cta-icon {
-  font-size: 22px;
-  color: var(--c-accent);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.faq-cta-body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--c-text);
-  line-height: 1.5;
-}
-.faq-cta-body strong {
-  font-size: 14px;
-  color: var(--c-accent);
-}
-.faq-cta-body p { margin: 0; color: var(--c-muted); }
-.faq-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  padding: 8px 16px;
-  background: var(--c-accent);
-  color: #fff;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.2s, transform 0.1s;
-  align-self: flex-start;
-}
-.faq-cta-btn:hover { background: #330073; transform: translateY(-1px); }
-.faq-cta-btn:active { transform: none; }
 .faq-dot {
   display: inline-block;
   width: 10px;
@@ -2627,3 +2582,63 @@ textarea.csv-textarea:focus {
   transition: opacity 0.1s;
 }
 .cy-tooltip.hidden { display: none; }
+
+/* ── Kontakt CTA Section ─────────────────────────────────────────────────────── */
+.contact-cta-section {
+  background: linear-gradient(135deg, #420093 0%, #6200d4 100%);
+  padding: 40px 32px;
+}
+.contact-cta-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.contact-cta-icon {
+  font-size: 32px;
+  color: rgba(255,255,255,0.85);
+  flex-shrink: 0;
+}
+.contact-cta-body {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.contact-cta-headline {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.3;
+}
+.contact-cta-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.82);
+  margin: 0;
+  line-height: 1.55;
+}
+.contact-cta-btn {
+  flex-shrink: 0;
+  background: #fff;
+  color: var(--c-accent);
+  font-weight: 700;
+  padding: 12px 22px;
+  font-size: 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.contact-cta-btn:hover { background: #f0e8ff; transform: translateY(-2px); }
+.contact-cta-btn:active { transform: none; }
+@media (max-width: 600px) {
+  .contact-cta-section { padding: 28px 20px; }
+  .contact-cta-headline { font-size: 17px; }
+  .contact-cta-btn { width: 100%; justify-content: center; }
+}
