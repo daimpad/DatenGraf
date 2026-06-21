@@ -984,6 +984,7 @@ function prepareElements(data, useHierarchy = false) {
 function renderNetwork(data) {
   const container = document.getElementById('network-container');
   container.innerHTML = '';
+  document.getElementById('cy-tooltip').classList.add('hidden');
   activeRelFilter = null;
   document.getElementById('network-node-search').value = '';
   document.getElementById('org-legend').classList.add('hidden');
@@ -1575,7 +1576,7 @@ function showCSVPreview(text) {
   const missingRequired = REQUIRED.filter(h => !headers.includes(h));
   const preview  = parsed.slice(0, 5);
 
-  const totalLines = text.trim().split('\n').length - 1;
+  const totalLines = parsed.length;
   meta.innerHTML = `${totalLines} Zeilen · ${headers.length} Spalten` +
     (missingRequired.length ? ` · <span style="color:var(--c-danger)"><i class="fas fa-triangle-exclamation"></i> Pflichtfelder fehlen: ${missingRequired.join(', ')}</span>` : '');
 
