@@ -964,14 +964,14 @@ function prepareElements(data, useHierarchy = false) {
     });
     nodes.forEach((n, id) => {
       const nodeType = hubs.has(id) ? 'hub' : gatekeepers.has(id) ? 'gatekeeper' : 'normal';
-      const nodeData = { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3), nodeType };
+      const nodeData = { id, dept: n.dept, org: n.org, bereich: n.bereich, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3), nodeType };
       if (n.bereich && bereiche.has(n.bereich)) nodeData.parent = bereiche.get(n.bereich);
       elements.push({ data: nodeData });
     });
   } else {
     nodes.forEach((n, id) => {
       const nodeType = hubs.has(id) ? 'hub' : gatekeepers.has(id) ? 'gatekeeper' : 'normal';
-      elements.push({ data: { id, dept: n.dept, org: n.org, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3), nodeType } });
+      elements.push({ data: { id, dept: n.dept, org: n.org, bereich: n.bereich, orgColor: '#7a6fa8', orgOutlineColor: '#5c5080', size: 22 + Math.min(28, (n.out + n.inn) * 3), nodeType } });
     });
   }
 
