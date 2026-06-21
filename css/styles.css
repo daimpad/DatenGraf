@@ -1442,14 +1442,13 @@ textarea.csv-textarea:focus {
   align-items: flex-start;
 }
 
-.hero-step-number {
-  width: 36px;
-  height: 36px;
+.hero-step-icon {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--c-accent);
   color: #fff;
-  font-weight: 800;
-  font-size: 16px;
+  font-size: 17px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1466,10 +1465,22 @@ textarea.csv-textarea:focus {
   margin-bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
-.hero-step-title i { color: var(--c-accent); }
+.hero-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(66,0,147,0.10);
+  color: var(--c-accent);
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
 
 .hero-step-details {
   list-style: none;
@@ -2397,10 +2408,19 @@ textarea.csv-textarea:focus {
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 600px;
-  max-height: 88vh;
+  height: 88vh;
+  max-height: 720px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+@media (max-height: 700px), (max-width: 600px) {
+  .faq-modal {
+    height: calc(100dvh - 24px);
+    max-height: none;
+    border-radius: 12px;
+  }
+  .modal-backdrop { padding: 12px; }
 }
 .faq-modal-header {
   display: flex;
@@ -2585,7 +2605,7 @@ textarea.csv-textarea:focus {
 
 /* ── Kontakt CTA Section ─────────────────────────────────────────────────────── */
 .contact-cta-section {
-  background: linear-gradient(135deg, #420093 0%, #6200d4 100%);
+  background: #18181b;
   padding: 40px 32px;
 }
 .contact-cta-inner {
@@ -2595,11 +2615,6 @@ textarea.csv-textarea:focus {
   align-items: center;
   gap: 24px;
   flex-wrap: wrap;
-}
-.contact-cta-icon {
-  font-size: 32px;
-  color: rgba(255,255,255,0.85);
-  flex-shrink: 0;
 }
 .contact-cta-body {
   flex: 1 1 300px;
