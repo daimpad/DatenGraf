@@ -365,7 +365,22 @@
 
       <!-- Tab panels -->
       <div class="tab-panel active" id="panel-list">
-        <div id="list-stats" class="list-stats"></div>
+        <div class="list-toolbar">
+          <div id="list-stats" class="list-stats"></div>
+          <div class="list-sort-wrap">
+            <label class="list-sort-label" for="list-sort-select"><i class="fas fa-arrow-up-wide-short"></i></label>
+            <select id="list-sort-select" class="list-sort-select">
+              <option value="">Standard</option>
+              <option value="Quelle">Quelle</option>
+              <option value="Ziel">Ziel</option>
+              <option value="Beziehung">Beziehung</option>
+              <option value="Datentyp">Datentyp</option>
+              <option value="Häufigkeit">Häufigkeit</option>
+              <option value="Schutzbedarf">Schutzbedarf</option>
+            </select>
+            <button class="btn btn-icon btn-secondary btn-sm" id="list-sort-dir" title="Sortierrichtung umkehren"><i class="fas fa-arrow-down-a-z"></i></button>
+          </div>
+        </div>
         <div id="list-content"></div>
       </div>
 
@@ -452,6 +467,9 @@
             </div>
           </div>
           <div class="node-detail-flows" id="nd-flows"></div>
+          <div class="nd-footer">
+            <button class="btn btn-secondary btn-sm" id="nd-show-in-list"><i class="fas fa-list"></i> In Listenansicht zeigen</button>
+          </div>
         </div>
       </div>
 
@@ -812,9 +830,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v39</span>
+  <span class="footer-version">v40</span>
 </footer>
 
-<script src="js/app.js?v=39"></script>
+<script src="js/app.js?v=40"></script>
 </body>
 </html>
