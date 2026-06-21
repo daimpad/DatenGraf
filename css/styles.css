@@ -434,6 +434,16 @@ body {
 
 .view-tab:hover { border-color: var(--c-accent); color: var(--c-accent); background: rgba(66,0,147,0.05); }
 .view-tab.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }
+.view-tab { position: relative; }
+.stale-dot {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--c-warn);
+  border: 1.5px solid #fff;
+  pointer-events: none;
+}
 
 /* ── Mobile Navigation ───────────────────────────────────────── */
 #mobile-nav-btn { display: none; }
