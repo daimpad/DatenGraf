@@ -1521,6 +1521,7 @@ function getCSVText() {
 document.getElementById('btn-visualize').addEventListener('click', () => {
   getCSVText().then(text => {
     if (!text) { setStatus('Keine Daten.', 'error'); return; }
+    if (allData.length) pushUndo();
     allData = parseCSV(text);
     buildSidebarFilters();
     restoreFilters();
@@ -1534,6 +1535,7 @@ document.getElementById('btn-append').addEventListener('click', () => {
   getCSVText().then(text => {
     if (!text) { setStatus('Keine Daten.', 'error'); return; }
     const newRows = parseCSV(text);
+    pushUndo();
     allData = [...allData, ...newRows];
     buildSidebarFilters();
     restoreFilters();
