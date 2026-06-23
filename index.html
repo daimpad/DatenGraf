@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DatenGraf – Datenökosystem-Mapper</title>
-  <meta name="description" content="Interaktive Kartierung und Analyse von Datenflüssen in Organisationen – browserbasiert, ohne Backend.">
+  <title>DatenGraf – Datenflüsse in Organisationen visualisieren &amp; analysieren</title>
+  <meta name="description" content="Kartiere und analysiere Datenflüsse in deiner Organisation: interaktive Netzwerkkarte, Gatekeeper-Erkennung, DSGVO-Vollständigkeitscheck und Betweenness Centrality – kostenlos, browserbasiert, ohne Datenweitergabe.">
+  <meta name="author" content="nozilla">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://daimpad.github.io/DatenGraf/">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -15,15 +19,46 @@
   <link rel="manifest" href="/site.webmanifest" />
 
   <!-- Open Graph -->
-  <meta property="og:title"       content="DatenGraf – Datenökosystem-Mapper">
-  <meta property="og:description" content="Visualisiere und analysiere Datenflüsse in deiner Organisation: Netzwerkkarte, Insights-Dashboard und DSGVO-Klassifikation – komplett im Browser, ohne Server.">
+  <meta property="og:title"       content="DatenGraf – Datenflüsse in Organisationen visualisieren &amp; analysieren">
+  <meta property="og:description" content="Kartiere und analysiere Datenflüsse in deiner Organisation: interaktive Netzwerkkarte, Gatekeeper-Erkennung, DSGVO-Vollständigkeitscheck – kostenlos, browserbasiert, ohne Datenweitergabe.">
   <meta property="og:type"        content="website">
-  <meta property="og:url"         content="https://daimpad.github.io/datengraf">
+  <meta property="og:url"         content="https://daimpad.github.io/DatenGraf/">
+  <meta property="og:image"       content="https://daimpad.github.io/DatenGraf/social-preview.svg">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale"      content="de_DE">
+  <meta property="og:site_name"   content="DatenGraf">
 
   <!-- Twitter Card -->
-  <meta name="twitter:card"        content="summary">
-  <meta name="twitter:title"       content="DatenGraf – Datenökosystem-Mapper">
-  <meta name="twitter:description" content="Interaktive Kartierung von Datenflüssen: Netzwerkkarte, Betweenness Centrality, Community Detection – alles im Browser.">
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="DatenGraf – Datenflüsse in Organisationen visualisieren &amp; analysieren">
+  <meta name="twitter:description" content="Kartiere und analysiere Datenflüsse in deiner Organisation: Netzwerkkarte, Gatekeeper-Erkennung, Betweenness Centrality – kostenlos im Browser.">
+  <meta name="twitter:image"       content="https://daimpad.github.io/DatenGraf/social-preview.svg">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DatenGraf",
+    "description": "Interaktive Kartierung und Analyse von Datenflüssen in Organisationen – browserbasiert, ohne Backend, ohne Datenweitergabe.",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Any",
+    "url": "https://daimpad.github.io/DatenGraf/",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "nozilla",
+      "url": "https://nozilla.de/"
+    },
+    "inLanguage": "de",
+    "screenshot": "https://daimpad.github.io/DatenGraf/social-preview.svg"
+  }
+  </script>
 
   <link rel="stylesheet" href="assets/fonts/inter/inter.css">
   <link rel="stylesheet" href="css/styles.css">
@@ -158,8 +193,8 @@
           <div class="hero-intro">
             <img src="logo.svg" alt="DatenGraf" class="hero-logo">
             <div class="hero-text">
-              <h1 class="hero-headline">Datenökosysteme einfach visualisieren</h1>
-              <p class="hero-subheadline">Datenflüsse in Organisationen analysieren und verbessern.</p>
+              <h1 class="hero-headline">Datenflüsse in Organisationen visualisieren &amp; analysieren</h1>
+              <p class="hero-subheadline">Datenflüsse systematisch kartieren, Abhängigkeiten erkennen und verbessern.</p>
               <div class="hero-buttons">
                 <button class="btn btn-primary btn-lg" id="hero-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
                 <button class="btn btn-secondary btn-lg" id="hero-sample-btn"><i class="fas fa-vials"></i> Beispieldaten entdecken</button>
@@ -223,6 +258,11 @@
 
         </div>
       </div>
+
+      <!-- About Section (SEO) -->
+      <section class="about-section" aria-label="Über DatenGraf">
+        <p class="about-text">DatenGraf ist ein kostenloses Browser-Tool für Organisationen, die ihre Datenflüsse systematisch kartieren und analysieren möchten. Ob Stadtverwaltung, Verein, Unternehmen oder Forschungseinrichtung — mit DatenGraf lassen sich Datenquellen, Datenempfänger und Übertragungswege in einem interaktiven Netzwerkdiagramm darstellen. Algorithmen zur Betweenness Centrality identifizieren automatisch Gatekeeper-Systeme und Datenflaschenhälse. Ein integrierter DSGVO-Vollständigkeitscheck bewertet, ob alle relevanten Angaben gemäß Art. 30 DS-GVO erfasst sind. Alle Daten bleiben ausschließlich im Browser — kein Server, kein Account, kein Datentransfer.</p>
+      </section>
 
       <!-- Import Panel -->
       <div class="import-panel">
@@ -854,9 +894,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v49</span>
+  <span class="footer-version">v50</span>
 </footer>
 
-<script src="js/app.js?v=49"></script>
+<script src="js/app.js?v=50"></script>
 </body>
 </html>
