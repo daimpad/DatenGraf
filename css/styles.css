@@ -1561,10 +1561,9 @@ textarea.csv-textarea:focus {
   max-width: 860px;
   margin: 0 auto;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .cta-headline {
@@ -1916,7 +1915,6 @@ textarea.csv-textarea:focus {
   .example-info-findings { gap: 6px; }
   .view-switcher-tabs { flex-direction: column; width: 100%; }
   .view-tab { width: 100%; justify-content: center; }
-  .cta-inner { flex-direction: column; gap: 20px; }
   .cta-headline { font-size: 18px; }
   .cta-btn { width: 100%; justify-content: center; }
   .theory-modal-header { padding: 16px 18px; }
@@ -2610,15 +2608,14 @@ textarea.csv-textarea:focus {
   padding: 40px 32px;
 }
 .contact-cta-inner {
-  max-width: 900px;
+  max-width: 860px;
   margin: 0 auto;
   display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
 }
 .contact-cta-body {
-  flex: 1 1 300px;
   display: flex;
   flex-direction: column;
   gap: 6px;
