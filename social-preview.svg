@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#420093"/>
+      <stop offset="100%" style="stop-color:#6c2fbf"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative network (right side) -->
+  <line x1="900" y1="200" x2="1060" y2="145" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+  <line x1="1060" y1="145" x2="1110" y2="310" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+  <line x1="1110" y1="310" x2="960" y2="395" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+  <line x1="900" y1="200" x2="960" y2="395" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <line x1="960" y1="395" x2="830" y2="360" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <line x1="960" y1="395" x2="1030" y2="475" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <line x1="1110" y1="310" x2="1030" y2="475" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+
+  <circle cx="900" cy="200" r="42" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+  <circle cx="1060" cy="145" r="30" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+  <circle cx="1110" cy="310" r="52" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.4)" stroke-width="2.5"/>
+  <circle cx="960" cy="395" r="36" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+  <circle cx="830" cy="360" r="24" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+  <circle cx="1030" cy="475" r="28" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+
+  <!-- Logo mark -->
+  <text x="80" y="170" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="700" fill="rgba(255,255,255,0.55)" letter-spacing="3">DATENGRAF</text>
+
+  <!-- Headline -->
+  <text x="80" y="280" font-family="Inter, system-ui, sans-serif" font-size="68" font-weight="800" fill="#ffffff">Datenflüsse</text>
+  <text x="80" y="360" font-family="Inter, system-ui, sans-serif" font-size="68" font-weight="800" fill="#ffffff">visualisieren &amp;</text>
+  <text x="80" y="440" font-family="Inter, system-ui, sans-serif" font-size="68" font-weight="800" fill="rgba(255,255,255,0.75)">analysieren.</text>
+
+  <!-- Chips -->
+  <rect x="80" y="488" width="170" height="40" rx="20" fill="rgba(255,255,255,0.14)"/>
+  <text x="165" y="513" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" fill="rgba(255,255,255,0.9)">Kostenlos</text>
+
+  <rect x="264" y="488" width="210" height="40" rx="20" fill="rgba(255,255,255,0.14)"/>
+  <text x="369" y="513" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" fill="rgba(255,255,255,0.9)">Browserbasiert</text>
+
+  <rect x="488" y="488" width="220" height="40" rx="20" fill="rgba(255,255,255,0.14)"/>
+  <text x="598" y="513" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" fill="rgba(255,255,255,0.9)">DSGVO-konform</text>
+
+  <!-- Footer -->
+  <text x="80" y="590" font-family="Inter, system-ui, sans-serif" font-size="18" fill="rgba(255,255,255,0.4)">nozilla.de · daimpad.github.io/DatenGraf</text>
+</svg>

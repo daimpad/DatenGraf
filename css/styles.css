@@ -1551,6 +1551,21 @@ textarea.csv-textarea:focus {
 
 #sidebar-toggle-btn { font-size: 18px; line-height: 1; }
 
+/* ── About Section (SEO) ─────────────────────────────────────── */
+.about-section {
+  padding: 20px 40px 0;
+  max-width: 860px;
+}
+.about-text {
+  font-size: 14px;
+  color: var(--c-muted);
+  line-height: 1.7;
+  margin: 0;
+}
+@media (max-width: 600px) {
+  .about-section { padding: 16px 20px 0; }
+}
+
 /* ── CTA Section ─────────────────────────────────────────────── */
 .cta-section {
   background: linear-gradient(135deg, #420093 0%, #6c2fbf 100%);

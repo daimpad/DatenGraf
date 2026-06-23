@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://daimpad.github.io/DatenGraf/sitemap.xml
