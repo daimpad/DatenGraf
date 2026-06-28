@@ -1299,9 +1299,6 @@ textarea.csv-textarea:focus {
   width: 38%;
   height: auto;
   flex-shrink: 0;
-  border-radius: 220px;
-  border: 2px solid rgba(66, 0, 147, 0.15);
-  box-shadow: 0 8px 32px rgba(66, 0, 147, 0.10);
 }
 
 .hero-text { flex: 1; }
