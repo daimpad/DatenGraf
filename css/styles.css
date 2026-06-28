@@ -2107,6 +2107,62 @@ textarea.csv-textarea:focus {
   flex-direction: column;
 }
 
+/* ── Nächster-Schritt-Brücke ─────────────────────────────────── */
+.briefing-next {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-top: 1px solid var(--c-border-s);
+  background: linear-gradient(135deg, rgba(66,0,147,0.05) 0%, rgba(108,47,191,0.05) 100%);
+  flex-wrap: wrap;
+}
+.briefing-next-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #420093 0%, #6c2fbf 100%);
+  color: #fff;
+  font-size: 16px;
+}
+.briefing-next-body { flex: 1 1 280px; }
+.briefing-next-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 3px;
+}
+.briefing-next-text {
+  font-size: 12.5px;
+  color: var(--c-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+.briefing-next-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 9px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.15s;
+}
+.briefing-next-btn:hover { background: var(--c-accent-h); transform: translateY(-1px); }
+@media (max-width: 600px) {
+  .briefing-next-btn { width: 100%; justify-content: center; }
+}
+
 .briefing-finding {
   display: flex;
   flex-direction: column;
