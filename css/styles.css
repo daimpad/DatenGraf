@@ -1554,8 +1554,7 @@ textarea.csv-textarea:focus {
 
 /* ── About Accordion (SEO) ───────────────────────────────────── */
 .about-accordion {
-  max-width: 820px;
-  margin: 28px auto 0;
+  margin: 28px 0 0;
   background: var(--glass-bg);
   border: 1px solid var(--c-border-s);
   border-radius: var(--radius);
@@ -1648,6 +1647,26 @@ textarea.csv-textarea:focus {
   color: var(--c-accent-h);
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+}
+
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cta-btn-lotse {
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.55);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cta-btn-lotse:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: #fff;
+  transform: translateY(-2px);
 }
 
 /* ── Theory Modal ─────────────────────────────────────────────── */
@@ -1898,6 +1917,8 @@ textarea.csv-textarea:focus {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .footer-links a {
@@ -1970,7 +1991,9 @@ textarea.csv-textarea:focus {
   .view-switcher-tabs { flex-direction: column; width: 100%; }
   .view-tab { width: 100%; justify-content: center; }
   .cta-headline { font-size: 18px; }
-  .cta-btn { width: 100%; justify-content: center; }
+  .cta-actions { width: 100%; }
+  .cta-btn,
+  .cta-btn-lotse { width: 100%; justify-content: center; }
   .theory-modal-header { padding: 16px 18px; }
   .theory-modal-body { padding: 16px 18px; font-size: 13px; }
   .snapshot-modal { max-height: 90vh; }
