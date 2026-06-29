@@ -1649,26 +1649,6 @@ textarea.csv-textarea:focus {
   box-shadow: 0 8px 28px rgba(0,0,0,0.2);
 }
 
-.cta-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.cta-btn-lotse {
-  background: transparent;
-  color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.55);
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.cta-btn-lotse:hover {
-  background: rgba(255,255,255,0.12);
-  border-color: #fff;
-  transform: translateY(-2px);
-}
-
 /* ── Feature-Duo (Datenatlas & DatenLotse) ───────────────────── */
 .feature-duo-section {
   background: #faf8fe;
@@ -1684,13 +1664,13 @@ textarea.csv-textarea:focus {
   font-weight: 800;
   color: var(--c-text);
   letter-spacing: -0.4px;
-  text-align: center;
+  text-align: left;
   margin-bottom: 6px;
 }
 .feature-duo-sub {
   font-size: 14px;
   color: var(--c-muted);
-  text-align: center;
+  text-align: left;
   margin-bottom: 28px;
 }
 .feature-duo-grid {
@@ -2078,9 +2058,7 @@ textarea.csv-textarea:focus {
   .view-switcher-tabs { flex-direction: column; width: 100%; }
   .view-tab { width: 100%; justify-content: center; }
   .cta-headline { font-size: 18px; }
-  .cta-actions { width: 100%; }
-  .cta-btn,
-  .cta-btn-lotse { width: 100%; justify-content: center; }
+  .cta-btn { width: 100%; justify-content: center; }
   .theory-modal-header { padding: 16px 18px; }
   .theory-modal-body { padding: 16px 18px; font-size: 13px; }
   .snapshot-modal { max-height: 90vh; }
