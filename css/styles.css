@@ -1669,6 +1669,93 @@ textarea.csv-textarea:focus {
   transform: translateY(-2px);
 }
 
+/* ── Feature-Duo (Datenatlas & DatenLotse) ───────────────────── */
+.feature-duo-section {
+  background: #faf8fe;
+  border-top: 1px solid rgba(66, 0, 147, 0.06);
+  padding: 52px 40px;
+}
+.feature-duo-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.feature-duo-heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.4px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.feature-duo-sub {
+  font-size: 14px;
+  color: var(--c-muted);
+  text-align: center;
+  margin-bottom: 28px;
+}
+.feature-duo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-decoration: none;
+  transition: transform 0.2s var(--ease-fluid), box-shadow 0.2s var(--ease-fluid);
+}
+.feature-card:hover { box-shadow: var(--shadow-md); }
+.feature-card-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0e8fb 0%, #e8eefb 100%);
+  color: var(--c-accent);
+  font-size: 32px;
+  overflow: hidden;
+  transition: transform 0.2s var(--ease-fluid), box-shadow 0.2s var(--ease-fluid);
+}
+.feature-card-logo img { width: 100%; height: 100%; object-fit: contain; }
+.feature-card:hover .feature-card-logo {
+  transform: scale(1.07);
+  box-shadow: 0 10px 26px rgba(66, 0, 147, 0.20);
+}
+.feature-card-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--c-text);
+  letter-spacing: -0.4px;
+}
+.feature-card-text {
+  font-size: 14px;
+  color: var(--c-muted);
+  line-height: 1.65;
+  flex: 1;
+}
+.feature-card-link {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.feature-card:hover .feature-card-link { gap: 11px; }
+@media (max-width: 700px) {
+  .feature-duo-section { padding: 36px 20px; }
+  .feature-duo-grid { grid-template-columns: 1fr; gap: 16px; }
+  .feature-duo-heading { font-size: 19px; }
+}
+
 /* ── Theory Modal ─────────────────────────────────────────────── */
 .theory-modal {
   background: #fff;
