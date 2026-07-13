@@ -1,5 +1,6 @@
 /* ── Design Tokens ───────────────────────────────────────────── */
 :root {
+  color-scheme: light;
   --c-bg:        #f0edf8;
   --c-surface:   rgba(255, 255, 255, 0.72);
   --c-border:    rgba(255, 255, 255, 0.4);
@@ -33,6 +34,54 @@
   --glass-bg:  rgba(255, 255, 255, 0.72);
   --glass-border: rgba(255, 255, 255, 0.4);
   --ease-fluid: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* abgeleitete, theme-abhängige Flächen */
+  --page-grad: linear-gradient(135deg, #ede8f8 0%, #f0edf8 35%, #eaf0f8 65%, #f2f0fb 100%);
+  --surface-solid: #ffffff;          /* opake Modals/Karten */
+  --surface-alt:   #faf8fe;          /* helle Abschnittsflächen */
+  --field-bg:       rgba(255, 255, 255, 0.6);
+  --field-bg-focus: #ffffff;
+  --surface-2: rgba(255, 255, 255, 0.45);
+  --surface-3: rgba(255, 255, 255, 0.5);
+  --btn-sec-bg:   rgba(255, 255, 255, 0.65);
+  --btn-sec-bg-h: rgba(255, 255, 255, 0.9);
+  --on-accent: #ffffff;
+}
+
+/* Dark-Theme (aus docs/design-system.html) — greift bei OS-Preference … */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+}
+/* … und die manuelle Umschaltung (data-theme) gewinnt in beide Richtungen. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg:        #141021;
+  --c-surface:   rgba(38, 32, 58, 0.62);
+  --c-border:    rgba(255, 255, 255, 0.10);
+  --c-border-s:  rgba(150, 140, 190, 0.20);
+  --c-text:      #ece9f5;
+  --c-muted:     #9d97b5;
+  --c-accent:    #9b6dff;
+  --c-accent-h:  #c4a6ff;
+  --c-danger:    #e5675a;
+  --c-success:   #4cc98a;
+  --c-warn:      #e6a53a;
+  --glass-bg:    rgba(38, 32, 58, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.52);
+
+  --page-grad: linear-gradient(135deg, #181430 0%, #141021 40%, #0f1524 70%, #161226 100%);
+  --surface-solid: #201b33;
+  --surface-alt:   #181430;
+  --field-bg:       rgba(255, 255, 255, 0.05);
+  --field-bg-focus: #241f38;
+  --surface-2: rgba(255, 255, 255, 0.04);
+  --surface-3: rgba(255, 255, 255, 0.05);
+  --btn-sec-bg:   rgba(255, 255, 255, 0.07);
+  --btn-sec-bg-h: rgba(255, 255, 255, 0.13);
+  --on-accent: #17122a;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,7 +89,7 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
-  background: linear-gradient(135deg, #ede8f8 0%, #f0edf8 35%, #eaf0f8 65%, #f2f0fb 100%);
+  background: var(--page-grad);
   background-attachment: fixed;
   color: var(--c-text);
   min-height: 100vh;
@@ -110,7 +159,7 @@ body {
   border-radius: var(--radius);
   font-size: 13px;
   font-family: inherit;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   transition: all 0.4s var(--ease-fluid);
   color: var(--c-text);
 }
@@ -119,7 +168,7 @@ body {
 .filter-group input:focus {
   outline: none;
   border-color: var(--c-accent);
-  background: rgba(255,255,255,0.9);
+  background: var(--field-bg-focus);
   box-shadow: 0 0 0 3px rgba(66,0,147,0.1);
 }
 
@@ -132,7 +181,7 @@ body {
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
-  background: rgba(255,255,255,0.5);
+  background: var(--surface-2);
   transition: all 0.4s var(--ease-fluid);
   white-space: nowrap;
   color: var(--c-muted);
@@ -264,7 +313,7 @@ body {
   padding: 12px 14px;
   border-radius: var(--radius);
   border: 1.5px solid var(--c-border-s);
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s var(--ease-fluid);
@@ -424,7 +473,7 @@ body {
   padding: 8px 18px;
   border-radius: 20px;
   border: 1.5px solid rgba(66,0,147,0.2);
-  background: #fff;
+  background: var(--surface-solid);
   cursor: pointer;
   font-size: 13px;
   font-family: inherit;
@@ -528,7 +577,7 @@ body {
   padding: 6px 16px;
   border: 1px solid var(--c-border-s);
   border-radius: 20px;
-  background: rgba(255,255,255,0.5);
+  background: var(--surface-2);
   cursor: pointer;
   font-size: 12px;
   font-family: inherit;
@@ -551,14 +600,14 @@ body {
   border-radius: var(--radius);
   font-size: 13px;
   font-family: inherit;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   transition: all 0.4s var(--ease-fluid);
   color: var(--c-text);
 }
 .url-row input:focus {
   outline: none;
   border-color: var(--c-accent);
-  background: rgba(255,255,255,0.9);
+  background: var(--field-bg-focus);
   box-shadow: 0 0 0 3px rgba(66,0,147,0.1);
 }
 
@@ -571,7 +620,7 @@ body {
   cursor: pointer;
   position: relative;
   transition: all 0.4s var(--ease-fluid);
-  background: rgba(255,255,255,0.3);
+  background: var(--surface-2);
 }
 
 .file-drop-zone:hover,
@@ -599,7 +648,7 @@ textarea.csv-textarea {
   border: 1px solid var(--c-border-s);
   border-radius: var(--radius);
   resize: vertical;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   color: var(--c-text);
   transition: all 0.4s var(--ease-fluid);
 }
@@ -607,7 +656,7 @@ textarea.csv-textarea {
 textarea.csv-textarea:focus {
   outline: none;
   border-color: var(--c-accent);
-  background: rgba(255,255,255,0.9);
+  background: var(--field-bg-focus);
   box-shadow: 0 0 0 3px rgba(66,0,147,0.1);
 }
 
@@ -637,13 +686,13 @@ textarea.csv-textarea:focus {
 }
 
 .btn-secondary {
-  background: rgba(255,255,255,0.65);
+  background: var(--glass-bg);
   color: var(--c-text);
   border: 1px solid var(--c-border-s);
   backdrop-filter: blur(8px);
 }
 .btn-secondary:hover {
-  background: rgba(255,255,255,0.9);
+  background: var(--field-bg-focus);
   border-color: rgba(66,0,147,0.3);
   color: var(--c-accent);
   box-shadow: var(--shadow-sm);
@@ -694,7 +743,7 @@ textarea.csv-textarea:focus {
   border: 1px solid var(--c-border-s);
   border-radius: var(--radius);
   padding: 4px 8px;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   color: var(--c-text);
   cursor: pointer;
 }
@@ -809,7 +858,7 @@ textarea.csv-textarea:focus {
   border-radius: var(--radius);
   font-size: 13px;
   font-family: inherit;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   color: var(--c-text);
   min-width: 140px;
   cursor: pointer;
@@ -847,7 +896,7 @@ textarea.csv-textarea:focus {
   border: 1px solid var(--c-border-s);
   border-radius: var(--radius);
   padding: 3px 8px 3px 6px;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   color: var(--c-text);
   width: 140px;
   transition: border-color 0.2s, box-shadow 0.2s, width 0.2s;
@@ -855,7 +904,7 @@ textarea.csv-textarea:focus {
 .network-search-input:focus {
   outline: none;
   border-color: var(--c-accent);
-  background: rgba(255,255,255,0.9);
+  background: var(--field-bg-focus);
   box-shadow: 0 0 0 3px rgba(66,0,147,0.1);
   width: 180px;
 }
@@ -897,7 +946,7 @@ textarea.csv-textarea:focus {
 .hier-legend-hint code { font-family: monospace; font-size: 10px; background: rgba(66,0,147,0.08); padding: 1px 4px; border-radius: 3px; }
 
 #network-container {
-  background: rgba(255,255,255,0.55);
+  background: var(--surface-2);
   backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
   border-top: none;
@@ -1131,7 +1180,7 @@ textarea.csv-textarea:focus {
 .modal-backdrop.hidden { display: none; }
 
 .wizard {
-  background: rgba(255,255,255,0.92);
+  background: var(--field-bg-focus);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   border-radius: 16px;
@@ -1208,7 +1257,7 @@ textarea.csv-textarea:focus {
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  background: rgba(255,255,255,0.7);
+  background: var(--glass-bg);
   transition: all 0.4s var(--ease-fluid);
   color: var(--c-text);
 }
@@ -1218,7 +1267,7 @@ textarea.csv-textarea:focus {
 .form-row textarea:focus {
   outline: none;
   border-color: var(--c-accent);
-  background: #fff;
+  background: var(--field-bg-focus);
   box-shadow: 0 0 0 3px rgba(66,0,147,0.1);
 }
 
@@ -1237,7 +1286,7 @@ textarea.csv-textarea:focus {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.4s var(--ease-fluid);
-  background: rgba(255,255,255,0.5);
+  background: var(--surface-2);
 }
 
 .radio-option:hover { border-color: var(--c-accent); background: rgba(66,0,147,0.04); }
@@ -1252,7 +1301,7 @@ textarea.csv-textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255,255,255,0.4);
+  background: var(--surface-2);
 }
 
 .wizard-footer .step-hint { font-size: 11px; color: var(--c-muted); }
@@ -1303,7 +1352,7 @@ textarea.csv-textarea:focus {
   border-radius: 50%;
   border: 2px solid rgba(66, 0, 147, 0.15);
   box-shadow: 0 8px 32px rgba(66, 0, 147, 0.10);
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--surface-2);
 }
 
 .hero-text { flex: 1; }
@@ -1355,14 +1404,14 @@ textarea.csv-textarea:focus {
 }
 
 .btn-lg.btn-secondary {
-  background: rgba(255,255,255,0.75) !important;
+  background: var(--glass-bg) !important;
   color: var(--c-text) !important;
   border: 1px solid var(--c-border-s) !important;
   backdrop-filter: blur(12px);
 }
 
 .btn-lg.btn-secondary:hover {
-  background: rgba(255,255,255,0.95) !important;
+  background: var(--field-bg-focus) !important;
   color: var(--c-accent) !important;
   border-color: rgba(66,0,147,0.3) !important;
   box-shadow: var(--shadow-md) !important;
@@ -1376,7 +1425,7 @@ textarea.csv-textarea:focus {
 }
 
 .hero-card {
-  background: rgba(255,255,255,0.65);
+  background: var(--glass-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255,255,255,0.5);
@@ -1397,7 +1446,7 @@ textarea.csv-textarea:focus {
   transform: translateY(-6px);
   box-shadow: var(--shadow-lg);
   border-color: rgba(66,0,147,0.15);
-  background: rgba(255,255,255,0.85);
+  background: var(--field-bg-focus);
 }
 
 .hero-card-icon {
@@ -1429,7 +1478,7 @@ textarea.csv-textarea:focus {
   align-items: flex-start;
   gap: 0;
   margin-top: 28px;
-  background: rgba(255,255,255,0.55);
+  background: var(--surface-2);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255,255,255,0.45);
@@ -1644,7 +1693,7 @@ textarea.csv-textarea:focus {
 }
 
 .cta-btn:hover {
-  background: rgba(255,255,255,0.9);
+  background: var(--field-bg-focus);
   color: var(--c-accent-h);
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(0,0,0,0.2);
@@ -1652,7 +1701,7 @@ textarea.csv-textarea:focus {
 
 /* ── Feature-Duo (Datenatlas & DatenLotse) ───────────────────── */
 .feature-duo-section {
-  background: #faf8fe;
+  background: var(--surface-alt);
   border-top: 1px solid rgba(66, 0, 147, 0.06);
   padding: 52px 40px;
 }
@@ -1684,7 +1733,7 @@ textarea.csv-textarea:focus {
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
-  background: #fff;
+  background: var(--surface-solid);
   border: 1px solid var(--c-border-s);
   border-radius: var(--radius);
   padding: 28px;
@@ -1739,7 +1788,7 @@ textarea.csv-textarea:focus {
 
 /* ── Theory Modal ─────────────────────────────────────────────── */
 .theory-modal {
-  background: #fff;
+  background: var(--surface-solid);
   border-radius: 18px;
   width: min(720px, 94vw);
   max-height: 88vh;
@@ -1851,7 +1900,7 @@ textarea.csv-textarea:focus {
   border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 20px;
-  background: rgba(255,255,255,0.5);
+  background: var(--surface-2);
 }
 .theory-example-header {
   display: flex;
@@ -1969,7 +2018,7 @@ textarea.csv-textarea:focus {
 
 /* ── Footer ──────────────────────────────────────────────────── */
 .site-footer {
-  background: #ffffff;
+  background: var(--surface-solid);
   border-top: 1px solid rgba(66, 0, 147, 0.10);
   padding: 18px 32px;
   display: flex;
@@ -2478,14 +2527,14 @@ textarea.csv-textarea:focus {
 .snapshot-name-field {
   flex: 1; padding: 8px 12px; border: 1px solid var(--c-border-s);
   border-radius: var(--radius); font-size: 13px; font-family: inherit;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
 }
-.snapshot-name-field:focus { outline: none; border-color: var(--c-accent); background: rgba(255,255,255,0.9); box-shadow: 0 0 0 3px rgba(66,0,147,0.1); }
+.snapshot-name-field:focus { outline: none; border-color: var(--c-accent); background: var(--field-bg-focus); box-shadow: 0 0 0 3px rgba(66,0,147,0.1); }
 .snapshot-list { display: flex; flex-direction: column; gap: 6px; }
 .snapshot-empty { font-size: 13px; color: var(--c-muted); text-align: center; padding: 16px 0; }
 .snapshot-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; background: rgba(255,255,255,0.5);
+  padding: 10px 12px; background: var(--surface-2);
   border: 1px solid var(--c-border-s); border-radius: var(--radius);
 }
 .snapshot-meta { display: flex; flex-direction: column; gap: 2px; }
@@ -2497,7 +2546,7 @@ textarea.csv-textarea:focus {
 
 /* ── Settings Modal ───────────────────────────────────────────── */
 .settings-modal {
-  background: #fff;
+  background: var(--surface-solid);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
@@ -2577,13 +2626,13 @@ textarea.csv-textarea:focus {
   border-radius: var(--radius);
   font-size: 13px;
   font-family: inherit;
-  background: rgba(255,255,255,0.6);
+  background: var(--glass-bg);
   color: var(--c-text);
 }
 .settings-api-row input[type="password"]:focus {
   outline: none;
   border-color: var(--c-accent);
-  background: rgba(255,255,255,0.9);
+  background: var(--field-bg-focus);
   box-shadow: 0 0 0 3px rgba(66,0,147,0.1);
 }
 .settings-key-status {
@@ -2598,7 +2647,7 @@ textarea.csv-textarea:focus {
 
 /* ── FAQ Modal ──────────────────────────────────────────────── */
 .faq-modal {
-  background: #fff;
+  background: var(--surface-solid);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
