@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Design-System-Dokumentation für DatenGraf: Farb-Token, Typografie, Abstände, Buttons und Formulare mit Live-Beispielen.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<title>DatenGraf — Design System</title>
+<style>
+/* ══ DatenGraf Design System — Dokumentation.
+   Light-Token stammen 1:1 aus css/styles.css. Dark-Token sind ein VORSCHLAG
+   (in der Quelle nicht vorhanden) und als solcher gekennzeichnet. ══ */
+:root{
+  color-scheme:light;
+  /* — Quelle (Light) — */
+  --c-bg:#f0edf8; --c-surface:rgba(255,255,255,0.72);
+  --c-border:rgba(255,255,255,0.4); --c-border-s:rgba(180,170,210,0.35);
+  --c-text:#1e1b2e; --c-muted:#7a7591; --c-accent:#420093; --c-accent-h:#000000;
+  --c-danger:#c0392b; --c-success:#2e9e60; --c-warn:#d4820a;
+  --glass-bg:rgba(255,255,255,0.72); --glass-border:rgba(255,255,255,0.4);
+  --shadow-sm:0 2px 8px rgba(66,0,147,0.06);
+  --shadow-md:0 4px 24px rgba(66,0,147,0.10);
+  --shadow-lg:0 8px 40px rgba(66,0,147,0.14);
+  --ease-fluid:cubic-bezier(0.25,1,0.5,1);
+  --radius:10px; --sidebar-w:280px;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:'JetBrains Mono','Fira Code',monospace;
+  /* — abgeleitete, theme-abhängige Flächen — */
+  --page-grad:linear-gradient(135deg,#ede8f8 0%,#f0edf8 35%,#eaf0f8 65%,#f2f0fb 100%);
+  --lead-ink:#2c2740; --note-ink:#3a3550;
+  --accent-4:rgba(66,0,147,0.04); --accent-6:rgba(66,0,147,0.06); --accent-7:rgba(66,0,147,0.07);
+  --accent-8:rgba(66,0,147,0.08); --accent-10:rgba(66,0,147,0.10); --accent-12:rgba(66,0,147,0.12);
+  --field-bg:rgba(255,255,255,0.7); --field-bg-focus:#ffffff;
+  --surface-2:rgba(255,255,255,0.45); --surface-3:rgba(255,255,255,0.5);
+  --btn-sec-bg:rgba(255,255,255,0.65); --btn-sec-bg-h:rgba(255,255,255,0.9);
+  --row-line:rgba(180,170,210,0.22); --checker-a:#e8e3f2; --checker-b:#f6f3fb;
+  --on-accent:#ffffff;
+}
+/* Dark-VORSCHLAG: greift bei OS-Preference … */
+@media (prefers-color-scheme:dark){ :root{
+  color-scheme:dark;
+  --c-bg:#141021; --c-surface:rgba(38,32,58,0.62);
+  --c-border:rgba(255,255,255,0.10); --c-border-s:rgba(150,140,190,0.20);
+  --c-text:#ece9f5; --c-muted:#9d97b5; --c-accent:#9b6dff; --c-accent-h:#c4a6ff;
+  --c-danger:#e5675a; --c-success:#4cc98a; --c-warn:#e6a53a;
+  --glass-bg:rgba(38,32,58,0.62); --glass-border:rgba(255,255,255,0.10);
+  --shadow-sm:0 2px 8px rgba(0,0,0,0.30); --shadow-md:0 4px 24px rgba(0,0,0,0.40); --shadow-lg:0 8px 40px rgba(0,0,0,0.52);
+  --page-grad:linear-gradient(135deg,#181430 0%,#141021 40%,#0f1524 70%,#161226 100%);
+  --lead-ink:#d6d1e6; --note-ink:#c4bedb;
+  --accent-4:rgba(155,109,255,0.08); --accent-6:rgba(155,109,255,0.12); --accent-7:rgba(155,109,255,0.14);
+  --accent-8:rgba(155,109,255,0.16); --accent-10:rgba(155,109,255,0.20); --accent-12:rgba(155,109,255,0.24);
+  --field-bg:rgba(255,255,255,0.05); --field-bg-focus:#241f38;
+  --surface-2:rgba(255,255,255,0.04); --surface-3:rgba(255,255,255,0.05);
+  --btn-sec-bg:rgba(255,255,255,0.07); --btn-sec-bg-h:rgba(255,255,255,0.13);
+  --row-line:rgba(150,140,190,0.16); --checker-a:#2a2440; --checker-b:#221d36;
+  --on-accent:#17122a;
+}}
+/* … und die Viewer-Umschaltung (data-theme) gewinnt in beide Richtungen. */
+:root[data-theme="light"]{
+  color-scheme:light;
+  --c-bg:#f0edf8; --c-surface:rgba(255,255,255,0.72);
+  --c-border:rgba(255,255,255,0.4); --c-border-s:rgba(180,170,210,0.35);
+  --c-text:#1e1b2e; --c-muted:#7a7591; --c-accent:#420093; --c-accent-h:#000000;
+  --c-danger:#c0392b; --c-success:#2e9e60; --c-warn:#d4820a;
+  --glass-bg:rgba(255,255,255,0.72); --glass-border:rgba(255,255,255,0.4);
+  --shadow-sm:0 2px 8px rgba(66,0,147,0.06); --shadow-md:0 4px 24px rgba(66,0,147,0.10); --shadow-lg:0 8px 40px rgba(66,0,147,0.14);
+  --page-grad:linear-gradient(135deg,#ede8f8 0%,#f0edf8 35%,#eaf0f8 65%,#f2f0fb 100%);
+  --lead-ink:#2c2740; --note-ink:#3a3550;
+  --accent-4:rgba(66,0,147,0.04); --accent-6:rgba(66,0,147,0.06); --accent-7:rgba(66,0,147,0.07);
+  --accent-8:rgba(66,0,147,0.08); --accent-10:rgba(66,0,147,0.10); --accent-12:rgba(66,0,147,0.12);
+  --field-bg:rgba(255,255,255,0.7); --field-bg-focus:#ffffff;
+  --surface-2:rgba(255,255,255,0.45); --surface-3:rgba(255,255,255,0.5);
+  --btn-sec-bg:rgba(255,255,255,0.65); --btn-sec-bg-h:rgba(255,255,255,0.9);
+  --row-line:rgba(180,170,210,0.22); --checker-a:#e8e3f2; --checker-b:#f6f3fb; --on-accent:#ffffff;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --c-bg:#141021; --c-surface:rgba(38,32,58,0.62);
+  --c-border:rgba(255,255,255,0.10); --c-border-s:rgba(150,140,190,0.20);
+  --c-text:#ece9f5; --c-muted:#9d97b5; --c-accent:#9b6dff; --c-accent-h:#c4a6ff;
+  --c-danger:#e5675a; --c-success:#4cc98a; --c-warn:#e6a53a;
+  --glass-bg:rgba(38,32,58,0.62); --glass-border:rgba(255,255,255,0.10);
+  --shadow-sm:0 2px 8px rgba(0,0,0,0.30); --shadow-md:0 4px 24px rgba(0,0,0,0.40); --shadow-lg:0 8px 40px rgba(0,0,0,0.52);
+  --page-grad:linear-gradient(135deg,#181430 0%,#141021 40%,#0f1524 70%,#161226 100%);
+  --lead-ink:#d6d1e6; --note-ink:#c4bedb;
+  --accent-4:rgba(155,109,255,0.08); --accent-6:rgba(155,109,255,0.12); --accent-7:rgba(155,109,255,0.14);
+  --accent-8:rgba(155,109,255,0.16); --accent-10:rgba(155,109,255,0.20); --accent-12:rgba(155,109,255,0.24);
+  --field-bg:rgba(255,255,255,0.05); --field-bg-focus:#241f38;
+  --surface-2:rgba(255,255,255,0.04); --surface-3:rgba(255,255,255,0.05);
+  --btn-sec-bg:rgba(255,255,255,0.07); --btn-sec-bg-h:rgba(255,255,255,0.13);
+  --row-line:rgba(150,140,190,0.16); --checker-a:#2a2440; --checker-b:#221d36; --on-accent:#17122a;
+}
+*,*::before,*::after{box-sizing:border-box;}
+body{
+  margin:0; font-family:var(--sans); font-size:14px; line-height:1.55; color:var(--c-text);
+  background:var(--page-grad); background-attachment:fixed; min-height:100vh; -webkit-font-smoothing:antialiased;
+  transition:background .4s var(--ease-fluid), color .4s var(--ease-fluid);
+}
+code{font-family:var(--mono); font-size:.86em;}
+h1,h2,h3{text-wrap:balance; margin:0;}
+a{color:inherit;}
+.ic{width:1em;height:1em;fill:currentColor;flex:none;vertical-align:-0.125em;}
+.ic.accent{color:var(--c-accent);}
+.muted{color:var(--c-muted);} .small{font-size:12px;}
+
+/* ── Shell ── */
+.ds{display:grid; grid-template-columns:var(--sidebar-w) minmax(0,1fr); gap:0; max-width:1320px; margin:0 auto;}
+.rail{position:sticky; top:0; align-self:start; height:100vh; padding:24px 18px;
+  display:flex; flex-direction:column; gap:22px;
+  background:var(--glass-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-right:1px solid var(--c-border-s);}
+.rail-brand{display:flex; align-items:center; gap:12px;}
+.rail-mark{width:40px;height:40px;border-radius:12px; display:grid;place-items:center;
+  background:var(--c-accent); color:var(--on-accent); box-shadow:var(--shadow-md);}
+.rail-mark .ic{width:20px;height:20px;}
+.rail-title{font-size:16px; font-weight:700; letter-spacing:-.01em;}
+.rail-sub{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--c-muted);}
+.rail-nav{display:flex; flex-direction:column; gap:2px;}
+.rail-nav a{display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:var(--radius);
+  text-decoration:none; color:var(--c-text); font-size:13px; font-weight:500;
+  transition:background .2s var(--ease-fluid), color .2s var(--ease-fluid);}
+.rail-nav a .ic{width:15px;height:15px; color:var(--c-muted); transition:color .2s;}
+.rail-nav a:hover{background:var(--accent-6);}
+.rail-nav a:hover .ic{color:var(--c-accent);}
+.rail-nav a.active{background:var(--accent-10); color:var(--c-accent); font-weight:600;}
+.rail-nav a.active .ic{color:var(--c-accent);}
+.rail-foot{margin-top:auto; line-height:1.5;}
+.rail code, .rail-foot code{background:var(--accent-7); padding:1px 5px; border-radius:4px;}
+.theme-toggle{display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  padding:9px 12px; border-radius:var(--radius); cursor:pointer; font-family:inherit; font-size:12px; font-weight:600;
+  color:var(--c-text); background:var(--surface-3); border:1px solid var(--c-border-s);
+  transition:all .3s var(--ease-fluid);}
+.theme-toggle:hover{border-color:var(--c-accent); color:var(--c-accent);}
+.theme-toggle .ic{width:14px;height:14px;}
+.theme-toggle .lbl-dark{display:none;}
+.theme-toggle .lbl-dark-ic{display:none;}
+:root[data-theme="dark"] .theme-toggle .lbl-dark{display:inline;}
+:root[data-theme="dark"] .theme-toggle .lbl-light{display:none;}
+:root[data-theme="dark"] .theme-toggle .lbl-dark-ic{display:inline;}
+:root[data-theme="dark"] .theme-toggle .lbl-light-ic{display:none;}
+
+.doc{padding:34px clamp(20px,4vw,52px) 60px; min-width:0;}
+
+/* ── Hero ── */
+.hero{margin-bottom:34px;}
+.eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.12em; color:var(--c-accent);
+  background:var(--accent-7); border:1px solid var(--c-border-s); padding:5px 12px; border-radius:100px; margin-bottom:16px;}
+.hero h1{font-size:clamp(30px,5vw,44px); font-weight:700; letter-spacing:-.02em; line-height:1.05;}
+.lead{font-size:17px; color:var(--lead-ink); max-width:66ch; margin:14px 0 0;}
+.hero-stats{display:flex; flex-wrap:wrap; gap:12px; margin:24px 0 18px;}
+.stat{flex:1; min-width:120px; background:var(--glass-bg); backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--c-border-s); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow-sm);}
+.stat-n{display:block; font-size:32px; font-weight:700; color:var(--c-accent); line-height:1; font-variant-numeric:tabular-nums;}
+.stat-l{display:block; font-size:12px; color:var(--c-muted); margin-top:6px;}
+
+/* ── Panels ── */
+.panel{background:var(--glass-bg); backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--c-border-s); border-radius:18px; padding:clamp(20px,3vw,32px);
+  box-shadow:var(--shadow-sm); margin-bottom:26px; scroll-margin-top:20px;}
+.sec-head{display:flex; align-items:center; gap:11px; margin-bottom:6px; flex-wrap:wrap;}
+.sec-head .ic{width:22px;height:22px;}
+.sec-head h2{font-size:24px; font-weight:700; letter-spacing:-.01em;}
+.sec-lead{color:var(--c-muted); max-width:74ch; margin:0 0 22px;}
+.sec-lead code,.lead code,.note code,.demo-caption code,.muted code{background:var(--accent-7); padding:1px 6px; border-radius:5px; color:var(--c-accent);}
+
+.subgroup{margin-top:26px;}
+.subhead{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:14px; padding-bottom:9px; border-bottom:1px solid var(--c-border-s);}
+.subhead.tight{border:none; padding-bottom:0; margin-bottom:12px;}
+.subhead .ic{width:16px;height:16px;}
+.subhead h3{font-size:15px; font-weight:700;}
+
+.note{display:flex; gap:10px; align-items:flex-start; background:var(--accent-6);
+  border:1px solid var(--c-border-s); border-radius:12px; padding:12px 15px; margin:22px 0 0; font-size:13px; color:var(--note-ink);}
+.note .ic{width:16px;height:16px; color:var(--c-accent); margin-top:2px;}
+.note.proposal{background:var(--accent-8);}
+
+/* ── Swatches ── */
+.swatch-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-bottom:18px;}
+.swatch-card{margin:0; background:var(--surface-3); border:1px solid var(--c-border-s); border-radius:12px; overflow:hidden;}
+.chip-lg{display:block; height:64px; background:
+  linear-gradient(var(--v),var(--v)),
+  repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 0/16px 16px;}
+.swatch-card figcaption{display:flex; flex-direction:column; gap:2px; padding:9px 11px;}
+.swatch-card figcaption code{font-size:11px; color:var(--c-text);}
+
+/* ── Tables ── */
+.tablewrap{overflow-x:auto; border:1px solid var(--c-border-s); border-radius:12px; background:var(--surface-2);}
+table.tokens{width:100%; border-collapse:collapse; font-size:13px; min-width:520px;}
+table.tokens th{text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--c-muted); padding:11px 14px; border-bottom:1px solid var(--c-border-s); white-space:nowrap;}
+table.tokens td{padding:10px 14px; border-bottom:1px solid var(--row-line); vertical-align:middle;}
+table.tokens tr:last-child td{border-bottom:none;}
+table.tokens code{color:var(--c-accent);}
+table.tokens code.val{color:var(--c-text);}
+.sw{display:inline-block; width:26px; height:26px; border-radius:6px; border:1px solid var(--c-border-s);
+  vertical-align:middle; background:
+  linear-gradient(var(--v),var(--v)),
+  repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 0/10px 10px;}
+
+/* ── Typography specimens ── */
+.type-list{display:flex; flex-direction:column;}
+.type-row{display:grid; grid-template-columns:150px 1fr 170px; gap:18px; align-items:center;
+  padding:13px 0; border-bottom:1px solid var(--row-line);}
+.type-row:last-child{border-bottom:none;}
+.type-meta{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.type-meta code{color:var(--c-accent); font-size:12px;}
+.badge-role{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+  background:var(--accent-10); color:var(--c-accent); padding:3px 8px; border-radius:6px;}
+.type-specimen{color:var(--c-text); line-height:1.15; letter-spacing:-.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.type-use{text-align:right;}
+.label-demo{display:flex; gap:22px; flex-wrap:wrap;}
+.sig-label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--c-muted);}
+.mono-demo{font-family:var(--mono); font-size:13px; background:var(--accent-6);
+  border:1px solid var(--c-border-s); border-radius:10px; padding:14px 16px; color:var(--lead-ink); overflow-x:auto;}
+
+/* ── Spacing ── */
+.space-cols{display:grid; grid-template-columns:1fr 1fr; gap:28px;}
+.space-scale{display:flex; flex-direction:column; gap:9px;}
+.space-row{display:flex; align-items:center; gap:14px;}
+.space-row code{width:44px; color:var(--c-accent); font-size:12px; text-align:right; font-variant-numeric:tabular-nums;}
+.space-bar{height:16px; border-radius:5px; background:linear-gradient(90deg,var(--c-accent),color-mix(in srgb,var(--c-accent) 55%,#fff));}
+.radius-demo{display:flex; gap:12px; margin-top:16px;}
+.rad{width:52px;height:52px; display:grid;place-items:center; font-size:12px; font-weight:600; color:var(--on-accent); background:var(--c-accent);}
+
+/* ── Elevation ── */
+.elev-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:18px;}
+.elev-card{background:var(--field-bg-focus); border:1px solid var(--c-border-s); border-radius:14px; padding:22px 18px;
+  display:flex; flex-direction:column; gap:4px;}
+.elev-card code{color:var(--c-accent); font-size:13px;}
+.glass-demo{border-radius:16px; padding:26px; background:linear-gradient(135deg,#4a2b8f,#6c8ebf 55%,#5fa878);}
+.glass-tile{background:var(--glass-bg); backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border); border-radius:12px; padding:22px; box-shadow:var(--shadow-lg);
+  display:flex; flex-direction:column; gap:3px; font-weight:600;}
+
+/* ── Buttons (Quell-Regeln, theme-tokenisiert) ── */
+.demo-row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; padding:22px;
+  background:var(--surface-2); border:1px solid var(--c-border-s); border-radius:14px;}
+.demo-row-lg{margin-top:16px;}
+.demo-caption{margin:9px 2px 0;}
+.btn{padding:8px 18px; border-radius:var(--radius); border:none; cursor:pointer; font-size:13px;
+  font-family:inherit; font-weight:500; letter-spacing:0.02em; transition:all 0.4s var(--ease-fluid);
+  display:inline-flex; align-items:center; gap:6px; color:var(--c-text);}
+.btn .ic{width:14px;height:14px;}
+.btn-primary{background:var(--c-accent); color:var(--on-accent);}
+.btn-primary:hover{background:var(--c-accent-h); box-shadow:var(--shadow-md);}
+.btn-secondary{background:var(--btn-sec-bg); color:var(--c-text); border:1px solid var(--c-border-s); backdrop-filter:blur(8px);}
+.btn-secondary:hover{background:var(--btn-sec-bg-h); border-color:var(--c-accent); color:var(--c-accent); box-shadow:var(--shadow-sm);}
+.btn-secondary.active{background:var(--accent-10); border-color:var(--c-accent); color:var(--c-accent);}
+.btn-danger{background:var(--c-danger); color:#fff;}
+.btn-danger:hover{filter:brightness(0.9);}
+.btn-sm{padding:5px 12px; font-size:12px;}
+.btn-icon{width:32px;height:32px; padding:0; justify-content:center; border-radius:var(--radius);}
+.btn-lg{padding:14px 34px; font-size:14px; font-weight:600; letter-spacing:0.03em; border-radius:var(--radius);}
+.btn-lg.btn-primary{background:var(--c-accent); color:var(--on-accent); box-shadow:0 4px 20px var(--accent-12);}
+.btn-lg.btn-primary:hover{background:var(--c-accent-h); box-shadow:var(--shadow-md); transform:translateY(-2px);}
+.btn-lg.btn-secondary{background:var(--btn-sec-bg); color:var(--c-text); border:1px solid var(--c-border-s); backdrop-filter:blur(12px);}
+.btn-lg.btn-secondary:hover{background:var(--btn-sec-bg-h); color:var(--c-accent); border-color:var(--c-accent); box-shadow:var(--shadow-md); transform:translateY(-2px);}
+.btn:focus-visible{outline:2px solid var(--c-accent); outline-offset:2px;}
+
+/* ── Forms (Quell-Regeln, theme-tokenisiert) ── */
+.forms-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+.form-card{background:var(--surface-2); border:1px solid var(--c-border-s); border-radius:14px; padding:22px;}
+.form-row{margin-bottom:16px;}
+.form-row label{display:block; font-size:11px; font-weight:700; margin-bottom:6px; color:var(--c-muted);
+  text-transform:uppercase; letter-spacing:.07em;}
+.form-row input[type="text"], .form-row select, .form-row textarea{
+  width:100%; padding:10px 13px; border:1.5px solid var(--c-border-s); border-radius:8px;
+  font-size:14px; font-family:inherit; background:var(--field-bg); transition:all 0.4s var(--ease-fluid); color:var(--c-text);}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus{
+  outline:none; border-color:var(--c-accent); background:var(--field-bg-focus); box-shadow:0 0 0 3px var(--accent-10);}
+.form-row textarea{height:70px; resize:vertical;}
+.form-row-cols{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.radio-group{display:flex; flex-direction:column; gap:8px;}
+.radio-option{display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border:1.5px solid var(--c-border-s);
+  border-radius:8px; cursor:pointer; transition:all 0.4s var(--ease-fluid); background:var(--surface-3);}
+.radio-option:hover{border-color:var(--c-accent); background:var(--accent-4);}
+.radio-option.selected{border-color:var(--c-accent); background:var(--accent-6);}
+.radio-option input[type="radio"]{margin-top:2px; flex-shrink:0; accent-color:var(--c-accent);}
+.radio-option-label{font-weight:600; font-size:13px; display:block;}
+.radio-option-desc{font-size:11px; color:var(--c-muted); margin-top:2px; display:block;}
+.filter-group select, .filter-group input[type="text"]{
+  width:100%; padding:7px 10px; border:1px solid var(--c-border-s); border-radius:var(--radius);
+  font-size:13px; font-family:inherit; background:var(--field-bg); transition:all 0.4s var(--ease-fluid); color:var(--c-text);}
+.filter-group input:focus{outline:none; border-color:var(--c-accent); background:var(--field-bg-focus); box-shadow:0 0 0 3px var(--accent-10);}
+
+/* ── Footer ── */
+.doc-foot{display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:center;
+  padding:20px 4px 0; border-top:1px solid var(--c-border-s); color:var(--c-muted); font-size:12px;}
+.doc-foot .ic{width:14px;height:14px; vertical-align:-2px;}
+.live{display:inline-flex; align-items:center; gap:6px; margin-left:auto; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em; color:var(--c-accent);
+  background:var(--accent-8); padding:4px 10px; border-radius:100px;}
+.live .ic{width:12px;height:12px;}
+
+/* ── Responsive ── */
+@media (max-width:860px){
+  .ds{grid-template-columns:1fr;}
+  .rail{position:static; height:auto; flex-direction:row; align-items:center; flex-wrap:wrap; gap:14px;
+    border-right:none; border-bottom:1px solid var(--c-border-s);}
+  .rail-nav{flex-direction:row; flex-wrap:wrap; gap:4px;}
+  .rail-nav a span{display:none;} .rail-nav a{padding:9px;}
+  .rail-nav a .ic{width:17px;height:17px;}
+  .rail-foot{display:none;} .theme-toggle{width:auto;}
+  .forms-grid, .space-cols{grid-template-columns:1fr;}
+  .type-row{grid-template-columns:130px 1fr;}
+  .type-use{display:none;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important;}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="fa-arrow-pointer" viewBox="0 0 320 512"><path d="M0 55.2L0 426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.8 320l118.1 0c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z"/></symbol><symbol id="fa-ban" viewBox="0 0 512 512"><path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/></symbol><symbol id="fa-circle-check" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></symbol><symbol id="fa-circle-info" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/></symbol><symbol id="fa-diagram-project" viewBox="0 0 576 512"><path d="M0 80C0 53.5 21.5 32 48 32l96 0c26.5 0 48 21.5 48 48l0 16 192 0 0-16c0-26.5 21.5-48 48-48l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48l0-16-192 0 0 16c0 1.7-.1 3.4-.3 5L272 288l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48l0-96c0-1.7 .1-3.4 .3-5L144 224l-96 0c-26.5 0-48-21.5-48-48L0 80z"/></symbol><symbol id="fa-droplet" viewBox="0 0 384 512"><path d="M192 512C86 512 0 426 0 320C0 228.8 130.2 57.7 166.6 11.7C172.6 4.2 181.5 0 191.1 0l1.8 0c9.6 0 18.5 4.2 24.5 11.7C253.8 57.7 384 228.8 384 320c0 106-86 192-192 192zM96 336c0-8.8-7.2-16-16-16s-16 7.2-16 16c0 61.9 50.1 112 112 112c8.8 0 16-7.2 16-16s-7.2-16-16-16c-44.2 0-80-35.8-80-80z"/></symbol><symbol id="fa-font" viewBox="0 0 448 512"><path d="M254 52.8C249.3 40.3 237.3 32 224 32s-25.3 8.3-30 20.8L57.8 416 32 416c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-1.8 0 18-48 159.6 0 18 48-1.8 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-25.8 0L254 52.8zM279.8 304l-111.6 0L224 155.1 279.8 304z"/></symbol><symbol id="fa-hand-pointer" viewBox="0 0 448 512"><path d="M128 40c0-22.1 17.9-40 40-40s40 17.9 40 40l0 148.2c8.5-7.6 19.7-12.2 32-12.2c20.6 0 38.2 13 45 31.2c8.8-9.3 21.2-15.2 35-15.2c25.3 0 46 19.5 47.9 44.3c8.5-7.7 19.8-12.3 32.1-12.3c26.5 0 48 21.5 48 48l0 48 0 16 0 48c0 70.7-57.3 128-128 128l-16 0-64 0-.1 0-5.2 0c-5 0-9.9-.3-14.7-1c-55.3-5.6-106.2-34-140-79L8 336c-13.3-17.7-9.7-42.7 8-56s42.7-9.7 56 8l56 74.7L128 40zM240 304c0-8.8-7.2-16-16-16s-16 7.2-16 16l0 96c0 8.8 7.2 16 16 16s16-7.2 16-16l0-96zm48-16c-8.8 0-16 7.2-16 16l0 96c0 8.8 7.2 16 16 16s16-7.2 16-16l0-96c0-8.8-7.2-16-16-16zm80 16c0-8.8-7.2-16-16-16s-16 7.2-16 16l0 96c0 8.8 7.2 16 16 16s16-7.2 16-16l0-96z"/></symbol><symbol id="fa-layer-group" viewBox="0 0 576 512"><path d="M264.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 149.8C37.4 145.8 32 137.3 32 128s5.4-17.9 13.9-21.8L264.5 5.2zM476.9 209.6l53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 277.8C37.4 273.8 32 265.3 32 256s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0l152-70.2zm-152 198.2l152-70.2 53.2 24.6c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L45.9 405.8C37.4 401.8 32 393.3 32 384s5.4-17.9 13.9-21.8l53.2-24.6 152 70.2c23.4 10.8 50.4 10.8 73.8 0z"/></symbol><symbol id="fa-moon" viewBox="0 0 384 512"><path d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"/></symbol><symbol id="fa-palette" viewBox="0 0 512 512"><path d="M512 256c0 .9 0 1.8 0 2.7c-.4 36.5-33.6 61.3-70.1 61.3L344 320c-26.5 0-48 21.5-48 48c0 3.4 .4 6.7 1 9.9c2.1 10.2 6.5 20 10.8 29.9c6.1 13.8 12.1 27.5 12.1 42c0 31.8-21.6 60.7-53.4 62c-3.5 .1-7 .2-10.6 .2C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256zM128 288a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm0-96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></symbol><symbol id="fa-pen-to-square" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160L0 416c0 53 43 96 96 96l256 0c53 0 96-43 96-96l0-96c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7-14.3 32-32 32L96 448c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 64z"/></symbol><symbol id="fa-ruler-combined" viewBox="0 0 512 512"><path d="M.2 468.9C2.7 493.1 23.1 512 48 512l96 0 320 0c26.5 0 48-21.5 48-48l0-96c0-26.5-21.5-48-48-48l-48 0 0 80c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-80-64 0 0 80c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-80-64 0 0 80c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-80-80 0c-8.8 0-16-7.2-16-16s7.2-16 16-16l80 0 0-64-80 0c-8.8 0-16-7.2-16-16s7.2-16 16-16l80 0 0-64-80 0c-8.8 0-16-7.2-16-16s7.2-16 16-16l80 0 0-48c0-26.5-21.5-48-48-48L48 0C21.5 0 0 21.5 0 48L0 368l0 96c0 1.7 .1 3.3 .2 4.9z"/></symbol><symbol id="fa-square-check" viewBox="0 0 448 512"><path d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></symbol><symbol id="fa-sun" viewBox="0 0 512 512"><path d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z"/></symbol><symbol id="fa-swatchbook" viewBox="0 0 512 512"><path d="M0 32C0 14.3 14.3 0 32 0L160 0c17.7 0 32 14.3 32 32l0 384c0 53-43 96-96 96s-96-43-96-96L0 32zM223.6 425.9c.3-3.3 .4-6.6 .4-9.9l0-262 75.4-75.4c12.5-12.5 32.8-12.5 45.3 0l90.5 90.5c12.5 12.5 12.5 32.8 0 45.3L223.6 425.9zM182.8 512l192-192L480 320c17.7 0 32 14.3 32 32l0 128c0 17.7-14.3 32-32 32l-297.2 0zM128 64L64 64l0 64 64 0 0-64zM64 192l0 64 64 0 0-64-64 0zM96 440a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></symbol><symbol id="fa-table-cells" viewBox="0 0 512 512"><path d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm88 64l0 64-88 0 0-64 88 0zm56 0l88 0 0 64-88 0 0-64zm240 0l0 64-88 0 0-64 88 0zM64 224l88 0 0 64-88 0 0-64zm232 0l0 64-88 0 0-64 88 0zm64 0l88 0 0 64-88 0 0-64zM152 352l0 64-88 0 0-64 88 0zm56 0l88 0 0 64-88 0 0-64zm240 0l0 64-88 0 0-64 88 0z"/></symbol><symbol id="fa-triangle-exclamation" viewBox="0 0 512 512"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></symbol></defs></svg>
+
+<div class="ds">
+  <aside class="rail">
+    <div class="rail-brand">
+      <span class="rail-mark"><svg class="ic" aria-hidden="true"><use href="#fa-diagram-project"></use></svg></span>
+      <div><div class="rail-title">DatenGraf</div><div class="rail-sub">Design System</div></div>
+    </div>
+    <nav class="rail-nav">
+      <a href="#overview" class="active"><svg class="ic" aria-hidden="true"><use href="#fa-swatchbook"></use></svg><span>Überblick</span></a>
+      <a href="#color"><svg class="ic" aria-hidden="true"><use href="#fa-palette"></use></svg><span>Farben</span></a>
+      <a href="#type"><svg class="ic" aria-hidden="true"><use href="#fa-font"></use></svg><span>Typografie</span></a>
+      <a href="#space"><svg class="ic" aria-hidden="true"><use href="#fa-ruler-combined"></use></svg><span>Abstände</span></a>
+      <a href="#elevation"><svg class="ic" aria-hidden="true"><use href="#fa-layer-group"></use></svg><span>Elevation &amp; Glas</span></a>
+      <a href="#buttons"><svg class="ic" aria-hidden="true"><use href="#fa-hand-pointer"></use></svg><span>Buttons</span></a>
+      <a href="#forms"><svg class="ic" aria-hidden="true"><use href="#fa-pen-to-square"></use></svg><span>Formulare</span></a>
+      <a href="#tokens"><svg class="ic" aria-hidden="true"><use href="#fa-table-cells"></use></svg><span>Token-Referenz</span></a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Theme umschalten">
+      <svg class="ic lbl-light-ic" aria-hidden="true"><use href="#fa-moon"></use></svg><svg class="ic lbl-dark-ic" aria-hidden="true"><use href="#fa-sun"></use></svg>
+      <span class="lbl-light">Dark-Vorschlag ansehen</span><span class="lbl-dark">Zurück zu Light</span>
+    </button>
+    <div class="rail-foot muted small">Light aus <code>css/styles.css</code> · Dark = Vorschlag.</div>
+  </aside>
+
+  <main class="doc">
+    <header class="hero" id="overview">
+      <div class="eyebrow"><svg class="ic accent" aria-hidden="true"><use href="#fa-swatchbook"></use></svg><span>Design-System-Referenz</span></div>
+      <h1>DatenGraf&nbsp;Design&nbsp;System</h1>
+      <p class="lead">Ein glasklares, lavendelfarbenes Interface-System: eine tiefviolette Akzentfarbe auf
+        durchscheinenden Glas-Oberflächen, gesetzt in <strong>Inter</strong> mit <strong>JetBrains&nbsp;Mono</strong>
+        für Daten. Diese Seite dokumentiert die Bausteine — und ist selbst vollständig aus ihnen gebaut.</p>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-n">22</span><span class="stat-l">Farb-Token</span></div>
+        <div class="stat"><span class="stat-n">11</span><span class="stat-l">Typo-Stufen</span></div>
+        <div class="stat"><span class="stat-n">7</span><span class="stat-l">Button-Varianten</span></div>
+        <div class="stat"><span class="stat-n">3</span><span class="stat-l">Elevation-Stufen</span></div>
+      </div>
+      <p class="note"><svg class="ic" aria-hidden="true"><use href="#fa-circle-info"></use></svg><span>Das Quell-System ist <strong>einthemig</strong> (helles Glas) und
+        definiert keine Dark-Mode-Token. Diese Seite ergänzt daher einen <strong>Dark-Vorschlag</strong> — neue,
+        in der Quelle noch nicht vorhandene Werte. Umschalten oben links (oder über die Theme-Umschaltung deines
+        Viewers); die vollständige Zuordnung steht unter <a href="#tokens">Token-Referenz</a>.</span></p>
+    </header>
+
+    <section class="panel" id="color">
+      <div class="sec-head"><svg class="ic accent" aria-hidden="true"><use href="#fa-palette"></use></svg><h2>Farben</h2></div>
+      <p class="sec-lead">Alle Werte stammen 1:1 aus <code>:root</code>. Die Kernpalette trägt das Interface;
+        Semantik-, Beziehungs-, Schutzbedarf- und Erfassungs-Farben kodieren Zustände und Domänen-Bedeutung.</p>
+      
+<div class="subgroup">
+  <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-palette"></use></svg><h3>Kern</h3><span class="muted small">Grundton, Glas-Oberflächen, Text und Primärakzent.</span></div>
+  <div class="swatch-grid">
+    <figure class="swatch-card"><span class="chip-lg" style="--v:#f0edf8"></span>
+      <figcaption><code>--c-bg</code><span class="muted small">#f0edf8</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:rgba(255,255,255,0.72)"></span>
+      <figcaption><code>--c-surface</code><span class="muted small">rgba(255,255,255,0.72)</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:rgba(255,255,255,0.4)"></span>
+      <figcaption><code>--c-border</code><span class="muted small">rgba(255,255,255,0.4)</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:rgba(180,170,210,0.35)"></span>
+      <figcaption><code>--c-border-s</code><span class="muted small">rgba(180,170,210,0.35)</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#1e1b2e"></span>
+      <figcaption><code>--c-text</code><span class="muted small">#1e1b2e</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#7a7591"></span>
+      <figcaption><code>--c-muted</code><span class="muted small">#7a7591</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#420093"></span>
+      <figcaption><code>--c-accent</code><span class="muted small">#420093</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#000000"></span>
+      <figcaption><code>--c-accent-h</code><span class="muted small">#000000</span></figcaption></figure>
+  </div>
+  
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--c-bg</code></td><td><span class="sw" style="--v:#f0edf8"></span></td><td><code class="val">#f0edf8</code></td><td>Seiten-Grundton (Basis des Hintergrund-Verlaufs)</td></tr>
+<tr><td><code>--c-surface</code></td><td><span class="sw" style="--v:rgba(255,255,255,0.72)"></span></td><td><code class="val">rgba(255,255,255,0.72)</code></td><td>Glas-Oberfläche für Panels und Karten</td></tr>
+<tr><td><code>--c-border</code></td><td><span class="sw" style="--v:rgba(255,255,255,0.4)"></span></td><td><code class="val">rgba(255,255,255,0.4)</code></td><td>Heller Glas-Rand (obere Kante)</td></tr>
+<tr><td><code>--c-border-s</code></td><td><span class="sw" style="--v:rgba(180,170,210,0.35)"></span></td><td><code class="val">rgba(180,170,210,0.35)</code></td><td>Weicher Strukturrand (Inputs, Karten)</td></tr>
+<tr><td><code>--c-text</code></td><td><span class="sw" style="--v:#1e1b2e"></span></td><td><code class="val">#1e1b2e</code></td><td>Fließtext und Überschriften</td></tr>
+<tr><td><code>--c-muted</code></td><td><span class="sw" style="--v:#7a7591"></span></td><td><code class="val">#7a7591</code></td><td>Sekundärtext, Labels, Captions</td></tr>
+<tr><td><code>--c-accent</code></td><td><span class="sw" style="--v:#420093"></span></td><td><code class="val">#420093</code></td><td>Primärakzent — Buttons, Fokus, Aktiv-Zustand</td></tr>
+<tr><td><code>--c-accent-h</code></td><td><span class="sw" style="--v:#000000"></span></td><td><code class="val">#000000</code></td><td>Akzent-Hover (verdunkelt zu Schwarz)</td></tr>
+</tbody></table></div>
+</div>
+<div class="subgroup">
+  <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-circle-info"></use></svg><h3>Semantik</h3><span class="muted small">Status- und Rückmeldungsfarben, getrennt vom Akzent.</span></div>
+  <div class="swatch-grid">
+    <figure class="swatch-card"><span class="chip-lg" style="--v:#c0392b"></span>
+      <figcaption><code>--c-danger</code><span class="muted small">#c0392b</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#2e9e60"></span>
+      <figcaption><code>--c-success</code><span class="muted small">#2e9e60</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#d4820a"></span>
+      <figcaption><code>--c-warn</code><span class="muted small">#d4820a</span></figcaption></figure>
+  </div>
+  
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--c-danger</code></td><td><span class="sw" style="--v:#c0392b"></span></td><td><code class="val">#c0392b</code></td><td>Fehler / destruktive Aktion</td></tr>
+<tr><td><code>--c-success</code></td><td><span class="sw" style="--v:#2e9e60"></span></td><td><code class="val">#2e9e60</code></td><td>Erfolg / bestätigt</td></tr>
+<tr><td><code>--c-warn</code></td><td><span class="sw" style="--v:#d4820a"></span></td><td><code class="val">#d4820a</code></td><td>Warnung / Achtung</td></tr>
+</tbody></table></div>
+</div>
+<div class="subgroup">
+  <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-diagram-project"></use></svg><h3>Beziehungen</h3><span class="muted small">Farbkodierung der Graph-Kanten (Datenflüsse).</span></div>
+  <div class="swatch-grid">
+    <figure class="swatch-card"><span class="chip-lg" style="--v:#6c8ebf"></span>
+      <figcaption><code>--rel-übergibt</code><span class="muted small">#6c8ebf</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#5fa878"></span>
+      <figcaption><code>--rel-nutzt</code><span class="muted small">#5fa878</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#c4a23a"></span>
+      <figcaption><code>--rel-erstellt</code><span class="muted small">#c4a23a</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#bf6c6c"></span>
+      <figcaption><code>--rel-empfängt</code><span class="muted small">#bf6c6c</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#9b72b8"></span>
+      <figcaption><code>--rel-verarbeitet</code><span class="muted small">#9b72b8</span></figcaption></figure>
+  </div>
+  
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--rel-übergibt</code></td><td><span class="sw" style="--v:#6c8ebf"></span></td><td><code class="val">#6c8ebf</code></td><td>übergibt</td></tr>
+<tr><td><code>--rel-nutzt</code></td><td><span class="sw" style="--v:#5fa878"></span></td><td><code class="val">#5fa878</code></td><td>nutzt</td></tr>
+<tr><td><code>--rel-erstellt</code></td><td><span class="sw" style="--v:#c4a23a"></span></td><td><code class="val">#c4a23a</code></td><td>erstellt</td></tr>
+<tr><td><code>--rel-empfängt</code></td><td><span class="sw" style="--v:#bf6c6c"></span></td><td><code class="val">#bf6c6c</code></td><td>empfängt</td></tr>
+<tr><td><code>--rel-verarbeitet</code></td><td><span class="sw" style="--v:#9b72b8"></span></td><td><code class="val">#9b72b8</code></td><td>verarbeitet</td></tr>
+</tbody></table></div>
+</div>
+<div class="subgroup">
+  <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-droplet"></use></svg><h3>Schutzbedarf</h3><span class="muted small">Sensibilitätsstufen von Datenobjekten.</span></div>
+  <div class="swatch-grid">
+    <figure class="swatch-card"><span class="chip-lg" style="--v:#bf6c6c"></span>
+      <figcaption><code>--schutz-dsgvo</code><span class="muted small">#bf6c6c</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#c4913a"></span>
+      <figcaption><code>--schutz-intern</code><span class="muted small">#c4913a</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#5fa878"></span>
+      <figcaption><code>--schutz-oeffentlich</code><span class="muted small">#5fa878</span></figcaption></figure>
+  </div>
+  
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--schutz-dsgvo</code></td><td><span class="sw" style="--v:#bf6c6c"></span></td><td><code class="val">#bf6c6c</code></td><td>DSGVO / personenbezogen</td></tr>
+<tr><td><code>--schutz-intern</code></td><td><span class="sw" style="--v:#c4913a"></span></td><td><code class="val">#c4913a</code></td><td>intern</td></tr>
+<tr><td><code>--schutz-oeffentlich</code></td><td><span class="sw" style="--v:#5fa878"></span></td><td><code class="val">#5fa878</code></td><td>öffentlich</td></tr>
+</tbody></table></div>
+</div>
+<div class="subgroup">
+  <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-droplet"></use></svg><h3>Erfassung</h3><span class="muted small">Art der Datenerhebung.</span></div>
+  <div class="swatch-grid">
+    <figure class="swatch-card"><span class="chip-lg" style="--v:#9b72b8"></span>
+      <figcaption><code>--erfassung-manuell</code><span class="muted small">#9b72b8</span></figcaption></figure><figure class="swatch-card"><span class="chip-lg" style="--v:#6c8ebf"></span>
+      <figcaption><code>--erfassung-automatisiert</code><span class="muted small">#6c8ebf</span></figcaption></figure>
+  </div>
+  
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--erfassung-manuell</code></td><td><span class="sw" style="--v:#9b72b8"></span></td><td><code class="val">#9b72b8</code></td><td>manuell</td></tr>
+<tr><td><code>--erfassung-automatisiert</code></td><td><span class="sw" style="--v:#6c8ebf"></span></td><td><code class="val">#6c8ebf</code></td><td>automatisiert</td></tr>
+</tbody></table></div>
+</div>
+      <p class="note"><span>Zusätzlich in der Quelle: der Seiten-Verlauf
+        <code>linear-gradient(135deg,#ede8f8,#f0edf8,#eaf0f8,#f2f0fb)</code> (Hintergrund dieser Seite) und
+        der Danger-Hover <code>#a93226</code>.</span></p>
+    </section>
+
+    <section class="panel" id="type">
+      <div class="sec-head"><svg class="ic accent" aria-hidden="true"><use href="#fa-font"></use></svg><h2>Typografie</h2></div>
+      <p class="sec-lead">Zwei Familien aus der Quelle: <code>'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif</code>
+        für Oberfläche und Text, <code>'JetBrains&nbsp;Mono', 'Fira&nbsp;Code', monospace</code> für Code und Werte.
+        Basisgröße <strong>14&nbsp;px</strong>.</p>
+      <div class="type-list">
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Display</span><code>44px</code><span class="muted small">·&nbsp;700</span></div>
+  <div class="type-specimen" style="font-size:44px;font-weight:700">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Größte Kennzahl / Hero-Ziffer</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">H1</span><code>36px</code><span class="muted small">·&nbsp;700</span></div>
+  <div class="type-specimen" style="font-size:36px;font-weight:700">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Seitentitel</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">H2</span><code>28px</code><span class="muted small">·&nbsp;700</span></div>
+  <div class="type-specimen" style="font-size:28px;font-weight:700">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Abschnittstitel</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">H3</span><code>22px</code><span class="muted small">·&nbsp;700</span></div>
+  <div class="type-specimen" style="font-size:22px;font-weight:700">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Modal-/Karten-Titel</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Lead</span><code>18px</code><span class="muted small">·&nbsp;600</span></div>
+  <div class="type-specimen" style="font-size:18px;font-weight:600">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Hervorgehobene Einleitung</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Subhead</span><code>16px</code><span class="muted small">·&nbsp;600</span></div>
+  <div class="type-specimen" style="font-size:16px;font-weight:600">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Unterüberschrift</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Body</span><code>14px</code><span class="muted small">·&nbsp;400</span></div>
+  <div class="type-specimen" style="font-size:14px;font-weight:400">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Standard-Fließtext (Basis)</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Body S</span><code>13px</code><span class="muted small">·&nbsp;500</span></div>
+  <div class="type-specimen" style="font-size:13px;font-weight:500">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Buttons, kompakte Fläche</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Caption</span><code>12px</code><span class="muted small">·&nbsp;500</span></div>
+  <div class="type-specimen" style="font-size:12px;font-weight:500">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Meta, Hilfetext</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Label</span><code>11px</code><span class="muted small">·&nbsp;700</span></div>
+  <div class="type-specimen" style="font-size:11px;font-weight:700">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Formular-Label (Großbuchstaben)</div>
+</div>
+<div class="type-row">
+  <div class="type-meta"><span class="badge-role">Micro</span><code>10px</code><span class="muted small">·&nbsp;600</span></div>
+  <div class="type-specimen" style="font-size:10px;font-weight:600">Datenfluss sichtbar</div>
+  <div class="muted small type-use">Badges, Legenden</div>
+</div></div>
+      <div class="subgroup">
+        <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-circle-info"></use></svg><h3>Signatur-Label</h3><span class="muted small">Formular-Labels: 11&nbsp;px · 700 · Großbuchstaben · <code>letter-spacing:.07em</code></span></div>
+        <div class="label-demo"><span class="sig-label">Datenobjekt-Name</span><span class="sig-label">Schutzbedarf</span><span class="sig-label">Erfassung</span></div>
+      </div>
+      <div class="subgroup">
+        <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-table-cells"></use></svg><h3>Monospace</h3><span class="muted small">Werte, IDs, Code</span></div>
+        <p class="mono-demo">rel.übergibt → node_04ac &nbsp; { schutz: "dsgvo", erfassung: "manuell" }</p>
+      </div>
+    </section>
+
+    <section class="panel" id="space">
+      <div class="sec-head"><svg class="ic accent" aria-hidden="true"><use href="#fa-ruler-combined"></use></svg><h2>Abstände &amp; Radius</h2></div>
+      <p class="sec-lead">Die Quelle nutzt keine benannten Spacing-Token, sondern eine konsistente 2-er/4-er-Rhythmik
+        in <code>gap</code> und <code>padding</code>. Radius und Sidebar-Breite sind als Token gesetzt.</p>
+      <div class="space-cols">
+        <div>
+          <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-ruler-combined"></use></svg><h3>Rhythmus</h3><span class="muted small">gängige gap/padding-Werte</span></div>
+          <div class="space-scale">
+<div class="space-row"><code>4px</code><span class="space-bar" style="width:12px"></span></div>
+<div class="space-row"><code>6px</code><span class="space-bar" style="width:18px"></span></div>
+<div class="space-row"><code>8px</code><span class="space-bar" style="width:24px"></span></div>
+<div class="space-row"><code>10px</code><span class="space-bar" style="width:30px"></span></div>
+<div class="space-row"><code>12px</code><span class="space-bar" style="width:36px"></span></div>
+<div class="space-row"><code>14px</code><span class="space-bar" style="width:42px"></span></div>
+<div class="space-row"><code>16px</code><span class="space-bar" style="width:48px"></span></div>
+<div class="space-row"><code>20px</code><span class="space-bar" style="width:60px"></span></div>
+<div class="space-row"><code>28px</code><span class="space-bar" style="width:84px"></span></div></div>
+        </div>
+        <div>
+          <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-layer-group"></use></svg><h3>Token</h3></div>
+          <div class="tablewrap"><table class="tokens"><tbody>
+            <tr><td><code>--radius</code></td><td><code class="val">10px</code></td><td>Standard-Eckenradius (Buttons, Karten)</td></tr>
+            <tr><td><code>8px</code></td><td><code class="val">8px</code></td><td>Inputs, kompakte Karten</td></tr>
+            <tr><td><code>--sidebar-w</code></td><td><code class="val">280px</code></td><td>Feste Breite der App-Seitenleiste</td></tr>
+          </tbody></table></div>
+          <div class="radius-demo">
+            <span class="rad" style="border-radius:3px">3</span>
+            <span class="rad" style="border-radius:8px">8</span>
+            <span class="rad" style="border-radius:10px">10</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="elevation">
+      <div class="sec-head"><svg class="ic accent" aria-hidden="true"><use href="#fa-layer-group"></use></svg><h2>Elevation &amp; Glas</h2></div>
+      <p class="sec-lead">Schatten sind mit dem Akzent eingefärbt (<code>rgba(66,0,147,…)</code>), nicht neutral-grau —
+        das bindet die Tiefe an die Markenfarbe. Oberflächen sind durchscheinendes Glas mit <code>backdrop-filter</code>.</p>
+      <div class="elev-grid">
+        <div class="elev-card" style="box-shadow:var(--shadow-sm)"><code>--shadow-sm</code><span class="muted small">0 2px 8px · a.06</span></div>
+        <div class="elev-card" style="box-shadow:var(--shadow-md)"><code>--shadow-md</code><span class="muted small">0 4px 24px · a.10</span></div>
+        <div class="elev-card" style="box-shadow:var(--shadow-lg)"><code>--shadow-lg</code><span class="muted small">0 8px 40px · a.14</span></div>
+      </div>
+      <div class="subgroup">
+        <div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-droplet"></use></svg><h3>Glas-Oberfläche</h3><span class="muted small"><code>--glass-bg: rgba(255,255,255,.72)</code> · <code>blur(20px)</code> · Rand <code>--glass-border</code></span></div>
+        <div class="glass-demo"><div class="glass-tile">Glas über Verlauf<span class="muted small">backdrop-filter: blur(20px)</span></div></div>
+      </div>
+      <p class="note"><span>Bewegung: <code>--ease-fluid: cubic-bezier(.25,1,.5,1)</code>, Übergänge typ.
+        <code>0.4s</code> (Komponenten) bzw. <code>0.2s</code> (Navigation).</span></p>
+    </section>
+
+    <section class="panel" id="buttons">
+      <div class="sec-head"><svg class="ic accent" aria-hidden="true"><use href="#fa-hand-pointer"></use></svg><h2>Buttons</h2><span class="live"><svg class="ic" aria-hidden="true"><use href="#fa-arrow-pointer"></use></svg>live · zeig mit der Maus</span></div>
+      <p class="sec-lead">Basis <code>.btn</code>: <code>8px&nbsp;18px</code>, Radius 10, 13&nbsp;px/500, <code>letter-spacing:.02em</code>,
+        Icon-Gap 6&nbsp;px. Varianten unten sind echte Komponenten mit den Quell-Regeln — inklusive Hover.</p>
+
+      <div class="demo-row">
+        <button class="btn btn-primary"><svg class="ic" aria-hidden="true"><use href="#fa-circle-check"></use></svg>Primär</button>
+        <button class="btn btn-secondary">Sekundär</button>
+        <button class="btn btn-secondary active">Sekundär · aktiv</button>
+        <button class="btn btn-danger"><svg class="ic" aria-hidden="true"><use href="#fa-ban"></use></svg>Danger</button>
+        <button class="btn btn-secondary btn-sm">Small</button>
+        <button class="btn btn-secondary btn-icon" aria-label="Icon-Button"><svg class="ic" aria-hidden="true"><use href="#fa-pen-to-square"></use></svg></button>
+      </div>
+      <div class="demo-caption muted small">.btn-primary · .btn-secondary · .btn-secondary.active · .btn-danger · .btn-sm · .btn-icon</div>
+
+      <div class="demo-row demo-row-lg">
+        <button class="btn btn-lg btn-primary"><svg class="ic" aria-hidden="true"><use href="#fa-hand-pointer"></use></svg>Große Aktion</button>
+        <button class="btn btn-lg btn-secondary">Große Sekundär-Aktion</button>
+      </div>
+      <div class="demo-caption muted small">.btn-lg — 14px&nbsp;34px · 14&nbsp;px/600 · eigener Akzent-Schatten, hebt beim Hover an</div>
+
+      
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--c-accent</code></td><td><span class="sw" style="--v:#420093"></span></td><td><code class="val">#420093</code></td><td>.btn-primary Grundfläche</td></tr>
+<tr><td><code>--c-accent-h</code></td><td><span class="sw" style="--v:#000000"></span></td><td><code class="val">#000000</code></td><td>.btn-primary:hover</td></tr>
+<tr><td><code>--c-danger</code></td><td><span class="sw" style="--v:#c0392b"></span></td><td><code class="val">#c0392b</code></td><td>.btn-danger Grundfläche</td></tr>
+<tr><td><code>--radius</code></td><td><span class="sw" style="--v:10px"></span></td><td><code class="val">10px</code></td><td>Eckenradius aller Buttons</td></tr>
+</tbody></table></div>
+    </section>
+
+    <section class="panel" id="forms">
+      <div class="sec-head"><svg class="ic accent" aria-hidden="true"><use href="#fa-pen-to-square"></use></svg><h2>Formulare</h2><span class="live"><svg class="ic" aria-hidden="true"><use href="#fa-arrow-pointer"></use></svg>live · klick ins Feld</span></div>
+      <p class="sec-lead">Felder liegen auf halbtransparentem Weiß mit weichem Strukturrand; der Fokus zieht den Akzent­rand
+        und einen 3&nbsp;px-Akzent-Halo. Labels sind das Signatur-Detail: klein, fett, Großbuchstaben.</p>
+
+      <div class="forms-grid">
+        <form class="form-card" onsubmit="return false">
+          <div class="form-row">
+            <label for="f-name">Datenobjekt-Name</label>
+            <input id="f-name" type="text" placeholder="z. B. Mitgliederliste" value="Spendenbescheinigung">
+          </div>
+          <div class="form-row-cols">
+            <div class="form-row">
+              <label for="f-schutz">Schutzbedarf</label>
+              <select id="f-schutz"><option>öffentlich</option><option selected>DSGVO / personenbezogen</option><option>intern</option></select>
+            </div>
+            <div class="form-row">
+              <label for="f-erf">Erfassung</label>
+              <select id="f-erf"><option selected>manuell</option><option>automatisiert</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="f-note">Notiz</label>
+            <textarea id="f-note" placeholder="Kontext, Quelle, Verantwortliche …">Wird quartalsweise aus dem CRM erzeugt.</textarea>
+          </div>
+        </form>
+
+        <div class="form-card">
+          <div class="subhead tight"><svg class="ic accent" aria-hidden="true"><use href="#fa-circle-info"></use></svg><h3>Auswahl-Karten</h3></div>
+          <div class="radio-group">
+            <label class="radio-option selected"><input type="radio" name="r" checked>
+              <span><span class="radio-option-label">Manuelle Erfassung</span><span class="radio-option-desc">Daten werden per Hand eingepflegt</span></span></label>
+            <label class="radio-option"><input type="radio" name="r">
+              <span><span class="radio-option-label">Automatisiert</span><span class="radio-option-desc">Import über Schnittstelle / Job</span></span></label>
+          </div>
+          <div class="subhead tight" style="margin-top:18px"><svg class="ic accent" aria-hidden="true"><use href="#fa-ruler-combined"></use></svg><h3>Kompaktes Filterfeld</h3><span class="muted small">.filter-group</span></div>
+          <div class="filter-group"><input type="text" placeholder="Knoten suchen …"></div>
+        </div>
+      </div>
+
+      
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--c-border-s</code></td><td><span class="sw" style="--v:rgba(180,170,210,0.35)"></span></td><td><code class="val">rgba(180,170,210,0.35)</code></td><td>Feldrand (Ruhezustand)</td></tr>
+<tr><td><code>--c-accent</code></td><td><span class="sw" style="--v:#420093"></span></td><td><code class="val">#420093</code></td><td>Fokusrand · accent-color · aktive Auswahl</td></tr>
+<tr><td><code>--c-muted</code></td><td><span class="sw" style="--v:#7a7591"></span></td><td><code class="val">#7a7591</code></td><td>Label- und Hilfetext-Farbe</td></tr>
+<tr><td><code>8px</code></td><td><span class="sw" style="--v:8px"></span></td><td><code class="val">8px</code></td><td>Feld-Radius (form-row Inputs)</td></tr>
+</tbody></table></div>
+    </section>
+
+    <section class="panel" id="tokens">
+      <div class="sec-head"><svg class="ic accent" aria-hidden="true"><use href="#fa-table-cells"></use></svg><h2>Vollständige Token-Referenz</h2></div>
+      <p class="sec-lead">Alle Custom Properties aus <code>:root</code>, gruppiert. Werte sind exakt wie in der Quelle notiert.</p>
+      <div class="subgroup"><div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-palette"></use></svg><h3>Kern</h3></div>
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--c-bg</code></td><td><span class="sw" style="--v:#f0edf8"></span></td><td><code class="val">#f0edf8</code></td><td>Seiten-Grundton (Basis des Hintergrund-Verlaufs)</td></tr>
+<tr><td><code>--c-surface</code></td><td><span class="sw" style="--v:rgba(255,255,255,0.72)"></span></td><td><code class="val">rgba(255,255,255,0.72)</code></td><td>Glas-Oberfläche für Panels und Karten</td></tr>
+<tr><td><code>--c-border</code></td><td><span class="sw" style="--v:rgba(255,255,255,0.4)"></span></td><td><code class="val">rgba(255,255,255,0.4)</code></td><td>Heller Glas-Rand (obere Kante)</td></tr>
+<tr><td><code>--c-border-s</code></td><td><span class="sw" style="--v:rgba(180,170,210,0.35)"></span></td><td><code class="val">rgba(180,170,210,0.35)</code></td><td>Weicher Strukturrand (Inputs, Karten)</td></tr>
+<tr><td><code>--c-text</code></td><td><span class="sw" style="--v:#1e1b2e"></span></td><td><code class="val">#1e1b2e</code></td><td>Fließtext und Überschriften</td></tr>
+<tr><td><code>--c-muted</code></td><td><span class="sw" style="--v:#7a7591"></span></td><td><code class="val">#7a7591</code></td><td>Sekundärtext, Labels, Captions</td></tr>
+<tr><td><code>--c-accent</code></td><td><span class="sw" style="--v:#420093"></span></td><td><code class="val">#420093</code></td><td>Primärakzent — Buttons, Fokus, Aktiv-Zustand</td></tr>
+<tr><td><code>--c-accent-h</code></td><td><span class="sw" style="--v:#000000"></span></td><td><code class="val">#000000</code></td><td>Akzent-Hover (verdunkelt zu Schwarz)</td></tr>
+</tbody></table></div></div><div class="subgroup"><div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-circle-info"></use></svg><h3>Semantik</h3></div>
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--c-danger</code></td><td><span class="sw" style="--v:#c0392b"></span></td><td><code class="val">#c0392b</code></td><td>Fehler / destruktive Aktion</td></tr>
+<tr><td><code>--c-success</code></td><td><span class="sw" style="--v:#2e9e60"></span></td><td><code class="val">#2e9e60</code></td><td>Erfolg / bestätigt</td></tr>
+<tr><td><code>--c-warn</code></td><td><span class="sw" style="--v:#d4820a"></span></td><td><code class="val">#d4820a</code></td><td>Warnung / Achtung</td></tr>
+</tbody></table></div></div><div class="subgroup"><div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-diagram-project"></use></svg><h3>Beziehungen</h3></div>
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--rel-übergibt</code></td><td><span class="sw" style="--v:#6c8ebf"></span></td><td><code class="val">#6c8ebf</code></td><td>übergibt</td></tr>
+<tr><td><code>--rel-nutzt</code></td><td><span class="sw" style="--v:#5fa878"></span></td><td><code class="val">#5fa878</code></td><td>nutzt</td></tr>
+<tr><td><code>--rel-erstellt</code></td><td><span class="sw" style="--v:#c4a23a"></span></td><td><code class="val">#c4a23a</code></td><td>erstellt</td></tr>
+<tr><td><code>--rel-empfängt</code></td><td><span class="sw" style="--v:#bf6c6c"></span></td><td><code class="val">#bf6c6c</code></td><td>empfängt</td></tr>
+<tr><td><code>--rel-verarbeitet</code></td><td><span class="sw" style="--v:#9b72b8"></span></td><td><code class="val">#9b72b8</code></td><td>verarbeitet</td></tr>
+</tbody></table></div></div><div class="subgroup"><div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-droplet"></use></svg><h3>Schutzbedarf</h3></div>
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--schutz-dsgvo</code></td><td><span class="sw" style="--v:#bf6c6c"></span></td><td><code class="val">#bf6c6c</code></td><td>DSGVO / personenbezogen</td></tr>
+<tr><td><code>--schutz-intern</code></td><td><span class="sw" style="--v:#c4913a"></span></td><td><code class="val">#c4913a</code></td><td>intern</td></tr>
+<tr><td><code>--schutz-oeffentlich</code></td><td><span class="sw" style="--v:#5fa878"></span></td><td><code class="val">#5fa878</code></td><td>öffentlich</td></tr>
+</tbody></table></div></div><div class="subgroup"><div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-droplet"></use></svg><h3>Erfassung</h3></div>
+<div class="tablewrap"><table class="tokens">
+<thead><tr><th>Token</th><th>Muster</th><th>Wert</th><th>Verwendung</th></tr></thead>
+<tbody>
+<tr><td><code>--erfassung-manuell</code></td><td><span class="sw" style="--v:#9b72b8"></span></td><td><code class="val">#9b72b8</code></td><td>manuell</td></tr>
+<tr><td><code>--erfassung-automatisiert</code></td><td><span class="sw" style="--v:#6c8ebf"></span></td><td><code class="val">#6c8ebf</code></td><td>automatisiert</td></tr>
+</tbody></table></div></div>
+      <div class="subgroup"><div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-layer-group"></use></svg><h3>Layout, Elevation &amp; Motion</h3></div>
+        <div class="tablewrap"><table class="tokens"><thead><tr><th>Token</th><th>Wert</th><th>Verwendung</th></tr></thead><tbody>
+          <tr><td><code>--radius</code></td><td><code class="val">10px</code></td><td>Standard-Eckenradius</td></tr>
+          <tr><td><code>--sidebar-w</code></td><td><code class="val">280px</code></td><td>Seitenleisten-Breite</td></tr>
+          <tr><td><code>--shadow-sm</code></td><td><code class="val">0 2px 8px rgba(66,0,147,.06)</code></td><td>Leichte Anhebung</td></tr>
+          <tr><td><code>--shadow-md</code></td><td><code class="val">0 4px 24px rgba(66,0,147,.10)</code></td><td>Karten, Hover</td></tr>
+          <tr><td><code>--shadow-lg</code></td><td><code class="val">0 8px 40px rgba(66,0,147,.14)</code></td><td>Modale, Overlays</td></tr>
+          <tr><td><code>--glass-bg</code></td><td><code class="val">rgba(255,255,255,.72)</code></td><td>Glas-Füllung</td></tr>
+          <tr><td><code>--glass-border</code></td><td><code class="val">rgba(255,255,255,.4)</code></td><td>Glas-Rand</td></tr>
+          <tr><td><code>--ease-fluid</code></td><td><code class="val">cubic-bezier(.25,1,.5,1)</code></td><td>Übergangs-Kurve</td></tr>
+        </tbody></table></div>
+      </div>
+
+      <div class="subgroup"><div class="subhead"><svg class="ic accent" aria-hidden="true"><use href="#fa-moon"></use></svg><h3>Dark-Modus <span class="muted small">— Vorschlag, nicht in der Quelle</span></h3></div>
+        <p class="sec-lead">Ein abgeleitetes Dark-Set: der Akzent wird angehoben (<code>#420093 → #9b6dff</code>), damit er auf
+          dunklem Grund trägt; Glas-Flächen werden zu getöntem Violett-Schwarz, Schatten neutral. Wird über
+          <code>prefers-color-scheme</code> und die Viewer-Umschaltung (<code>data-theme</code>) aktiv.</p>
+        <div class="tablewrap"><table class="tokens">
+          <thead><tr><th>Token</th><th>Light (Quelle)</th><th></th><th>Dark (Vorschlag)</th><th></th></tr></thead>
+          <tbody><tr><td><code>--c-bg</code></td><td><code class="val">#f0edf8</code></td><td><span class="sw" style="--v:#f0edf8"></span></td><td><code class="val">#141021</code></td><td><span class="sw" style="--v:#141021"></span></td></tr><tr><td><code>--c-surface / --glass-bg</code></td><td><code class="val">rgba(255,255,255,.72)</code></td><td><span class="sw" style="--v:rgba(255,255,255,.72)"></span></td><td><code class="val">rgba(38,32,58,.62)</code></td><td><span class="sw" style="--v:rgba(38,32,58,.62)"></span></td></tr><tr><td><code>--c-border-s</code></td><td><code class="val">rgba(180,170,210,.35)</code></td><td><span class="sw" style="--v:rgba(180,170,210,.35)"></span></td><td><code class="val">rgba(150,140,190,.20)</code></td><td><span class="sw" style="--v:rgba(150,140,190,.20)"></span></td></tr><tr><td><code>--c-text</code></td><td><code class="val">#1e1b2e</code></td><td><span class="sw" style="--v:#1e1b2e"></span></td><td><code class="val">#ece9f5</code></td><td><span class="sw" style="--v:#ece9f5"></span></td></tr><tr><td><code>--c-muted</code></td><td><code class="val">#7a7591</code></td><td><span class="sw" style="--v:#7a7591"></span></td><td><code class="val">#9d97b5</code></td><td><span class="sw" style="--v:#9d97b5"></span></td></tr><tr><td><code>--c-accent</code></td><td><code class="val">#420093</code></td><td><span class="sw" style="--v:#420093"></span></td><td><code class="val">#9b6dff</code></td><td><span class="sw" style="--v:#9b6dff"></span></td></tr><tr><td><code>--c-accent-h</code></td><td><code class="val">#000000</code></td><td><span class="sw" style="--v:#000000"></span></td><td><code class="val">#c4a6ff</code></td><td><span class="sw" style="--v:#c4a6ff"></span></td></tr><tr><td><code>--c-danger</code></td><td><code class="val">#c0392b</code></td><td><span class="sw" style="--v:#c0392b"></span></td><td><code class="val">#e5675a</code></td><td><span class="sw" style="--v:#e5675a"></span></td></tr><tr><td><code>--c-success</code></td><td><code class="val">#2e9e60</code></td><td><span class="sw" style="--v:#2e9e60"></span></td><td><code class="val">#4cc98a</code></td><td><span class="sw" style="--v:#4cc98a"></span></td></tr><tr><td><code>--c-warn</code></td><td><code class="val">#d4820a</code></td><td><span class="sw" style="--v:#d4820a"></span></td><td><code class="val">#e6a53a</code></td><td><span class="sw" style="--v:#e6a53a"></span></td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <footer class="doc-foot">
+      <span><svg class="ic" aria-hidden="true"><use href="#fa-diagram-project"></use></svg> DatenGraf · Design-System-Dokumentation</span>
+      <span class="muted small">Light: <code>daimpad/DatenGraf · css/styles.css</code> · Dark: Vorschlag · Icons: Font Awesome Free (CC BY 4.0)</span>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById("themeToggle");
+  var root = document.documentElement;
+  function current() {
+    var t = root.getAttribute("data-theme");
+    if (t) return t;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  btn.addEventListener("click", function () {
+    root.setAttribute("data-theme", current() === "dark" ? "light" : "dark");
+  });
+})();
+</script>
+</body>
+</html>
