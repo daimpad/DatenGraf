@@ -2546,6 +2546,22 @@ document.getElementById('faq-btn').addEventListener('click', openFaqModal);
 document.getElementById('faq-close-btn').addEventListener('click', closeFaqModal);
 document.getElementById('faq-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeFaqModal(); });
 
+// ── Theme-Toggle (Hell/Dunkel) ──────────────────────────────────
+const LS_THEME_KEY = 'datengraf_theme';
+function applyThemeIcon(theme) {
+  const icon = document.querySelector('#theme-toggle-btn i');
+  if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem(LS_THEME_KEY, next); } catch (e) {}
+  applyThemeIcon(next);
+}
+applyThemeIcon(document.documentElement.getAttribute('data-theme'));
+document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+
 document.getElementById('rel-legend').addEventListener('click', e => {
   const item = e.target.closest('.rel-legend-item');
   if (item) applyRelFilter(item.dataset.rel);

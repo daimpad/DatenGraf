@@ -60,6 +60,17 @@
   }
   </script>
 
+  <!-- Theme früh setzen (verhindert Flackern) -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('datengraf_theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
+
   <link rel="stylesheet" href="assets/fonts/inter/inter.css">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="assets/fonts/fa/all.min.css">
@@ -171,6 +182,7 @@
       <div class="topbar-spacer"></div>
       <button class="btn btn-primary btn-sm" id="open-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
       <button class="btn btn-secondary btn-icon" id="faq-btn" title="Häufige Fragen" aria-label="Häufige Fragen"><i class="fas fa-question"></i></button>
+      <button class="btn btn-secondary btn-icon" id="theme-toggle-btn" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten"><i class="fas fa-moon"></i></button>
       <button class="btn btn-secondary btn-icon" id="settings-btn" title="Einstellungen" aria-label="Einstellungen"><i class="fas fa-gear"></i></button>
       <button class="btn btn-secondary btn-icon mobile-nav-btn" id="mobile-nav-btn" aria-label="Navigation öffnen"><i class="fas fa-ellipsis-vertical"></i></button>
       <button class="btn btn-secondary btn-icon" id="sidebar-toggle-btn" title="Filter ein-/ausblenden"><i class="fas fa-bars"></i></button>
@@ -942,9 +954,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v59</span>
+  <span class="footer-version">v60</span>
 </footer>
 
-<script src="js/app.js?v=59"></script>
+<script src="js/app.js?v=60"></script>
 </body>
 </html>
