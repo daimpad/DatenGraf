@@ -752,7 +752,7 @@ function showAnalyseBriefing() {
   const vs        = calcVollstaendigkeit(allData);
   lastBriefing = { findings, vs };
   const narrative = generateNarrative(allData, findings, vs);
-  const scoreColor = vs.score >= 80 ? 'var(--c-success)' : vs.score >= 60 ? 'var(--c-warn)' : 'var(--c-danger)';
+  const scoreColor = vs.score >= 80 ? 'var(--ink-success)' : vs.score >= 60 ? 'var(--ink-warn)' : 'var(--ink-danger)';
 
   const sevIcon  = { high: 'fa-circle-exclamation', medium: 'fa-triangle-exclamation', low: 'fa-circle-info' };
   const sevClass = { high: 'finding-high', medium: 'finding-medium', low: 'finding-low' };
@@ -766,7 +766,7 @@ function showAnalyseBriefing() {
     : '';
 
   const scoreCatsHTML = vs.categories.map(c => {
-    const catColor = c.pct >= 80 ? 'var(--c-success)' : c.pct >= 50 ? 'var(--c-warn)' : 'var(--c-danger)';
+    const catColor = c.pct >= 80 ? 'var(--ink-success)' : c.pct >= 50 ? 'var(--ink-warn)' : 'var(--ink-danger)';
     return `<div class="score-cat-row">
       <span class="score-cat-label">${esc(c.label)}</span>
       <div class="score-cat-bar"><div class="score-cat-fill" style="width:${c.pct}%;background:${catColor}"></div></div>
@@ -899,6 +899,33 @@ function showAnalyseBriefing() {
 }
 
 // ── Network view ─────────────────────────────────────────────────────────────
+function isDarkTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+// Cytoscape-Styles sind kein CSS – theme-abhängige Werte hier explizit setzen.
+function buildCyStyle() {
+  const dark = isDarkTheme();
+  const parentInk  = dark ? '#c4a6ff' : '#420093';
+  const parentLine = dark ? 'rgba(196,166,255,0.35)' : 'rgba(66,0,147,0.25)';
+  const edgeLabelBg = dark ? '#241f38' : '#f5f3fb';
+  const edgeLabelInk = dark ? '#ece9f5' : '#1e1b2e';
+  const nodeRing = dark ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.4)';
+  return CY_STYLE.map(rule => {
+    if (rule.selector === 'edge') {
+      return { ...rule, style: { ...rule.style, 'text-background-color': edgeLabelBg, color: edgeLabelInk } };
+    }
+    if (rule.selector === 'node') {
+      return { ...rule, style: { ...rule.style, 'border-color': nodeRing } };
+    }
+    if (rule.selector === ':parent') {
+      return { ...rule, style: { ...rule.style, color: parentInk, 'border-color': parentLine,
+        'background-color': dark ? '#c4a6ff' : '#420093', 'background-opacity': dark ? 0.06 : 0.04 } };
+    }
+    return rule;
+  });
+}
+
 const CY_STYLE = [
   {
     selector: 'node',
@@ -1005,8 +1032,18 @@ function renderNetwork(data) {
     return;
   }
 
+  if (typeof cytoscape === 'undefined') {
+    cachedTopoRisks = null;
+    networkChart = null;
+    updateNetworkStats([]);
+    document.getElementById('pathfinder-bar').classList.add('hidden');
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fas fa-triangle-exclamation fa-2x"></i></div>
+      <p><strong>Netzwerkkarte nicht verfügbar.</strong><br>Die Grafik-Bibliothek konnte nicht geladen werden – vermutlich blockiert das Netzwerk den Zugriff auf das CDN.<br>Listenansicht, Insights und Analyse-Briefing funktionieren weiterhin.</p></div>`;
+    return;
+  }
+
   cachedTopoRisks = computeTopologyRisks(data);
-  networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: CY_STYLE, layout: COSE_OPTS });
+  networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: buildCyStyle(), layout: COSE_OPTS });
   if (colorByOrg) applyOrgColors();
   if (frequencyVisMode) applyFrequencyVis();
   if (!edgeLabelsVisible) networkChart.edges().style({ label: '' });
@@ -1580,7 +1617,7 @@ function showCSVPreview(text) {
 
   const totalLines = parsed.length;
   meta.innerHTML = `${totalLines} Zeilen · ${headers.length} Spalten` +
-    (missingRequired.length ? ` · <span style="color:var(--c-danger)"><i class="fas fa-triangle-exclamation"></i> Pflichtfelder fehlen: ${missingRequired.join(', ')}</span>` : '');
+    (missingRequired.length ? ` · <span style="color:var(--ink-danger)"><i class="fas fa-triangle-exclamation"></i> Pflichtfelder fehlen: ${missingRequired.join(', ')}</span>` : '');
 
   table.innerHTML =
     `<thead><tr>${headers.map(h => `<th class="${REQUIRED.includes(h) ? 'csv-th-required' : ''}">${esc(h)}</th>`).join('')}</tr></thead>` +
@@ -1982,7 +2019,7 @@ function applyFrequencyVis() {
     `<div class="freq-legend-item">
        <svg class="freq-legend-line" viewBox="0 0 32 8" xmlns="http://www.w3.org/2000/svg">
          <line x1="2" y1="4" x2="30" y2="4"
-           stroke="#420093" stroke-width="${Math.min(vis.width, 3)}"
+           stroke="var(--c-accent)" stroke-width="${Math.min(vis.width, 3)}"
            stroke-dasharray="${vis.lineStyle === 'dashed' ? '6,3' : vis.lineStyle === 'dotted' ? '2,3' : 'none'}"
            stroke-opacity="${vis.opacity}" stroke-linecap="round"/>
        </svg>
@@ -2379,6 +2416,10 @@ document.getElementById('pdf-report-btn').addEventListener('click', () => {
 // ── Share Link ────────────────────────────────────────────────────────────────
 document.getElementById('share-link-btn').addEventListener('click', () => {
   if (!allData.length) { setStatus('Keine Daten zum Teilen.', 'error'); return; }
+  if (typeof LZString === 'undefined') {
+    setStatus('Link-Funktion nicht verfügbar (Bibliothek blockiert) – bitte CSV-Export nutzen.', 'error');
+    return;
+  }
   const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(allData));
   const url = `${location.origin}${location.pathname}#share=${compressed}`;
   if (url.length > 15000) {
@@ -2558,6 +2599,13 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem(LS_THEME_KEY, next); } catch (e) {}
   applyThemeIcon(next);
+  // Cytoscape-Styles leben ausserhalb von CSS – neu anwenden, sonst bleiben alte Farben stehen.
+  if (networkChart) {
+    networkChart.style(buildCyStyle()).update();
+    if (colorByOrg) applyOrgColors();
+    if (frequencyVisMode) applyFrequencyVis();
+    if (!edgeLabelsVisible) networkChart.edges().style({ label: '' });
+  }
 }
 applyThemeIcon(document.documentElement.getAttribute('data-theme'));
 document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
