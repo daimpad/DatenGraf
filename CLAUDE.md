@@ -9,10 +9,11 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 **DatenGraf** ist eine browserbasierte Single-Page-Application (SPA) zur Kartierung und Analyse von Datenflüssen in Organisationen. Kein Backend, kein Build-Prozess, kein Framework — nur HTML, CSS und Vanilla JS.
 
 - **Einstiegspunkt:** `index.html`
-- **Styles:** `css/styles.css` (~2450 Zeilen)
-- **Logik:** `js/app.js` (~2600 Zeilen, eine einzige Datei)
+- **Styles:** `css/styles.css` (~2930 Zeilen)
+- **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
-- **Aktuelle Version:** `v39` (Script-Tag: `<script src="js/app.js?v=39">`)
+- **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
+- **Aktuelle Version:** `v61` (Script-Tag: `<script src="js/app.js?v=61">`)
 
 ---
 
@@ -25,12 +26,13 @@ python3 -m http.server 8080
 
 `file://` funktioniert nicht, da `fetch()` für CSV-Beispieldaten nötig ist. Kein `npm install`, kein Bundler, keine Build-Pipeline zur Laufzeit.
 
-**Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen:
+**Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<script src="js/app.js?v=25"></script>
+<span class="footer-version">v61</span>
+<script src="js/app.js?v=61"></script>
 ```
 
-**Fonts/Icons:** Lokal unter `assets/fonts/` — kein CDN mehr. Inter (woff2, 400/500/600/700) + Font Awesome 6.7.2 (solid/regular/brands).
+**Fonts/Icons:** Lokal unter `assets/fonts/` — kein CDN. Inter (woff2, 400/500/600/700) + Font Awesome 6.7.2 (solid/regular/brands).
 
 ---
 
@@ -64,7 +66,7 @@ CSV-Import / Wizard
 |---|---|---|
 | `allData` | `Row[]` | Vollständiger Datensatz |
 | `filteredData` | `Row[]` | Gefilterter Datensatz (Subset von `allData`) |
-| `networkChart` | `cytoscape \| null` | Aktuelle Cytoscape-Instanz; `null` wenn keine Daten |
+| `networkChart` | `cytoscape \| null` | Aktuelle Cytoscape-Instanz; `null` wenn keine Daten **oder Bibliothek nicht geladen** |
 | `activeFilters` | `Object` | Aktive Filterwerte (Sets + Strings) |
 | `editIndex` | `number` | Index in `allData` des gerade bearbeiteten Eintrags; `-1` = neuer Eintrag |
 | `wizardStep` | `number` | Aktueller Wizard-Schritt (0-basiert) |
@@ -80,6 +82,8 @@ CSV-Import / Wizard
 | `undoStack` | `Row[][]` | Undo-Stack (max. 20 Einträge); Push vor jeder Mutation; `Ctrl+Z` → `performUndo()` |
 | `lastBriefing` | `{findings, vs} \| null` | Cache letztes Briefing-Ergebnis für PDF-Export |
 
+Das Theme hält keinen JS-State: Quelle der Wahrheit ist `document.documentElement[data-theme]`, gespiegelt in LocalStorage.
+
 ### LocalStorage-Schlüssel
 
 | Konstante | Schlüssel | Inhalt |
@@ -89,6 +93,7 @@ CSV-Import / Wizard
 | `LS_BASELINE_KEY` | `datengraf_baseline` | Key des aktiven Baseline-Snapshots |
 | `LS_API_KEY` | `datengraf_api_key` | Anthropic API-Key (opt-in) |
 | `LS_FILTERS_KEY` | `datengraf_filters` | Persistierte Filter-Einstellungen (JSON) |
+| `LS_THEME_KEY` | `datengraf_theme` | `'light'` \| `'dark'` |
 
 ### CSV-Spalten (Row-Schema)
 
@@ -121,18 +126,36 @@ el.textContent = esc(row.Quelle);   // ✗ zeigt "&amp;" statt "&"
 
 ### CSS-Variablen
 
-Immer Design-Tokens verwenden, nie hardcoded Farben:
+Immer Design-Tokens verwenden, nie hardcodierte Farben:
 ```css
-color: var(--c-accent);      /* #420093 */
-color: var(--c-muted);       /* #7a7591 */
-color: var(--c-success);     /* #2e9e60 */
-color: var(--c-danger);      /* #c0392b */
-color: var(--c-warn);        /* #d4820a */
+color: var(--c-accent);      /* light #420093 · dark #9b6dff */
+color: var(--c-muted);       /* light #6a6580 · dark #9d97b5 */
+color: var(--c-text);
 border: 1px solid var(--c-border-s);
 background: var(--glass-bg);
 box-shadow: var(--shadow-md);
 border-radius: var(--radius);
 ```
+
+**Fläche ≠ Schrift.** Semantische Farben existieren in zwei Ausprägungen, weil derselbe Farbwert als Text den Kontrast verfehlt:
+
+| Zweck | Token | Verwendung |
+|---|---|---|
+| Fläche, Balken, Punkt | `--c-success` / `--c-warn` / `--c-danger` | `background`, Legendenpunkte |
+| Schrift | `--ink-success` / `--ink-warn` / `--ink-danger` | `color` |
+
+**Schrift auf Akzentfläche** immer `var(--on-accent)`, nie `#fff`: im Dark Theme ist der Akzent hell, dort schaltet das Token auf dunkle Tinte um.
+
+Weitere abgeleitete Tokens: `--page-grad` (Body-Verlauf), `--surface-solid` (opake Modals), `--surface-alt` (Abschnittsflächen), `--field-bg` / `--field-bg-focus`, `--surface-2` / `--surface-3`, `--btn-sec-bg` / `--btn-sec-bg-h`, `--badge-*` und `--sector-*` (getönte Chips).
+
+### Theme-Umschaltung
+
+- Tokens: `:root` (hell) und `:root[data-theme="dark"]` in `css/styles.css`, Werte aus `docs/design-system.html`.
+- Ein Inline-Script im `<head>` setzt `data-theme` **vor** dem Stylesheet — sonst flackert die Seite beim Laden.
+- Ohne gespeicherte Wahl entscheidet `prefers-color-scheme`.
+- `toggleTheme()` schreibt Attribut + LocalStorage, tauscht das Icon (Mond/Sonne) und färbt ein offenes Netzwerk neu ein.
+
+> **Cytoscape ist kein CSS.** Graph-Styles kennen keine CSS-Variablen. Themeabhängige Werte gehören in `buildCyStyle()`, und jede Theme-Änderung muss `networkChart.style(buildCyStyle()).update()` auslösen.
 
 ### Hidden-Pattern
 
@@ -143,7 +166,7 @@ Kein globales `.hidden` — jede Komponente definiert ihre eigene Regel:
 
 ### `networkChart` Guards
 
-`networkChart` ist `null` wenn keine Daten geladen sind. Immer prüfen:
+`networkChart` ist `null`, wenn keine Daten geladen sind **oder Cytoscape nicht verfügbar ist**. Immer prüfen:
 ```js
 if (networkChart) networkChart.zoom(...);
 ```
@@ -152,6 +175,7 @@ if (networkChart) networkChart.zoom(...);
 
 Bei jeder Änderung an `allData` immer in dieser Reihenfolge aufrufen:
 ```js
+pushUndo();              // 0. Zustand für Ctrl+Z sichern
 buildSidebarFilters();   // 1. Filter-UI neu aufbauen
 applyFilters();          // 2. filteredData berechnen + renderAll()
 ```
@@ -161,19 +185,32 @@ Nie umgekehrt — `applyFilters()` nutzt die von `buildSidebarFilters()` aufgeba
 
 `toCSV` prüft `v == null || v === ''` (nicht `!v`) — damit wird der String `"0"` korrekt als Zellwert exportiert.
 
+### Barrierefreiheit
+
+Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). Bei neuen Farbkombinationen den Kontrast prüfen, statt Werte zu schätzen — besonders bei getönten Chips (transparente Fläche über wechselndem Grund) und bei Text auf Akzentflächen.
+
 ---
 
 ## Cytoscape-Integration
 
-- **Library:** Cytoscape.js v3.23 (CDN — einzige verbleibende externe Abhängigkeit zur Laufzeit)
+- **Library:** Cytoscape.js v3.23 (CDN)
 - **Layout:** CoSE (force-directed), Konfiguration in `COSE_OPTS`
-- **Stylesheet:** `CY_STYLE` — node/edge-Basis, `.highlighted`, `.faded`, `.path-node`, `.path-edge`
+- **Stylesheet:** `CY_STYLE` ist die **Basis-Konstante**; `buildCyStyle()` leitet daraus die themeabhängige Variante ab und wird an `cytoscape({ style })` übergeben. `CY_STYLE` selbst wird dabei nicht mutiert.
+- **Themeabhängig in `buildCyStyle()`:** Compound-Node-Label und -Rahmen (`:parent`), Kantenlabel-Hintergrund und -Schrift, Knoten-Rahmenfarbe
 - **Knotenfarbe:** `data(orgColor)` / `data(orgOutlineColor)` — Default `#7a6fa8`/`#5c5080`; via `applyOrgColors()` überschreibbar
 - **Klassen-Priorität:** `.highlighted` > `.path-node` > `data(orgColor)`
 - **Pfadsuche:** `cy.elements().aStar({ root, goal, directed: true })`
-- **PNG-Export:** `cy.png({ output: 'base64uri', full: true, scale: 2, bg: '#f0edf8' })` — synchron
+- **PNG-Export:** `cy.png({ output: 'base64uri', full: true, scale: 2, bg: '#f0edf8' })` — synchron; bewusst **immer hell**, da Exporte in Dokumenten und im Druck landen
 - **SVG-Export:** `cy.svg({ full: true })` — synchron
 - **Pathfinder-Bar:** wird NUR bei leeren Daten (`!data.length`) versteckt — nicht bei jedem Re-Render
+
+### Verhalten bei blockiertem CDN
+
+`renderNetwork()` prüft `typeof cytoscape === 'undefined'` und zeigt in dem Fall einen erklärenden Empty-State, statt zu werfen. Das ist kein Randfall: Verwaltungs- und Unternehmensnetze sperren CDNs regelmäßig. Vor diesem Guard riss die Exception die gesamte Kette nach `applyFilters()` ab — kein Briefing, kein Statustext, kein Tab-Wechsel.
+
+`share-link-btn` prüft analog `typeof LZString === 'undefined'` und meldet verständlich.
+
+> Wer neuen Code an eine CDN-Bibliothek hängt, prüft ihre Verfügbarkeit vorher.
 
 ---
 
@@ -181,9 +218,19 @@ Nie umgekehrt — `applyFilters()` nutzt die von `buildSidebarFilters()` aufgeba
 
 ### Schicht 1 – `runAnalysis(data)` (regelbasiert)
 
-Gibt `findings[]` zurück. Jedes Finding: `{ type, severity, icon, title, text, action? }`.
+Gibt `findings[]` zurück. Jedes Finding: `{ type, severity, icon, title, text, explain?, nodes?, action? }`.
 
-Finding-Typen: `hub`, `gatekeeper`, `isolated`, `dsgvo_gap`, `duplicate_relations`, `diff_changes`, `diff_topology`.
+| Typ | Bedeutung |
+|---|---|
+| `hub` | Knoten mit überdurchschnittlich vielen Verbindungen |
+| `gatekeeper` | Hohe Betweenness — struktureller Flaschenhals |
+| `isolated` | Teilgraphen ohne Verbindung zum Hauptnetz (BFS-Komponentenanalyse) |
+| `dsgvo_no_owner` | DSGVO-relevante Flüsse ohne Ansprechpartner |
+| `missing_schutz` | Fehlende Schutzklasse |
+| `missing_datentyp` | Fehlender Datentyp |
+| `no_org` | Fehlende Organisationsangabe |
+| `diff_changes` | Neue/entfallene Verbindungen gegenüber der Vergleichsbasis |
+| `diff_topology` | Knoten, die seit der Basis zu Hub/Gatekeeper wurden |
 
 Wichtige Hilfsfunktionen:
 - `betweennessCentrality(nodes, adj)` — eigene Implementierung (Brandes)
@@ -207,10 +254,17 @@ Wichtige Hilfsfunktionen:
 
 ### Vollständigkeits-Score
 
-`calcVollstaendigkeit(data)` → `{ score: 0–100, gaps: [] }`
+`calcVollstaendigkeit(data)` → `{ score: 0–100, gaps: [], categories: [] }`
 
-- 5 gewichtete Prüfkategorien (Pflichtfelder, Organisationsangabe, DSGVO-Klassifikation, Beziehungstyp, Ansprechpartner)
-- `gaps` enthält Kategorien mit `ok < weight`, jeweils `{ label, weight, ok, missing, pct }`
+| Kategorie | Gewicht | Prüfung |
+|---|---|---|
+| Schutzklasse | 25 | `Schutzbedarf` gesetzt |
+| Ansprechpartner (DSGVO) | 25 | bei `Schutzbedarf === 'DSGVO-relevant'` ein `Ansprechpartner` gesetzt; ohne DSGVO-Zeilen volle Punktzahl |
+| Datentyp | 20 | `Datentyp` gesetzt |
+| Erfassungsart | 15 | `Erfassungsart` gesetzt |
+| Organisation | 15 | `QuelleOrganisation` gesetzt |
+
+`categories` enthält alle fünf Kategorien (`{ label, weight, ok, missing, pct }`), `gaps` nur die mit `missing > 0`, absteigend sortiert.
 
 ---
 
@@ -221,24 +275,61 @@ Wichtige Hilfsfunktionen:
 | Wizard | `openWizard(prefill, editIdx)`, `closeWizard()`, `renderWizardStep()`, `collectWizardStep()` | `#wizard-backdrop`, `#wizard-next`, `#wizard-back` |
 | Duplikat-Erkennung | `findDuplicate(data, candidate, skipIndex)` | `#wizard-dup-warning`, `#wizard-dup-text` |
 | Listenansicht | `renderList(data)` | `#list-content`, `[data-edit]`, `[data-dupe]`, `[data-del]` |
-| Netzwerk | `renderNetwork(data)`, `prepareElements(data)` | `#network-container`, `#node-detail` |
-| Knoten-Detail | `showNodeDetail(nodeId, data)` | `#nd-name`, `#nd-metrics`, `#nd-flows` |
+| Netzwerk | `renderNetwork(data)`, `prepareElements(data)`, `buildCyStyle()` | `#network-container`, `#node-detail` |
+| Knoten-Detail | `showNodeDetail(nodeId, data)` | `#nd-name`, `#nd-metrics`, `#nd-flows`, `#nd-show-in-list` |
+| Knoten-Tooltip | Hover-Handler in `renderNetwork()` | `#cy-tooltip` |
+| Knotensuche | Handler auf `#network-node-search` (`Strg+F`) | `#network-node-search` |
 | Pfadfinder | `populatePathfinderSelects()`, `clearPath()` | `#pathfinder-bar`, `#path-from`, `#path-to` |
 | Org-Farben | `applyOrgColors()`, `clearOrgColors()`, `buildOrgColorMap()` | `#btn-color-by-org`, `#org-legend` |
-| Insights | `renderInsights(data)` | `#insights-grid` |
-| Filter | `applyFilters()`, `buildSidebarFilters()`, `clearFilters()` | `#sidebar`, `.chip`, `.filter-group` |
+| Org-Hierarchie | `prepareElements(data, true)` | `#btn-toggle-hierarchy`, `#hier-legend` |
+| Häufigkeits-Vis | `applyFrequencyVis()`, `clearFrequencyVis()`, `FREQ_VIS` | `#btn-freq-vis`, `#freq-legend` |
+| Rel-Legende (klickbar) | `renderRelLegend(data)`, `activeRelFilter` | `#rel-legend` |
+| Hub/Gatekeeper | `computeTopologyRisks(data)`, `cachedTopoRisks` | `#topo-legend` |
+| Kantenlabel-Toggle | `applyEdgeLabelToggle()` | `#btn-edge-labels` |
+| Legenden-Stapelung | `stackLegends(offset)` | `#org-legend`, `#freq-legend`, `#rel-legend` |
+| Insights | `renderInsights(data)`, `labelPropagation(nodes, adj)` | `#insights-grid` |
+| Filter | `applyFilters()`, `buildSidebarFilters()`, `clearFilters()`, `restoreFilters()` | `#sidebar`, `.chip`, `.filter-group` |
 | Analyse-Briefing | `showAnalyseBriefing()`, `runAnalysis()`, `calcVollstaendigkeit()` | `#analyse-briefing`, `#briefing-findings` |
 | Snapshots | `listSnapshots()`, `getBaselineSnapshot()`, `diffSnapshots()` | `#snapshot-backdrop`, `#snapshot-list` |
 | LLM-Narrativ | `generateNarrativeLLM(data, findings, vs)` | `.briefing-narrative-text` |
 | Settings Modal | `openSettingsModal()`, `closeSettingsModal()`, `updateKeyStatus()` | `#settings-backdrop`, `#settings-api-key` |
+| FAQ Modal | `openFaqModal()`, `closeFaqModal()` | `#faq-backdrop`, `#faq-btn` |
+| Theorie Modal | — | `#theory-backdrop`, `#open-theory-btn` |
+| Theme-Toggle | `toggleTheme()`, `applyThemeIcon()`, `isDarkTheme()` | `#theme-toggle-btn` |
+| Undo | `pushUndo()`, `performUndo()` | — (`Strg+Z`) |
 | Mobile-Nav | — | `#mobile-nav`, `#mobile-nav-btn`, `.mobile-nav-tab` |
-| CSV-Import | `parseCSV(text)`, `splitCSVLine(line)` | `#import-body`, `#csv-input` |
+| CSV-Import | `parseCSV(csv)` — eine State-Machine über den gesamten String, kein Zeilen-Helper; behandelt Quotes, `""`-Escapes und CRLF | `#import-body`, `#csv-input` |
+| Import-Vorschau | `showCSVPreview(text)` | `#csv-preview` |
 | CSV-Export | `toCSV(data)` | `#export-csv-btn` |
 | PNG/SVG-Export | `downloadBlob(blob, filename)` | `#btn-export-png`, `#btn-export-svg` |
 | PDF-Bericht | `buildReportHTML(networkImgUri)` | `#pdf-report-btn` |
 | Share-Link | `loadFromShareHash()` | `#share-link-btn` |
 | Beispieldaten | `loadExample(key)`, `showExampleInfo(ex)`, `EXAMPLES` | `.sample-card`, `#example-info` |
 | LocalStorage | — | `#save-local-btn`, `#load-local-btn` |
+
+### Tastenkürzel
+
+| Kürzel | Wirkung | Bedingung |
+|---|---|---|
+| `Strg`/`Cmd` + `N` | Wizard öffnen | kein Modal offen, Fokus nicht im Eingabefeld |
+| `Strg`/`Cmd` + `Z` | `performUndo()` | wie oben |
+| `Strg`/`Cmd` + `F` | Knotensuche fokussieren | nur bei aktivem `#panel-network` |
+| `Esc` | Oberstes offenes Modal schließen | — |
+
+---
+
+## Seitenaufbau (Landingpage)
+
+Reihenfolge unterhalb der App-Shell:
+
+1. `.cta-section` — lila Band „Was steckt hinter Netzwerkanalysen?" → Theorie-Modal
+2. `.feature-duo-section` — heller Container mit Datenatlas und DatenLotse (Logo-Platzhalter mit Hover-Effekt)
+3. `.contact-cta-section` — dunkles Band (`#18181b`) → nozilla-Kontakt
+4. `.site-footer` — Brand links, Links rechtsbündig, Versionsnummer
+
+Im Hero sitzt unter den drei Karten das SEO-Akkordeon `.about-accordion` („Mehr über den DatenGraf erfahren"), ein natives `<details>` ohne JS. Der Inhalt bleibt im DOM und damit indexierbar.
+
+Die Filter-Sidebar und der Hamburger-Button liegen seit v59 **rechts** (`order: 1`, `border-left`, Kollaps nach `translateX(+w)`).
 
 ---
 
@@ -265,7 +356,7 @@ Alle in `data/sample-*.csv`, geladen via `fetch()`:
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 ```
 
-LZString: `LZString.compressToEncodedURIComponent` (Share-Link) und `decompressFromEncodedURIComponent` (loadFromShareHash).
+LZString: `LZString.compressToEncodedURIComponent` (Share-Link) und `decompressFromEncodedURIComponent` (`loadFromShareHash`). Beide Bibliotheken sind optional — die App degradiert erklärend, wenn sie fehlen (siehe oben).
 
 ### Lokal (`assets/fonts/`)
 
@@ -280,15 +371,20 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v39)
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v61) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
-- **`networkChart = null`:** Nach `renderNetwork([])` korrekt gesetzt; alle Handler mit `if (networkChart)` schützen
-- **Datenmutationsreihenfolge:** Immer `buildSidebarFilters()` vor `applyFilters()` — nie umgekehrt
-- **Squash-Merge-Konflikte:** Jeder PR-Merge erzeugt Squash-Commits; beim nächsten Branch-Merge entstehen scheinbare Konflikte. Auflösung: `git fetch origin main && git merge origin/main` → Konflikte → `git checkout --ours index.html js/app.js css/styles.css` → `git add` → `git commit` → `git push`
+- **Blockiertes CDN:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden
+- **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
+- **Theme-Wechsel bei offenem Graph:** ohne `networkChart.style(...).update()` bleiben die alten Farben stehen
+- **Kontrast bei neuen Farben:** getönte Chips und Text auf Akzentflächen brauchen eigene Hell-/Dunkel-Werte (`--badge-*`, `--sector-*`, `--ink-*`, `--on-accent`)
+- **`networkChart = null`:** Nach `renderNetwork([])` und ohne Cytoscape korrekt gesetzt; alle Handler mit `if (networkChart)` schützen
+- **Datenmutationsreihenfolge:** Immer `pushUndo()` → `buildSidebarFilters()` → `applyFilters()`
+- **Squash-Merge-Konflikte:** Jeder PR-Merge erzeugt Squash-Commits; beim nächsten Branch-Merge entstehen scheinbare Konflikte. Auflösung: `git fetch origin main && git merge origin/main` → Konflikte → `git checkout --ours index.html js/app.js css/styles.css` → `git add` → `git commit` → `git push`. Alternativ den Branch auf `origin/main` zurücksetzen (`git checkout -B <branch> origin/main`), wenn er keine unveröffentlichten Commits trägt
 - **`showAnalyseBriefing()` ≠ `renderAll()`:** Das Briefing operiert auf `allData` und wird nicht automatisch bei Filter-Änderungen aktualisiert. Ein `filterNote`-Hinweis erscheint wenn `filterCount > 0`
 - **Ziel-only Knoten:** Erhalten `org: ''` auch wenn sie in anderen Zeilen als Quelle mit Organisation auftauchen — bekanntes Pre-existing-Issue
 - **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
 - **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
+- **PDF-Bericht ist eigenständig:** läuft im Print-Window ohne Zugriff auf `css/styles.css` — dort **keine** CSS-Variablen verwenden, sondern feste Werte
 - **LLM-Key-Validierung:** `sk-ant-` Prefix wird client-seitig geprüft; 401-Antwort setzt Key-Status auf `error`; andere HTTP-Fehler führen zu `null`-Rückgabe (kein UI-Fehler)
 
 ---
@@ -321,3 +417,25 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v37 | Performance: `cachedTopoRisks` (1× statt 3×); Edge-Label-Toggle; Statistik-Chip; `Strg+N`/`Strg+F` |
 | v38 | Export filtert mit (gefilterte Daten wenn Filter aktiv); Netzwerk-Empty-States; Briefing-Stale-Punkt |
 | v39 | Undo (`Ctrl+Z`, max. 20 Schritte); Wizard-Validierung Quelle ≠ Ziel; CLAUDE.md aktualisiert |
+| v40 | Listensortierung; „In Listenansicht zeigen"-Button im Knotendetail |
+| v41 | 4 Bugfixes aus Code-Review |
+| v42 | CSV-Import-Vorschau (`showCSVPreview`); Knoten-Hover-Tooltip (`#cy-tooltip`) |
+| v43 | FAQ-Modal: solider Hintergrund, mobiles Scrolling; erste CTA-Sektion |
+| v44 | 2 Bug-Fixes: Tooltip-Reset in `renderNetwork()`, Zeilenzählung in `showCSVPreview` |
+| v45 | Fix: `bereich` fehlte in den Cytoscape-`nodeData` → Tooltip zeigte `undefined` |
+| v46 | Kontakt-CTA auf die Hauptseite verschoben; FAQ-Mobile-Fix (`display: block`) |
+| v47 | Hero-Steps: Icon im Kreis + Nummern-Badge; FAQ-Höhe mobil; CTA-Band dunkel |
+| v48 | 3 Bug-Fixes: `pushUndo()` vor CSV-Import/Append, `.node-detail` Overflow |
+| v49 | CTA-Sektionen vereinheitlicht: Stack-Layout, linksbündig, Button unten |
+| v50 | SEO: Titel, Meta-Description, Open Graph, Twitter Card, JSON-LD, canonical, `robots.txt`, `sitemap.xml`, `social-preview.svg` |
+| v51 | About-Bereich als gestaltete Karte; Settings-Modal mit solidem Hintergrund |
+| v52 | „Nächster-Schritt"-Brücke im Analyse-Briefing (`.briefing-next`) |
+| v53 | About-Text als Akkordeon unter den Hero-Cards (`.about-accordion`) |
+| v54 | Neues Maskottchen-Logo; kreisförmiger Hero-Rahmen entfernt |
+| v55 | `logo.svg`-`viewBox` eng auf die Figur gecroppt; Logo kleiner, wieder im Kreis; Abstände balanciert |
+| v56 | Footer-Links rechtsbündig; Akkordeon auf volle Breite |
+| v57 | Feature-Duo Datenatlas & DatenLotse (`.feature-duo-section`) mit Logo-Platzhaltern und Hover-Effekt |
+| v58 | Lotse-Button aus der lila CTA entfernt; Feature-Überschrift linksbündig |
+| v59 | Hamburger-Button und Filter-Sidebar nach **rechts** verlegt (Desktop + Mobile) |
+| v60 | Dark Theme mit Umschalter; Tokens aus `docs/design-system.html`; ~44 hartcodierte Flächen tokenisiert |
+| v61 | CDN-Ausfallsicherheit (`renderNetwork`/Share-Link guarden); `buildCyStyle()` für themeabhängige Graph-Farben; Kontrast auf WCAG AA in beiden Themes (`--ink-*`, `--on-accent`, `--badge-*`, `--sector-*`, `--c-muted` nachgeschärft) |
