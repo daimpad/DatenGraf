@@ -74,8 +74,9 @@
   <link rel="stylesheet" href="assets/fonts/inter/inter.css">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="assets/fonts/fa/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <!-- Lokal ausgeliefert, kein CDN: läuft auch in Netzen, die externe Skripte sperren -->
+  <script src="assets/vendor/cytoscape.min.js"></script>
+  <script src="assets/vendor/lz-string.min.js"></script>
 </head>
 <body>
 
@@ -375,7 +376,7 @@
             </div>
           </div>
 
-          <div id="status-message"></div>
+          <div id="status-message" role="status" aria-live="polite" aria-atomic="true"></div>
         </div>
       </div>
 
@@ -497,7 +498,12 @@
           <button class="btn btn-secondary btn-sm btn-icon" id="btn-clear-path" title="Pfad zurücksetzen"><i class="fas fa-xmark"></i></button>
           <span class="pathfinder-result" id="pathfinder-result"></span>
         </div>
-        <div id="network-container"></div>
+        <div id="network-container" role="img" aria-label="Netzwerkkarte der Datenflüsse. Eine gleichwertige, barrierefreie Darstellung derselben Daten bietet die Listenansicht."></div>
+        <p class="network-a11y-note">
+          Die Netzwerkkarte ist eine visuelle Darstellung.
+          <button type="button" class="link-button" id="network-a11y-to-list">Dieselben Daten in der Listenansicht öffnen</button> –
+          das Analyse-Briefing beschreibt die Befunde zusätzlich als Text.
+        </p>
         <div class="cy-tooltip hidden" id="cy-tooltip"></div>
 
         <!-- Beziehungstyp-Legende (automatisch) -->
@@ -954,9 +960,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v61</span>
+  <span class="footer-version">v62</span>
 </footer>
 
-<script src="js/app.js?v=61"></script>
+<script src="js/app.js?v=62"></script>
 </body>
 </html>

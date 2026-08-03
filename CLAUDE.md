@@ -13,7 +13,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v61` (Script-Tag: `<script src="js/app.js?v=61">`)
+- **Aktuelle Version:** `v62` (Script-Tag: `<script src="js/app.js?v=62">`)
 
 ---
 
@@ -28,11 +28,11 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v61</span>
-<script src="js/app.js?v=61"></script>
+<span class="footer-version">v62</span>
+<script src="js/app.js?v=62"></script>
 ```
 
-**Fonts/Icons:** Lokal unter `assets/fonts/` — kein CDN. Inter (woff2, 400/500/600/700) + Font Awesome 6.7.2 (solid/regular/brands).
+**Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape und LZ-String unter `assets/vendor/`. Zur Laufzeit gibt es keine externen Aufrufe.
 
 ---
 
@@ -189,11 +189,17 @@ Nie umgekehrt — `applyFilters()` nutzt die von `buildSidebarFilters()` aufgeba
 
 Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). Bei neuen Farbkombinationen den Kontrast prüfen, statt Werte zu schätzen — besonders bei getönten Chips (transparente Fläche über wechselndem Grund) und bei Text auf Akzentflächen.
 
+**Fokus in Dialogen:** Ein `MutationObserver` auf der `.hidden`-Klasse der fünf Backdrops (`MODAL_BACKDROP_IDS`) setzt beim Öffnen den Fokus ins Modal und gibt ihn beim Schließen zurück; ein globaler Tab-Handler hält ihn im obersten offenen Dialog. Der Observer-Ansatz ist bewusst gewählt, damit er unabhängig von der öffnenden Code-Stelle greift — auch beim Theorie-Modal und bei `Esc`. Neue Modals nur in `MODAL_BACKDROP_IDS` eintragen, sonst nichts zu tun.
+
+**Canvas-Alternative:** Die Netzwerkkarte ist für Screenreader nicht erschließbar. `#network-container` trägt deshalb `role="img"` mit Textalternative, darunter verweist `.network-a11y-note` sichtbar auf die Listenansicht. Listenansicht und Briefing müssen inhaltlich gleichwertig bleiben — die Karte darf nie der einzige Zugang zu einer Information werden.
+
+**Statusmeldungen:** `#status-message` ist `role="status"` mit `aria-live="polite"`.
+
 ---
 
 ## Cytoscape-Integration
 
-- **Library:** Cytoscape.js v3.23 (CDN)
+- **Library:** Cytoscape.js v3.23.0 — lokal unter `assets/vendor/cytoscape.min.js`, kein CDN
 - **Layout:** CoSE (force-directed), Konfiguration in `COSE_OPTS`
 - **Stylesheet:** `CY_STYLE` ist die **Basis-Konstante**; `buildCyStyle()` leitet daraus die themeabhängige Variante ab und wird an `cytoscape({ style })` übergeben. `CY_STYLE` selbst wird dabei nicht mutiert.
 - **Themeabhängig in `buildCyStyle()`:** Compound-Node-Label und -Rahmen (`:parent`), Kantenlabel-Hintergrund und -Schrift, Knoten-Rahmenfarbe
@@ -204,13 +210,13 @@ Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). B
 - **SVG-Export:** `cy.svg({ full: true })` — synchron
 - **Pathfinder-Bar:** wird NUR bei leeren Daten (`!data.length`) versteckt — nicht bei jedem Re-Render
 
-### Verhalten bei blockiertem CDN
+### Verhalten bei fehlender Bibliothek
 
-`renderNetwork()` prüft `typeof cytoscape === 'undefined'` und zeigt in dem Fall einen erklärenden Empty-State, statt zu werfen. Das ist kein Randfall: Verwaltungs- und Unternehmensnetze sperren CDNs regelmäßig. Vor diesem Guard riss die Exception die gesamte Kette nach `applyFilters()` ab — kein Briefing, kein Statustext, kein Tab-Wechsel.
+Seit v62 werden Cytoscape und LZ-String lokal ausgeliefert, der Normalfall ist also „vorhanden". Die Guards bleiben trotzdem bestehen, falls eine Datei fehlt oder blockiert wird:
 
-`share-link-btn` prüft analog `typeof LZString === 'undefined'` und meldet verständlich.
+`renderNetwork()` prüft `typeof cytoscape === 'undefined'` und zeigt dann einen erklärenden Empty-State, statt zu werfen. Vor diesem Guard riss die Exception die gesamte Kette nach `applyFilters()` ab — kein Briefing, kein Statustext, kein Tab-Wechsel. `share-link-btn` prüft analog `typeof LZString === 'undefined'`.
 
-> Wer neuen Code an eine CDN-Bibliothek hängt, prüft ihre Verfügbarkeit vorher.
+> Neue externe Abhängigkeiten gehören nach `assets/vendor/`, nicht an ein CDN. Die Offline-Fähigkeit ist ein Produktversprechen, kein Zufall.
 
 ---
 
@@ -296,6 +302,8 @@ Wichtige Hilfsfunktionen:
 | FAQ Modal | `openFaqModal()`, `closeFaqModal()` | `#faq-backdrop`, `#faq-btn` |
 | Theorie Modal | — | `#theory-backdrop`, `#open-theory-btn` |
 | Theme-Toggle | `toggleTheme()`, `applyThemeIcon()`, `isDarkTheme()` | `#theme-toggle-btn` |
+| Fokus-Management | `focusablesIn()`, `openModalBackdrops()`, `MODAL_BACKDROP_IDS` | alle `*-backdrop` |
+| Canvas-Alternative | — | `#network-a11y-to-list`, `.network-a11y-note` |
 | Undo | `pushUndo()`, `performUndo()` | — (`Strg+Z`) |
 | Mobile-Nav | — | `#mobile-nav`, `#mobile-nav-btn`, `.mobile-nav-tab` |
 | CSV-Import | `parseCSV(csv)` — eine State-Machine über den gesamten String, kein Zeilen-Helper; behandelt Quotes, `""`-Escapes und CRLF | `#import-body`, `#csv-input` |
@@ -349,14 +357,16 @@ Alle in `data/sample-*.csv`, geladen via `fetch()`:
 
 ## Libraries
 
-### CDN (zur Laufzeit)
+### Lokal eingecheckt (`assets/vendor/`)
 
 ```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<script src="assets/vendor/cytoscape.min.js"></script>
+<script src="assets/vendor/lz-string.min.js"></script>
 ```
 
-LZString: `LZString.compressToEncodedURIComponent` (Share-Link) und `decompressFromEncodedURIComponent` (`loadFromShareHash`). Beide Bibliotheken sind optional — die App degradiert erklärend, wenn sie fehlen (siehe oben).
+Keine externen Aufrufe zur Laufzeit. Die Versionen stehen in `package.json`; `npm run vendor` aktualisiert die Dateien (zur Laufzeit wird nichts installiert).
+
+LZString: `LZString.compressToEncodedURIComponent` (Share-Link) und `decompressFromEncodedURIComponent` (`loadFromShareHash`).
 
 ### Lokal (`assets/fonts/`)
 
@@ -371,9 +381,9 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v61) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v62) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
-- **Blockiertes CDN:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden
+- **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
 - **Theme-Wechsel bei offenem Graph:** ohne `networkChart.style(...).update()` bleiben die alten Farben stehen
 - **Kontrast bei neuen Farben:** getönte Chips und Text auf Akzentflächen brauchen eigene Hell-/Dunkel-Werte (`--badge-*`, `--sector-*`, `--ink-*`, `--on-accent`)
@@ -439,3 +449,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v59 | Hamburger-Button und Filter-Sidebar nach **rechts** verlegt (Desktop + Mobile) |
 | v60 | Dark Theme mit Umschalter; Tokens aus `docs/design-system.html`; ~44 hartcodierte Flächen tokenisiert |
 | v61 | CDN-Ausfallsicherheit (`renderNetwork`/Share-Link guarden); `buildCyStyle()` für themeabhängige Graph-Farben; Kontrast auf WCAG AA in beiden Themes (`--ink-*`, `--on-accent`, `--badge-*`, `--sector-*`, `--c-muted` nachgeschärft) |
+| v62 | Cytoscape und LZ-String lokal unter `assets/vendor/` (kein CDN mehr, App vollständig offline-fähig); Barrierefreiheit: Fokus-Trap und Fokus-Rückgabe in allen Modals, `aria-live` für Statusmeldungen, Textalternative und sichtbarer Listen-Verweis unter der Netzwerkkarte |

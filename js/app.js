@@ -2607,6 +2607,62 @@ function toggleTheme() {
     if (!edgeLabelsVisible) networkChart.edges().style({ label: '' });
   }
 }
+
+// ── Fokus-Management für Modals ─────────────────────────────────
+// Beobachtet die .hidden-Klasse, damit es unabhängig davon greift,
+// welche Stelle ein Modal öffnet oder schließt (inkl. Escape).
+const MODAL_BACKDROP_IDS = ['wizard-backdrop', 'snapshot-backdrop', 'settings-backdrop', 'faq-backdrop', 'theory-backdrop'];
+const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+let focusBeforeModal = null;
+
+function focusablesIn(el) {
+  return [...el.querySelectorAll(FOCUSABLE_SELECTOR)].filter(n => n.getClientRects().length > 0);
+}
+
+function openModalBackdrops() {
+  return MODAL_BACKDROP_IDS
+    .map(id => document.getElementById(id))
+    .filter(el => el && !el.classList.contains('hidden'));
+}
+
+MODAL_BACKDROP_IDS.forEach(id => {
+  const backdrop = document.getElementById(id);
+  if (!backdrop) return;
+  new MutationObserver(() => {
+    const isOpen = !backdrop.classList.contains('hidden');
+    if (isOpen && !backdrop.dataset.focusArmed) {
+      backdrop.dataset.focusArmed = '1';
+      focusBeforeModal = document.activeElement;
+      const items = focusablesIn(backdrop);
+      if (items.length) items[0].focus();
+    } else if (!isOpen && backdrop.dataset.focusArmed) {
+      delete backdrop.dataset.focusArmed;
+      if (focusBeforeModal && document.contains(focusBeforeModal)) focusBeforeModal.focus();
+      focusBeforeModal = null;
+    }
+  }).observe(backdrop, { attributes: true, attributeFilter: ['class'] });
+});
+
+// Tab hält den Fokus im obersten offenen Modal
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const open = openModalBackdrops();
+  if (!open.length) return;
+  const modal = open[open.length - 1];
+  const items = focusablesIn(modal);
+  if (!items.length) return;
+  const first = items[0], last = items[items.length - 1];
+  const outside = !modal.contains(document.activeElement);
+  if (e.shiftKey && (outside || document.activeElement === first)) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (outside || document.activeElement === last)) {
+    e.preventDefault();
+    first.focus();
+  }
+});
+
+document.getElementById('network-a11y-to-list')?.addEventListener('click', () => switchTab('list'));
 applyThemeIcon(document.documentElement.getAttribute('data-theme'));
 document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
 
