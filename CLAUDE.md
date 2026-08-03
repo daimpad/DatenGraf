@@ -13,7 +13,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v62` (Script-Tag: `<script src="js/app.js?v=62">`)
+- **Aktuelle Version:** `v64` (Script-Tag: `<script src="js/app.js?v=64">`)
 
 ---
 
@@ -30,8 +30,8 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v62</span>
-<script src="js/app.js?v=62"></script>
+<span class="footer-version">v64</span>
+<script src="js/app.js?v=64"></script>
 ```
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape und LZ-String unter `assets/vendor/`. Zur Laufzeit gibt es keine externen Aufrufe.
@@ -101,11 +101,13 @@ Das Theme hält keinen JS-State: Quelle der Wahrheit ist `document.documentEleme
 
 ```
 Quelle, QuelleAbteilung, QuelleBereich, QuelleOrganisation, QuelleRolle,
-Beziehung, Ziel, Datentyp, Häufigkeit, Format, Schutzbedarf, Erfassungsart,
-Anmerkungen, Ansprechpartner
+Beziehung, Ziel, ZielOrganisation, Datentyp, Häufigkeit, Format, Schutzbedarf,
+Erfassungsart, Anmerkungen, Ansprechpartner
 ```
 
-`Ansprechpartner` ist die 14. Spalte (DSGVO Art. 30 – Pflichtfeld für DSGVO-relevante Flüsse im Vollständigkeits-Score).
+15 Spalten. `Ansprechpartner` ist DSGVO-Art.-30-relevant und Pflichtfeld für DSGVO-Flüsse im Vollständigkeits-Score.
+
+**`ZielOrganisation` (seit v63):** Das Schema beschrieb bis dahin nur die Quellseite reichhaltig; ein reiner Empfänger konnte keine Organisation tragen. Vorrangregel in `prepareElements()`: Eine Quellzeile ist die maßgebliche Erfassung eines Akteurs und überschreibt eine Organisation, die nur nebenbei als `ZielOrganisation` notiert wurde (`orgFromSource`-Flag). Umgekehrt füllt `ZielOrganisation` nur Lücken. Der Organisationsfilter greift, wenn **Quelle oder Ziel** zur gewählten Organisation gehören.
 
 ---
 
@@ -183,6 +185,12 @@ applyFilters();          // 2. filteredData berechnen + renderAll()
 ```
 Nie umgekehrt — `applyFilters()` nutzt die von `buildSidebarFilters()` aufgebauten Selects.
 
+### CSV-Trennzeichen
+
+`detectDelimiter(csv)` leitet das Trennzeichen aus der **Kopfzeile** ab (Komma, Semikolon, Tabulator) und ignoriert dabei alles in Anführungszeichen. Grund: Deutsches Excel exportiert standardmäßig mit Semikolon — ohne Erkennung landet die gesamte Zeile in einer einzigen Spalte, und der Import „gelingt" scheinbar mit unbrauchbaren Daten. Ein UTF-8-BOM entfernt bereits das vorhandene `trim()` (U+FEFF zählt für JavaScript als Whitespace).
+
+`usableRowCount(rows)` zählt Zeilen mit Quelle, Ziel und Beziehung. Ergibt ein Import **null** verwertbare Zeilen, weisen beide Import-Buttons ihn mit einer erklärenden Meldung ab, statt den bestehenden Datensatz zu überschreiben.
+
 ### toCSV / Falsy-Werte
 
 `toCSV` prüft `v == null || v === ''` (nicht `!v`). Geschützt wird damit die **Zahl** `0`: Der String `'0'` ist truthy und war nie gefährdet, die Zahl `0` ist es nicht. Zahlen können über geteilte Links oder LocalStorage in den Datensatz geraten, ein `!v`-Guard würde dort stillschweigend leere Zellen schreiben. Der Testfall dazu steht in `test.html`.
@@ -209,7 +217,7 @@ Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). B
 - **Klassen-Priorität:** `.highlighted` > `.path-node` > `data(orgColor)`
 - **Pfadsuche:** `cy.elements().aStar({ root, goal, directed: true })`
 - **PNG-Export:** `cy.png({ output: 'base64uri', full: true, scale: 2, bg: '#f0edf8' })` — synchron; bewusst **immer hell**, da Exporte in Dokumenten und im Druck landen
-- **SVG-Export:** `cy.svg({ full: true })` — synchron
+- **SVG-Export:** `cy.svg({ full: true })` — synchron; benötigt die registrierte Erweiterung `cytoscape-svg`, der Button prüft `typeof networkChart.svg === 'function'`
 - **Pathfinder-Bar:** wird NUR bei leeren Daten (`!data.length`) versteckt — nicht bei jedem Re-Render
 
 ### Verhalten bei fehlender Bibliothek
@@ -325,7 +333,7 @@ Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal 
 | Canvas-Alternative | — | `#network-a11y-to-list`, `.network-a11y-note` |
 | Undo | `pushUndo()`, `performUndo()` | — (`Strg+Z`) |
 | Mobile-Nav | — | `#mobile-nav`, `#mobile-nav-btn`, `.mobile-nav-tab` |
-| CSV-Import | `parseCSV(csv)` — eine State-Machine über den gesamten String, kein Zeilen-Helper; behandelt Quotes, `""`-Escapes und CRLF | `#import-body`, `#csv-input` |
+| CSV-Import | `parseCSV(csv)`, `detectDelimiter(csv)`, `usableRowCount(rows)` — State-Machine über den gesamten String; Quotes, `""`-Escapes, CRLF, BOM und Komma/Semikolon/Tabulator | `#import-body`, `#csv-input` |
 | Import-Vorschau | `showCSVPreview(text)` | `#csv-preview` |
 | CSV-Export | `toCSV(data)` | `#export-csv-btn` |
 | PNG/SVG-Export | `downloadBlob(blob, filename)` | `#btn-export-png`, `#btn-export-svg` |
@@ -380,8 +388,11 @@ Alle in `data/sample-*.csv`, geladen via `fetch()`:
 
 ```html
 <script src="assets/vendor/cytoscape.min.js"></script>
+<script src="assets/vendor/cytoscape-svg.js"></script>
 <script src="assets/vendor/lz-string.min.js"></script>
 ```
+
+**`cy.svg()` braucht eine Registrierung.** Die SVG-Erweiterung wird per `cytoscape.use(cytoscapeSvg)` angemeldet (in `app.js` direkt vor `isDarkTheme()`). Ohne diese Zeile existiert `networkChart.svg` schlicht nicht — genau das war bis v64 der Fall, der SVG-Button warf still einen TypeError.
 
 Keine externen Aufrufe zur Laufzeit. Die Versionen stehen in `package.json`; `npm run vendor` aktualisiert die Dateien (zur Laufzeit wird nichts installiert).
 
@@ -400,7 +411,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v62) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v64) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
@@ -410,7 +421,6 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 - **Datenmutationsreihenfolge:** Immer `pushUndo()` → `buildSidebarFilters()` → `applyFilters()`
 - **Squash-Merge-Konflikte:** Jeder PR-Merge erzeugt Squash-Commits; beim nächsten Branch-Merge entstehen scheinbare Konflikte. Auflösung: `git fetch origin main && git merge origin/main` → Konflikte → `git checkout --ours index.html js/app.js css/styles.css` → `git add` → `git commit` → `git push`. Alternativ den Branch auf `origin/main` zurücksetzen (`git checkout -B <branch> origin/main`), wenn er keine unveröffentlichten Commits trägt
 - **`showAnalyseBriefing()` ≠ `renderAll()`:** Das Briefing operiert auf `allData` und wird nicht automatisch bei Filter-Änderungen aktualisiert. Ein `filterNote`-Hinweis erscheint wenn `filterCount > 0`
-- **Ziel-only Knoten:** Erhalten `org: ''` auch wenn sie in anderen Zeilen als Quelle mit Organisation auftauchen — bekanntes Pre-existing-Issue
 - **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
 - **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
 - **Tests laufen gegen den echten Code:** `test.html` lädt `index.html` per Iframe. Nach Umbenennen einer Funktion die Tests mitziehen — sie schlagen sonst mit „ist keine Funktion" fehl
@@ -471,3 +481,5 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v61 | CDN-Ausfallsicherheit (`renderNetwork`/Share-Link guarden); `buildCyStyle()` für themeabhängige Graph-Farben; Kontrast auf WCAG AA in beiden Themes (`--ink-*`, `--on-accent`, `--badge-*`, `--sector-*`, `--c-muted` nachgeschärft) |
 | v62 | Cytoscape und LZ-String lokal unter `assets/vendor/` (kein CDN mehr, App vollständig offline-fähig); Barrierefreiheit: Fokus-Trap und Fokus-Rückgabe in allen Modals, `aria-live` für Statusmeldungen, Textalternative und sichtbarer Listen-Verweis unter der Netzwerkkarte |
 | v63 | Test-Harness `test.html`: 48 Tests für die reinen Funktionen, läuft im Browser ohne Build; dabei zwei Doku-Fehler gefunden (`diffSnapshots` liefert `schutzChanged`, und der Falsy-Guard in `toCSV` schützt die Zahl `0`, nicht den String `'0'`) |
+| v63 | Spalte `ZielOrganisation`: reine Empfänger können jetzt eine Organisation tragen (vorher farblos in der Org-Ansicht). Quellangaben behalten Vorrang. Vorlage und Beispieldaten um `ZielOrganisation` **und** das bislang fehlende `Ansprechpartner` ergänzt |
+| v64 | Testrunde über die gesamte App (151 Prüfungen). Drei Fehler behoben: SVG-Export war seit jeher kaputt (Erweiterung `cytoscape-svg` fehlte), Semikolon- und Tabulator-CSV wurden nicht erkannt (deutsches Excel), und unbrauchbare Importe meldeten Erfolg statt Fehler |

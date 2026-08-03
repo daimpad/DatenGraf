@@ -56,8 +56,25 @@ let activeFilters = {
 };
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
+// Deutsche Excel-Versionen exportieren standardmäßig mit Semikolon, manche Werkzeuge
+// mit Tabulator. Das Trennzeichen wird deshalb aus der Kopfzeile abgeleitet, statt
+// Komma vorauszusetzen — sonst landet die ganze Zeile in einer einzigen Spalte.
+function detectDelimiter(csv) {
+  const counts = { ',': 0, ';': 0, '\t': 0 };
+  let inQuotes = false;
+  for (let i = 0; i < csv.length; i++) {
+    const c = csv[i];
+    if (c === '"') { inQuotes = !inQuotes; continue; }
+    if (inQuotes) continue;                      // Trennzeichen im Wert zählen nicht
+    if (c === '\n' || c === '\r') break;         // nur die Kopfzeile entscheidet
+    if (c in counts) counts[c]++;
+  }
+  return [',', ';', '\t'].reduce((best, d) => counts[d] > counts[best] ? d : best, ',');
+}
+
 function parseCSV(csv) {
   const rows = [];
+  const DELIM = detectDelimiter(csv);
   let i = 0;
   const n = csv.length;
   while (i < n) {
@@ -73,11 +90,11 @@ function parseCSV(csv) {
           } else { field += csv[i++]; }
         }
       } else {
-        while (i < n && csv[i] !== ',' && csv[i] !== '\n' && csv[i] !== '\r') field += csv[i++];
+        while (i < n && csv[i] !== DELIM && csv[i] !== '\n' && csv[i] !== '\r') field += csv[i++];
         field = field.trim();
       }
       fields.push(field);
-      if (i < n && csv[i] === ',') { i++; continue; }
+      if (i < n && csv[i] === DELIM) { i++; continue; }
       if (i < n && csv[i] === '\r') i++;
       if (i < n && csv[i] === '\n') i++;
       break;
@@ -93,9 +110,16 @@ function parseCSV(csv) {
   });
 }
 
+// Ein Import ohne einzige verwertbare Zeile ist fast immer ein Formatproblem
+// (falsches Trennzeichen, verschobene Spalten). Dann lieber abweisen als
+// den bestehenden Datensatz durch Unbrauchbares ersetzen.
+function usableRowCount(rows) {
+  return rows.filter(r => r.Quelle && r.Ziel && r.Beziehung).length;
+}
+
 function toCSV(data) {
   const headers = ['Quelle','QuelleAbteilung','QuelleBereich','QuelleOrganisation','QuelleRolle',
-    'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen','Ansprechpartner'];
+    'Beziehung','Ziel','ZielOrganisation','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen','Ansprechpartner'];
   const escape = v => {
     if (v == null || v === '') return '';
     const s = String(v);
@@ -113,7 +137,10 @@ function applyFilters() {
     if (activeFilters.relation.size   > 0 && !activeFilters.relation.has(row.Beziehung))           return false;
     if (activeFilters.schutz.size     > 0 && !activeFilters.schutz.has(row.Schutzbedarf))           return false;
     if (activeFilters.erfassung.size  > 0 && !activeFilters.erfassung.has(row.Erfassungsart))       return false;
-    if (activeFilters.organization !== 'all' && row.QuelleOrganisation !== activeFilters.organization) return false;
+    // Eine Zeile gehört zur Organisation, wenn Quelle ODER Ziel ihr zugeordnet ist
+    if (activeFilters.organization !== 'all' &&
+        row.QuelleOrganisation !== activeFilters.organization &&
+        row.ZielOrganisation   !== activeFilters.organization) return false;
     if (activeFilters.department   !== 'all' && row.QuelleAbteilung    !== activeFilters.department)    return false;
     if (activeFilters.frequency    !== 'all' && row.Häufigkeit         !== activeFilters.frequency)     return false;
     if (activeFilters.format       !== 'all' && row.Format             !== activeFilters.format)        return false;
@@ -209,7 +236,9 @@ function buildSidebarFilters() {
   buildChipGroup('filter-chips-relation',  [...new Set(allData.map(r => r.Beziehung).filter(Boolean))],    'relation');
   buildChipGroup('filter-chips-schutz',    [...new Set(allData.map(r => r.Schutzbedarf).filter(Boolean))], 'schutz');
   buildChipGroup('filter-chips-erfassung', [...new Set(allData.map(r => r.Erfassungsart).filter(Boolean))],'erfassung');
-  updateSelectFilter('filter-organization', [...new Set(allData.map(r => r.QuelleOrganisation).filter(Boolean))]);
+  updateSelectFilter('filter-organization', [...new Set(
+    [...allData.map(r => r.QuelleOrganisation), ...allData.map(r => r.ZielOrganisation)].filter(Boolean)
+  )]);
   updateSelectFilter('filter-department',   [...new Set(allData.map(r => r.QuelleAbteilung).filter(Boolean))]);
   updateSelectFilter('filter-frequency',    [...new Set(allData.map(r => r.Häufigkeit).filter(Boolean))]);
   updateSelectFilter('filter-format',       [...new Set(allData.map(r => r.Format).filter(Boolean))]);
@@ -899,6 +928,11 @@ function showAnalyseBriefing() {
 }
 
 // ── Network view ─────────────────────────────────────────────────────────────
+// cy.svg() stammt aus der Erweiterung cytoscape-svg und muss registriert werden.
+if (typeof cytoscape !== 'undefined' && typeof cytoscapeSvg !== 'undefined') {
+  cytoscape.use(cytoscapeSvg);
+}
+
 function isDarkTheme() {
   return document.documentElement.getAttribute('data-theme') === 'dark';
 }
@@ -968,15 +1002,27 @@ function prepareElements(data, useHierarchy = false) {
   data.forEach(row => {
     if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
     if (!nodes.has(row.Quelle)) {
-      nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '', bereich: row.QuelleBereich || '', out: 0, inn: 0 });
+      nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '',
+                              bereich: row.QuelleBereich || '', orgFromSource: !!row.QuelleOrganisation, out: 0, inn: 0 });
     } else {
-      // Update org/bereich if previously registered only as Ziel (no org data)
       const n = nodes.get(row.Quelle);
-      if (!n.org && row.QuelleOrganisation) n.org = row.QuelleOrganisation;
-      if (!n.bereich && row.QuelleBereich)  n.bereich = row.QuelleBereich;
+      // Die Quellzeile ist die maßgebliche Erfassung eines Akteurs: sie überschreibt
+      // eine Organisation, die nur als ZielOrganisation nebenbei notiert wurde.
+      if (row.QuelleOrganisation && (!n.org || !n.orgFromSource)) {
+        n.org = row.QuelleOrganisation;
+        n.orgFromSource = true;
+      }
+      if (!n.dept    && row.QuelleAbteilung) n.dept    = row.QuelleAbteilung;
+      if (!n.bereich && row.QuelleBereich)   n.bereich = row.QuelleBereich;
     }
     nodes.get(row.Quelle).out++;
-    if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { dept: '', org: '', bereich: '', out: 0, inn: 0 });
+    // Reine Empfänger tragen ihre Organisation ausschließlich über ZielOrganisation.
+    if (!nodes.has(row.Ziel)) {
+      nodes.set(row.Ziel, { dept: '', org: row.ZielOrganisation || '', bereich: '', orgFromSource: false, out: 0, inn: 0 });
+    } else {
+      const t = nodes.get(row.Ziel);
+      if (!t.org && row.ZielOrganisation) t.org = row.ZielOrganisation;
+    }
     nodes.get(row.Ziel).inn++;
     edges.push(row);
   });
@@ -1298,7 +1344,10 @@ const WIZARD_STEPS = [
     label: 'Ziel',
     hint: 'Schritt 2 von 4',
     render: () => `
-      <div class="form-row"><label>Name des Ziel-Akteurs *</label><input type="text" name="Ziel" placeholder="z. B. Dezernat 10" required></div>
+      <div class="form-row-cols">
+        <div class="form-row"><label>Name des Ziel-Akteurs *</label><input type="text" name="Ziel" placeholder="z. B. Dezernat 10" required></div>
+        <div class="form-row"><label>Organisation des Ziels</label><input type="text" name="ZielOrganisation" placeholder="nur falls abweichend"></div>
+      </div>
       <div class="form-row"><label>Art der Beziehung *</label>
         <select name="Beziehung">${BEZIEHUNG_OPTS.map(b => `<option>${b}</option>`).join('')}</select>
       </div>
@@ -1558,8 +1607,13 @@ function getCSVText() {
 document.getElementById('btn-visualize').addEventListener('click', () => {
   getCSVText().then(text => {
     if (!text) { setStatus('Keine Daten.', 'error'); return; }
+    const parsed = parseCSV(text);
+    if (parsed.length && !usableRowCount(parsed)) {
+      setStatus('Keine verwertbaren Zeilen — es fehlen die Pflichtspalten Quelle, Beziehung und Ziel. Bitte Kopfzeile und Trennzeichen prüfen.', 'error');
+      return;
+    }
     if (allData.length) pushUndo();
-    allData = parseCSV(text);
+    allData = parsed;
     buildSidebarFilters();
     restoreFilters();
     applyFilters();
@@ -1572,6 +1626,10 @@ document.getElementById('btn-append').addEventListener('click', () => {
   getCSVText().then(text => {
     if (!text) { setStatus('Keine Daten.', 'error'); return; }
     const newRows = parseCSV(text);
+    if (newRows.length && !usableRowCount(newRows)) {
+      setStatus('Keine verwertbaren Zeilen — es fehlen die Pflichtspalten Quelle, Beziehung und Ziel. Bitte Kopfzeile und Trennzeichen prüfen.', 'error');
+      return;
+    }
     pushUndo();
     allData = [...allData, ...newRows];
     buildSidebarFilters();
@@ -1718,6 +1776,10 @@ document.getElementById('btn-export-png').addEventListener('click', () => {
 
 document.getElementById('btn-export-svg').addEventListener('click', () => {
   if (!networkChart) return;
+  if (typeof networkChart.svg !== 'function') {
+    setStatus('SVG-Export nicht verfügbar (Bibliothek fehlt) – bitte PNG verwenden.', 'error');
+    return;
+  }
   const svg  = networkChart.svg({ full: true });
   const blob = new Blob([svg], { type: 'image/svg+xml' });
   downloadBlob(blob, 'datengraf-netzwerk.svg');
@@ -2287,7 +2349,7 @@ function buildReportHTML(networkImgUri) {
 
   const nodes = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean));
   const dsgvoCount = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length;
-  const orgs = new Set(data.map(r => r.QuelleOrganisation).filter(Boolean));
+  const orgs = new Set([...data.map(r => r.QuelleOrganisation), ...data.map(r => r.ZielOrganisation)].filter(Boolean));
 
   const deg = {};
   data.forEach(r => {

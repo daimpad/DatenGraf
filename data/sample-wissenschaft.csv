@@ -1,28 +1,28 @@
-Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
-Forschungsgruppe A,Felderhebung,Klimabeobachtung,Institut für Klimaforschung,Datenersteller,übergibt,Forschungsdatenmanagement,Messdaten Rohformat,täglich,CSV,Intern,Automatisiert,Automatischer Upload vom Messgerät
-Forschungsgruppe A,Felderhebung,Klimabeobachtung,Institut für Klimaforschung,Datenersteller,übergibt,IT-Infrastruktur,Speicheranforderungen,bei Bedarf,E-Mail,Intern,Manuell,Keine standardisierte Bedarfsmeldung
-Forschungsgruppe A,Felderhebung,Klimabeobachtung,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Statusbericht,monatlich,Word,Intern,Manuell,
-Forschungsgruppe B,Modellierung,Klimamodelle,Institut für Klimaforschung,Datenverarbeiter,nutzt,Forschungsdatenmanagement,Aufbereitete Messdaten,wöchentlich,NetCDF,Intern,Manuell,Kein automatischer Abruf – manuelle Anfrage
-Forschungsgruppe B,Modellierung,Klimamodelle,Institut für Klimaforschung,Datenersteller,übergibt,Publikationsserver,Modellergebnisse,unregelmäßig,HDF5,Öffentlich,Manuell,
-Forschungsgruppe B,Modellierung,Klimamodelle,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Statusbericht,monatlich,Word,Intern,Manuell,Kein gemeinsames Format mit Gruppe A
-Forschungsgruppe C,Anwendungsforschung,Transfer,Institut für Klimaforschung,Datennutzer,nutzt,Forschungsdatenmanagement,Aufbereitete Messdaten,bei Bedarf,Excel,Intern,Manuell,Eigene Aufbereitung statt Nachnutzung von Gruppe B
-Forschungsgruppe C,Anwendungsforschung,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Transferstelle,Praxisberichte,quartalsweise,PDF,Öffentlich,Manuell,
-Forschungsgruppe C,Anwendungsforschung,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Statusbericht,monatlich,Word,Intern,Manuell,
-Forschungsdatenmanagement,Dateninfrastruktur,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Publikationsserver,Kuratierte Datensätze,unregelmäßig,NetCDF,Öffentlich,Manuell,Nach Peer-Review-Prozess
-Forschungsdatenmanagement,Dateninfrastruktur,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Projektleitung,Datenschutzbericht,quartalsweise,PDF,Intern,Manuell,
-Forschungsdatenmanagement,Dateninfrastruktur,IT,Institut für Klimaforschung,Datenverwalter,übergibt,IT-Infrastruktur,Backup-Anforderungen,monatlich,E-Mail,Intern,Manuell,
-IT-Infrastruktur,IT,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Forschungsdatenmanagement,Speicherkapazitäten,monatlich,E-Mail,Intern,Manuell,
-IT-Infrastruktur,IT,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Projektleitung,IT-Bericht,quartalsweise,PDF,Intern,Manuell,
-Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Drittmittelverwaltung,Projektfortschrittsberichte,quartalsweise,PDF,Intern,Manuell,
-Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Drittmittelverwaltung,Mittelabrufe,bei Bedarf,Excel,Intern,Manuell,
-Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Ethikkommission,Forschungsprotokoll,bei Bedarf,PDF,Intern,Manuell,Vor Start neuer Erhebungen verpflichtend
-Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Kooperationspartner,Zwischenberichte,halbjährlich,PDF,Intern,Manuell,
-Drittmittelverwaltung,Verwaltung,Verwaltung,Institut für Klimaforschung,Datenverarbeiter,übergibt,Fördergeber,Verwendungsnachweise,jährlich,Excel,Intern,Manuell,Alle Forschungsgruppen laufen durch diesen Knoten
-Drittmittelverwaltung,Verwaltung,Verwaltung,Institut für Klimaforschung,Datenverarbeiter,übergibt,Projektleitung,Budgetstatus,monatlich,Excel,Intern,Manuell,
-Drittmittelverwaltung,Verwaltung,Verwaltung,Institut für Klimaforschung,Datenverarbeiter,übergibt,Fördergeber,Antragsunterlagen,unregelmäßig,PDF,Intern,Manuell,
-Ethikkommission,Gremium,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Projektleitung,Ethikvotum,bei Bedarf,PDF,Intern,Manuell,Blocker-Knoten – Forschung wartet auf Votum
-Publikationsserver,IT,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Kooperationspartner,Veröffentlichte Datensätze,unregelmäßig,DOI-Link,Öffentlich,Automatisiert,
-Transferstelle,Transfer,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Transferbericht,jährlich,PDF,Öffentlich,Manuell,
-Transferstelle,Transfer,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Kooperationspartner,Forschungsergebnisse anwendungsbereit,unregelmäßig,PDF,Öffentlich,Manuell,
-Fördergeber,Extern,Extern,,Datenverwalter,übergibt,Drittmittelverwaltung,Bescheide und Auflagen,unregelmäßig,PDF,Intern,Manuell,
-Kooperationspartner,Extern,Extern,,Datenersteller,übergibt,Forschungsgruppe C,Praxisdaten,halbjährlich,Excel,Intern,Manuell,Einziger externer Dateneingang – kein standardisiertes Format
+Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,ZielOrganisation,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner
+Forschungsgruppe A,Felderhebung,Klimabeobachtung,Institut für Klimaforschung,Datenersteller,übergibt,Forschungsdatenmanagement,Institut für Klimaforschung,Messdaten Rohformat,täglich,CSV,Intern,Automatisiert,Automatischer Upload vom Messgerät,
+Forschungsgruppe A,Felderhebung,Klimabeobachtung,Institut für Klimaforschung,Datenersteller,übergibt,IT-Infrastruktur,Institut für Klimaforschung,Speicheranforderungen,bei Bedarf,E-Mail,Intern,Manuell,Keine standardisierte Bedarfsmeldung,
+Forschungsgruppe A,Felderhebung,Klimabeobachtung,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Institut für Klimaforschung,Statusbericht,monatlich,Word,Intern,Manuell,,
+Forschungsgruppe B,Modellierung,Klimamodelle,Institut für Klimaforschung,Datenverarbeiter,nutzt,Forschungsdatenmanagement,Institut für Klimaforschung,Aufbereitete Messdaten,wöchentlich,NetCDF,Intern,Manuell,Kein automatischer Abruf – manuelle Anfrage,
+Forschungsgruppe B,Modellierung,Klimamodelle,Institut für Klimaforschung,Datenersteller,übergibt,Publikationsserver,Institut für Klimaforschung,Modellergebnisse,unregelmäßig,HDF5,Öffentlich,Manuell,,
+Forschungsgruppe B,Modellierung,Klimamodelle,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Institut für Klimaforschung,Statusbericht,monatlich,Word,Intern,Manuell,Kein gemeinsames Format mit Gruppe A,
+Forschungsgruppe C,Anwendungsforschung,Transfer,Institut für Klimaforschung,Datennutzer,nutzt,Forschungsdatenmanagement,Institut für Klimaforschung,Aufbereitete Messdaten,bei Bedarf,Excel,Intern,Manuell,Eigene Aufbereitung statt Nachnutzung von Gruppe B,
+Forschungsgruppe C,Anwendungsforschung,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Transferstelle,Institut für Klimaforschung,Praxisberichte,quartalsweise,PDF,Öffentlich,Manuell,,
+Forschungsgruppe C,Anwendungsforschung,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Institut für Klimaforschung,Statusbericht,monatlich,Word,Intern,Manuell,,
+Forschungsdatenmanagement,Dateninfrastruktur,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Publikationsserver,Institut für Klimaforschung,Kuratierte Datensätze,unregelmäßig,NetCDF,Öffentlich,Manuell,Nach Peer-Review-Prozess,
+Forschungsdatenmanagement,Dateninfrastruktur,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Projektleitung,Institut für Klimaforschung,Datenschutzbericht,quartalsweise,PDF,Intern,Manuell,,
+Forschungsdatenmanagement,Dateninfrastruktur,IT,Institut für Klimaforschung,Datenverwalter,übergibt,IT-Infrastruktur,Institut für Klimaforschung,Backup-Anforderungen,monatlich,E-Mail,Intern,Manuell,,
+IT-Infrastruktur,IT,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Forschungsdatenmanagement,Institut für Klimaforschung,Speicherkapazitäten,monatlich,E-Mail,Intern,Manuell,,
+IT-Infrastruktur,IT,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Projektleitung,Institut für Klimaforschung,IT-Bericht,quartalsweise,PDF,Intern,Manuell,,
+Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Drittmittelverwaltung,Institut für Klimaforschung,Projektfortschrittsberichte,quartalsweise,PDF,Intern,Manuell,,
+Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Drittmittelverwaltung,Institut für Klimaforschung,Mittelabrufe,bei Bedarf,Excel,Intern,Manuell,,
+Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Ethikkommission,Institut für Klimaforschung,Forschungsprotokoll,bei Bedarf,PDF,Intern,Manuell,Vor Start neuer Erhebungen verpflichtend,
+Projektleitung,Management,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Kooperationspartner,Institut für Klimaforschung,Zwischenberichte,halbjährlich,PDF,Intern,Manuell,,
+Drittmittelverwaltung,Verwaltung,Verwaltung,Institut für Klimaforschung,Datenverarbeiter,übergibt,Fördergeber,Institut für Klimaforschung,Verwendungsnachweise,jährlich,Excel,Intern,Manuell,Alle Forschungsgruppen laufen durch diesen Knoten,
+Drittmittelverwaltung,Verwaltung,Verwaltung,Institut für Klimaforschung,Datenverarbeiter,übergibt,Projektleitung,Institut für Klimaforschung,Budgetstatus,monatlich,Excel,Intern,Manuell,,
+Drittmittelverwaltung,Verwaltung,Verwaltung,Institut für Klimaforschung,Datenverarbeiter,übergibt,Fördergeber,Institut für Klimaforschung,Antragsunterlagen,unregelmäßig,PDF,Intern,Manuell,,
+Ethikkommission,Gremium,Leitung,Institut für Klimaforschung,Datenverwalter,übergibt,Projektleitung,Institut für Klimaforschung,Ethikvotum,bei Bedarf,PDF,Intern,Manuell,Blocker-Knoten – Forschung wartet auf Votum,
+Publikationsserver,IT,IT,Institut für Klimaforschung,Datenverwalter,übergibt,Kooperationspartner,Institut für Klimaforschung,Veröffentlichte Datensätze,unregelmäßig,DOI-Link,Öffentlich,Automatisiert,,
+Transferstelle,Transfer,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Projektleitung,Institut für Klimaforschung,Transferbericht,jährlich,PDF,Öffentlich,Manuell,,
+Transferstelle,Transfer,Transfer,Institut für Klimaforschung,Datenersteller,übergibt,Kooperationspartner,Institut für Klimaforschung,Forschungsergebnisse anwendungsbereit,unregelmäßig,PDF,Öffentlich,Manuell,,
+Fördergeber,Extern,Extern,,Datenverwalter,übergibt,Drittmittelverwaltung,Institut für Klimaforschung,Bescheide und Auflagen,unregelmäßig,PDF,Intern,Manuell,,
+Kooperationspartner,Extern,Extern,,Datenersteller,übergibt,Forschungsgruppe C,Institut für Klimaforschung,Praxisdaten,halbjährlich,Excel,Intern,Manuell,Einziger externer Dateneingang – kein standardisiertes Format,

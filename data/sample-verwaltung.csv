@@ -1,29 +1,29 @@
-Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen
-Standesamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Einwohnermeldeamt,Geburtenmeldungen,täglich,Fachanwendung,DSGVO-relevant,Automatisiert,
-Standesamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Jahresbericht Standesamt,jährlich,PDF,Öffentlich,Manuell,
-Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Bürgermeisterbüro,Einwohnerstatistik,quartalsweise,PDF,Öffentlich,Manuell,
-Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Kämmerei,Haushaltsdaten Meldewesen,jährlich,Excel,Intern,Manuell,
-Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Sozialamt,Meldedaten,bei Bedarf,Fachanwendung,DSGVO-relevant,Automatisiert,
-Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Jugendamt,Meldedaten Minderjährige,bei Bedarf,Formular,DSGVO-relevant,Manuell,Kein automatisierter Abgleich – Medienbruch
-Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Ordnungsamt,Adressauskünfte,bei Bedarf,Formular,DSGVO-relevant,Manuell,
-Sozialamt,Soziales,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Sozialbericht,jährlich,PDF,Intern,Manuell,
-Sozialamt,Soziales,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Haushaltsanforderung,jährlich,Excel,Intern,Manuell,
-Sozialamt,Soziales,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Datenschutzbeauftragter,Datenschutzmeldung,bei Bedarf,Formular,DSGVO-relevant,Manuell,
-Jugendamt,Jugend und Familie,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Jugendhilfebericht,jährlich,PDF,Intern,Manuell,
-Jugendamt,Jugend und Familie,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Haushaltsanforderung,jährlich,Excel,Intern,Manuell,
-Jugendamt,Jugend und Familie,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Datenschutzbeauftragter,Datenschutzmeldung,bei Bedarf,Formular,DSGVO-relevant,Manuell,
-Bauamt,Bauen und Wohnen,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Stadtplanung,Bauantragsstatistik,monatlich,Excel,Öffentlich,Manuell,
-Bauamt,Bauen und Wohnen,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Gebührenbescheide,täglich,SAP,Intern,Automatisiert,
-Bauamt,Bauen und Wohnen,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Bauprojektbericht,quartalsweise,PDF,Öffentlich,Manuell,
-Stadtplanung,Stadtentwicklung,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Bauamt,Bebauungspläne,unregelmäßig,GIS,Öffentlich,Manuell,
-Stadtplanung,Stadtentwicklung,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Investitionsplanung,jährlich,Excel,Intern,Manuell,
-Stadtplanung,Stadtentwicklung,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtentwicklungsbericht,halbjährlich,PDF,Öffentlich,Manuell,
-Kämmerei,Finanzen,Finanzen,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Bürgermeisterbüro,Haushaltsbericht,monatlich,PDF,Intern,Manuell,
-Kämmerei,Finanzen,Finanzen,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Personalamt,Personalbudget,jährlich,Excel,Intern,Manuell,
-Personalamt,Personal,Verwaltung,Stadtverwaltung Musterstadt,Datenverarbeiter,übergibt,Kämmerei,Personalkosten,monatlich,SAP,DSGVO-relevant,Automatisiert,
-Personalamt,Personal,Verwaltung,Stadtverwaltung Musterstadt,Datenverarbeiter,übergibt,Bürgermeisterbüro,Stellenplan,jährlich,PDF,Intern,Manuell,
-Personalamt,Personal,Verwaltung,Stadtverwaltung Musterstadt,Datenverarbeiter,übergibt,IT-Beauftragter,Systemzugriffslisten,bei Bedarf,E-Mail,DSGVO-relevant,Manuell,
-IT-Beauftragter,IT,Verwaltung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,IT-Sachstandsbericht,quartalsweise,PDF,Intern,Manuell,
-IT-Beauftragter,IT,Verwaltung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Datenschutzbeauftragter,Sicherheitsmeldungen,bei Bedarf,E-Mail,Intern,Manuell,
-Ordnungsamt,Ordnung,Sicherheit,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Lagebericht,monatlich,PDF,Öffentlich,Manuell,
-Datenschutzbeauftragter,Datenschutz,Verwaltung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Datenschutzbericht,jährlich,PDF,Intern,Manuell,Nur eingehende Meldungen – keine ausgehenden Empfehlungen
+Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,Beziehung,Ziel,ZielOrganisation,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner
+Standesamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Einwohnermeldeamt,Stadtverwaltung Musterstadt,Geburtenmeldungen,täglich,Fachanwendung,DSGVO-relevant,Automatisiert,,Leitung Standesamt
+Standesamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Jahresbericht Standesamt,jährlich,PDF,Öffentlich,Manuell,,
+Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Einwohnerstatistik,quartalsweise,PDF,Öffentlich,Manuell,,
+Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Kämmerei,Stadtverwaltung Musterstadt,Haushaltsdaten Meldewesen,jährlich,Excel,Intern,Manuell,,
+Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Sozialamt,Stadtverwaltung Musterstadt,Meldedaten,bei Bedarf,Fachanwendung,DSGVO-relevant,Automatisiert,,
+Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Jugendamt,Stadtverwaltung Musterstadt,Meldedaten Minderjährige,bei Bedarf,Formular,DSGVO-relevant,Manuell,Kein automatisierter Abgleich – Medienbruch,
+Einwohnermeldeamt,Bürgerservice,Bürgerservice,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Ordnungsamt,Stadtverwaltung Musterstadt,Adressauskünfte,bei Bedarf,Formular,DSGVO-relevant,Manuell,,Leitung Einwohnermeldeamt
+Sozialamt,Soziales,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Sozialbericht,jährlich,PDF,Intern,Manuell,,
+Sozialamt,Soziales,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Stadtverwaltung Musterstadt,Haushaltsanforderung,jährlich,Excel,Intern,Manuell,,
+Sozialamt,Soziales,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Datenschutzbeauftragter,Stadtverwaltung Musterstadt,Datenschutzmeldung,bei Bedarf,Formular,DSGVO-relevant,Manuell,,Leitung Sozialamt
+Jugendamt,Jugend und Familie,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Jugendhilfebericht,jährlich,PDF,Intern,Manuell,,
+Jugendamt,Jugend und Familie,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Stadtverwaltung Musterstadt,Haushaltsanforderung,jährlich,Excel,Intern,Manuell,,
+Jugendamt,Jugend und Familie,Soziales,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Datenschutzbeauftragter,Stadtverwaltung Musterstadt,Datenschutzmeldung,bei Bedarf,Formular,DSGVO-relevant,Manuell,,Leitung Jugendamt
+Bauamt,Bauen und Wohnen,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Stadtplanung,Stadtverwaltung Musterstadt,Bauantragsstatistik,monatlich,Excel,Öffentlich,Manuell,,
+Bauamt,Bauen und Wohnen,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Stadtverwaltung Musterstadt,Gebührenbescheide,täglich,SAP,Intern,Automatisiert,,
+Bauamt,Bauen und Wohnen,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Bauprojektbericht,quartalsweise,PDF,Öffentlich,Manuell,,
+Stadtplanung,Stadtentwicklung,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Bauamt,Stadtverwaltung Musterstadt,Bebauungspläne,unregelmäßig,GIS,Öffentlich,Manuell,,
+Stadtplanung,Stadtentwicklung,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Kämmerei,Stadtverwaltung Musterstadt,Investitionsplanung,jährlich,Excel,Intern,Manuell,,
+Stadtplanung,Stadtentwicklung,Stadtentwicklung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Stadtentwicklungsbericht,halbjährlich,PDF,Öffentlich,Manuell,,
+Kämmerei,Finanzen,Finanzen,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Haushaltsbericht,monatlich,PDF,Intern,Manuell,,
+Kämmerei,Finanzen,Finanzen,Stadtverwaltung Musterstadt,Datenverwalter,übergibt,Personalamt,Stadtverwaltung Musterstadt,Personalbudget,jährlich,Excel,Intern,Manuell,,
+Personalamt,Personal,Verwaltung,Stadtverwaltung Musterstadt,Datenverarbeiter,übergibt,Kämmerei,Stadtverwaltung Musterstadt,Personalkosten,monatlich,SAP,DSGVO-relevant,Automatisiert,,Leitung Personalamt
+Personalamt,Personal,Verwaltung,Stadtverwaltung Musterstadt,Datenverarbeiter,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Stellenplan,jährlich,PDF,Intern,Manuell,,
+Personalamt,Personal,Verwaltung,Stadtverwaltung Musterstadt,Datenverarbeiter,übergibt,IT-Beauftragter,Stadtverwaltung Musterstadt,Systemzugriffslisten,bei Bedarf,E-Mail,DSGVO-relevant,Manuell,,Leitung Personalamt
+IT-Beauftragter,IT,Verwaltung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,IT-Sachstandsbericht,quartalsweise,PDF,Intern,Manuell,,
+IT-Beauftragter,IT,Verwaltung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Datenschutzbeauftragter,Stadtverwaltung Musterstadt,Sicherheitsmeldungen,bei Bedarf,E-Mail,Intern,Manuell,,
+Ordnungsamt,Ordnung,Sicherheit,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Lagebericht,monatlich,PDF,Öffentlich,Manuell,,
+Datenschutzbeauftragter,Datenschutz,Verwaltung,Stadtverwaltung Musterstadt,Datenersteller,übergibt,Bürgermeisterbüro,Stadtverwaltung Musterstadt,Datenschutzbericht,jährlich,PDF,Intern,Manuell,Nur eingehende Meldungen – keine ausgehenden Empfehlungen,

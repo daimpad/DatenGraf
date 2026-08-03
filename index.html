@@ -76,6 +76,7 @@
   <link rel="stylesheet" href="assets/fonts/fa/all.min.css">
   <!-- Lokal ausgeliefert, kein CDN: läuft auch in Netzen, die externe Skripte sperren -->
   <script src="assets/vendor/cytoscape.min.js"></script>
+  <script src="assets/vendor/cytoscape-svg.js"></script>
   <script src="assets/vendor/lz-string.min.js"></script>
 </head>
 <body>
@@ -862,7 +863,7 @@
       <details class="faq-item">
         <summary class="faq-q">Was bewirkt „Org-Farben"?</summary>
         <div class="faq-a">
-          <p>Der Button <strong>„Org-Farben"</strong> färbt jeden Knoten anhand seiner <strong>Organisation</strong> (Spalte <em>QuelleOrganisation</em>) ein. So sind Knoten verschiedener Organisationen sofort unterscheidbar.</p>
+          <p>Der Button <strong>„Org-Farben"</strong> färbt jeden Knoten anhand seiner <strong>Organisation</strong> ein (Spalte <em>QuelleOrganisation</em>, für reine Empfänger <em>ZielOrganisation</em>). So sind Knoten verschiedener Organisationen sofort unterscheidbar.</p>
           <p>Knoten ohne Organisationsangabe behalten die Standardfarbe (lila). In der Legende erscheinen nur Organisationen, für die mindestens ein Knoten mit Eintrag vorhanden ist.</p>
         </div>
       </details>
@@ -960,9 +961,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v62</span>
+  <span class="footer-version">v64</span>
 </footer>
 
-<script src="js/app.js?v=62"></script>
+<script src="js/app.js?v=64"></script>
 </body>
 </html>
