@@ -1,5 +1,12 @@
 {
+  "name": "datengraf",
+  "private": true,
+  "description": "Dokumentiert die Bibliotheksversionen, die unter assets/vendor/ eingecheckt sind. Zur Laufzeit wird nichts installiert; npm dient nur dem Aktualisieren der Vendor-Dateien.",
   "dependencies": {
-    "lz-string": "^1.5.0"
+    "cytoscape": "3.23.0",
+    "lz-string": "1.5.0"
+  },
+  "scripts": {
+    "vendor": "npm install --no-save cytoscape@3.23.0 lz-string@1.5.0 && cp node_modules/cytoscape/dist/cytoscape.min.js assets/vendor/ && cp node_modules/lz-string/libs/lz-string.min.js assets/vendor/"
   }
 }

@@ -989,6 +989,27 @@ textarea.csv-textarea:focus {
 
 .fullscreen #network-container { height: calc(100vh - 56px); }
 
+/* Textalternative zur Canvas-Karte – sichtbar, nicht nur für Screenreader */
+.network-a11y-note {
+  font-size: 12px;
+  color: var(--c-muted);
+  line-height: 1.6;
+  padding: 8px 4px 0;
+}
+.fullscreen .network-a11y-note { display: none; }
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--c-accent);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link-button:hover { color: var(--c-accent-h); }
+
 /* ── Node Detail Panel ───────────────────────────────────────── */
 #panel-network { position: relative; }
 

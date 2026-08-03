@@ -11,7 +11,7 @@
 [![Status](https://img.shields.io/badge/Status-aktiv-420093?style=flat-square)](https://github.com/daimpad/DatenGraf)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-bereit-420093?style=flat-square&logo=github&logoColor=white)](https://daimpad.github.io/datengraf)
 [![Privacy](https://img.shields.io/badge/Privacy-Local--First-420093?style=flat-square&logo=shield&logoColor=white)](https://github.com/daimpad/DatenGraf)
-[![Barrierefrei](https://img.shields.io/badge/Kontrast-WCAG%20AA-420093?style=flat-square)](https://github.com/daimpad/DatenGraf)
+[![Barrierefrei](https://img.shields.io/badge/Barrierefreiheit-WCAG%20AA-420093?style=flat-square)](https://github.com/daimpad/DatenGraf)
 [![Zero Server](https://img.shields.io/badge/Zero--Server-100%25%20lokal-black?style=flat-square)](https://nozilla.de)
 [![nozilla](https://img.shields.io/badge/by-nozilla-00FF9C?style=flat-square)](https://nozilla.de)
 
@@ -75,8 +75,8 @@
 | 🔒 | **Local-First / No-Database** | Alle Daten bleiben im Browser (LocalStorage) – kein Backend, kein Account |
 | 🛡️ | **Datenschutz-Dimensionen** | Schutzbedarf (DSGVO-relevant / Intern / Öffentlich), Erfassungsart, Ansprechpartner (Art. 30) |
 | 🌗 | **Hell & Dunkel** | Umschaltbares Theme, das die Auswahl merkt und beim Erststart der Systemeinstellung folgt |
-| ♿ | **Kontrast nach WCAG AA** | Text erfüllt in beiden Themes die AA-Schwellen (gemessen, siehe unten) |
-| 🧯 | **Ausfallsicher** | Ist das CDN blockiert, erklärt die App das und Liste, Insights und Briefing arbeiten weiter |
+| ♿ | **Barrierefreiheit** | AA-Kontraste in beiden Themes, Fokusführung in Dialogen, Textalternative zur Karte (siehe unten) |
+| 🧯 | **Vollständig offline-fähig** | Alle Bibliotheken werden lokal ausgeliefert – kein CDN, keine externen Aufrufe zur Laufzeit |
 | ❓ | **FAQ-Panel** | Eingebaute Antworten zu Kantenfarben, Hierarchie, Import, Briefing und Snapshots |
 | 📱 | **Mobile-Navigation** | Responsives Layout mit mobilem Menü-Dropdown für Tab-Wechsel und Wizard-Zugang |
 
@@ -152,7 +152,9 @@ Die Textfarben erfüllen in **beiden Themes** die Kontrastschwellen nach WCAG 2.
 
 Dafür trennt das Design-System bewusst zwischen **Flächenfarben** (`--c-success`, `--c-warn`, `--c-danger`) und **Schriftfarben** (`--ink-*`): dieselbe semantische Farbe braucht als Text einen dunkleren beziehungsweise im Dark Mode helleren Wert als für Balken und Punkte. Text auf Akzentflächen nutzt `--on-accent`, das im Dark Mode auf dunkle Tinte umschaltet, weil der Akzent dort hell ist.
 
-Alle Modals lassen sich mit `Esc` schließen; interaktive Elemente sind per Tastatur erreichbar.
+**Tastatur und Fokus.** Dialoge übernehmen den Fokus beim Öffnen, halten ihn per Tab und Shift+Tab im Dialog und geben ihn beim Schließen an das auslösende Element zurück. Alle Modals lassen sich mit `Esc` schließen. Statusmeldungen sind als `aria-live`-Region ausgezeichnet und werden von Screenreadern angesagt.
+
+**Alternative zur Netzwerkkarte.** Die Karte ist ein Canvas und damit für Screenreader nicht erschließbar. Dieselben Daten stehen deshalb gleichwertig in der **Listenansicht**, und das **Analyse-Briefing** beschreibt alle Befunde als Fließtext. Unter der Karte verweist ein sichtbarer Link direkt auf die Listenansicht – die Karte ist eine visuelle Ergänzung, kein exklusiver Zugang zum Inhalt.
 
 ---
 
@@ -171,9 +173,11 @@ Alle Modals lassen sich mit `Esc` schließen; interaktive Elemente sind per Tast
 | **Fetch API** | — | CSV-Import per URL, Beispieldaten, Anthropic API |
 | **Clipboard API** | — | Link-Teilen mit Fallback auf `prompt()` |
 
-> Keine Build-Tools, kein npm-Workflow zur Laufzeit, keine Transpiler — nur HTML, CSS und JS. Inter und Font Awesome werden lokal aus `assets/fonts/` ausgeliefert, nicht per CDN.
+> Keine Build-Tools, kein npm-Workflow zur Laufzeit, keine Transpiler — nur HTML, CSS und JS.
 
-**Zu den beiden CDN-Bibliotheken:** Cytoscape.js und LZ-String werden zur Laufzeit von `cdnjs.cloudflare.com` geladen. Sperrt ein Netz diesen Zugriff – in Verwaltungs- und Unternehmensumgebungen keine Seltenheit –, weist die App darauf hin, statt stillschweigend zu brechen. Listenansicht, Insights und Analyse-Briefing funktionieren dann weiterhin; Netzwerkkarte und Share-Link entfallen.
+**Keine externen Aufrufe zur Laufzeit.** Cytoscape.js und LZ-String liegen als geprüfte Kopien unter `assets/vendor/`, Inter und Font Awesome unter `assets/fonts/`. Die Anwendung lädt nichts von fremden Servern – sie funktioniert damit auch in Netzen, die CDNs sperren, und vollständig offline. Sollte eine Bibliothek dennoch fehlen, erklärt die App das und arbeitet mit Liste, Insights und Briefing weiter.
+
+Zum Aktualisieren der Vendor-Dateien dient `npm run vendor`; zur Laufzeit wird nichts installiert.
 
 ### Persistenz im Browser
 
@@ -245,6 +249,9 @@ DatenGraf/
 ├── js/
 │   └── app.js                        # Gesamte Anwendungslogik (~2700 Zeilen)
 ├── assets/
+│   ├── vendor/
+│   │   ├── cytoscape.min.js          # Cytoscape.js 3.23.0 (lokal, kein CDN)
+│   │   └── lz-string.min.js          # LZ-String 1.5.0 (lokal, kein CDN)
 │   └── fonts/
 │       ├── fa/all.min.css            # Font Awesome 6.7.2 CSS
 │       ├── webfonts/                 # Font Awesome woff2-Dateien (solid/regular/brands)
