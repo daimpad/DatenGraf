@@ -114,6 +114,8 @@ python3 -m http.server 8080
 
 > **Hinweis:** `index.html` muss über HTTP(S) geöffnet werden, damit `fetch()` die CSV-Beispieldaten laden kann. Ein direktes Öffnen als `file://` startet die App leer – CSV-Import per Paste funktioniert jedoch immer.
 
+Die Testsuite liegt unter `localhost:8080/test.html` und prüft die reinen Funktionen (CSV-Parser, Export, Score, Graph-Algorithmen) im Browser – ohne Build-Schritt und ohne Abhängigkeiten.
+
 ### Option C – eigene CSV-Daten verwenden
 
 ```
@@ -263,6 +265,7 @@ DatenGraf/
 │   ├── sample-verwaltung.csv         # Beispiel: Stadtverwaltung Musterstadt
 │   ├── sample-wissenschaft.csv       # Beispiel: Institut für Klimaforschung
 │   └── sample-medien.csv             # Beispiel: Tagesblatt Regional GmbH
+├── test.html                         # Testsuite (im Browser aufrufbar, kein Build nötig)
 ├── docs/
 │   ├── design-system.html            # Interaktive Referenz aller Design-Tokens
 │   ├── Features.md                   # Feature-Dokumentation

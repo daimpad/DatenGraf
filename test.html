@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>DatenGraf – Tests</title>
+<style>
+  :root {
+    --accent:#420093; --ok:#247a4a; --fail:#c0392b; --muted:#6a6580;
+    --line:rgba(180,170,210,0.35); --card:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:linear-gradient(135deg,#ede8f8 0%,#f0edf8 35%,#eaf0f8 65%,#f2f0fb 100%);
+    background-attachment:fixed;min-height:100vh;color:#1e1b2e;font-size:14px;padding:32px 24px;
+  }
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px}
+  .sub{color:var(--muted);margin-bottom:20px;line-height:1.6}
+  .sub code{background:rgba(66,0,147,.07);padding:1px 5px;border-radius:4px;font-size:12px}
+  #summary{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(66,0,147,.06);
+  }
+  #verdict{font-size:18px;font-weight:800}
+  .count{font-size:13px;color:var(--muted)}
+  .count b{color:#1e1b2e}
+  .group{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px rgba(66,0,147,.06);
+  }
+  .group-head{
+    padding:11px 18px;font-weight:700;font-size:13px;letter-spacing:.02em;
+    border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;
+  }
+  .case{padding:8px 18px;display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5}
+  .case+.case{border-top:1px solid rgba(180,170,210,.18)}
+  .mark{font-weight:800;flex-shrink:0;width:14px}
+  .pass .mark{color:var(--ok)} .fail .mark{color:var(--fail)}
+  .fail{background:rgba(192,57,43,.05)}
+  .detail{color:var(--fail);font-family:'JetBrains Mono',monospace;font-size:11.5px;
+    white-space:pre-wrap;margin-top:4px;line-height:1.5}
+  #frame{position:absolute;width:1200px;height:800px;left:-9999px;top:0;border:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DatenGraf – Tests</h1>
+  <p class="sub">
+    Prüft die reinen Funktionen aus <code>js/app.js</code> gegen erwartete Ergebnisse.
+    Die App wird dazu unsichtbar in einem Iframe geladen, damit der echte Code getestet wird – ohne Kopie und ohne Build-Schritt.<br>
+    Aufruf über HTTP nötig: <code>python3 -m http.server 8080</code> → <code>localhost:8080/test.html</code>
+  </p>
+  <div id="summary"><span id="verdict">Läuft …</span></div>
+  <div id="results"></div>
+</div>
+
+<iframe id="frame" src="index.html"></iframe>
+
+<script>
+// ── Mini-Assertions ────────────────────────────────────────────
+const groups = [];
+let current = null;
+let passed = 0, failed = 0;
+
+function group(name, fn) { current = { name, cases: [] }; groups.push(current); fn(); }
+function eq(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+
+function test(name, fn) {
+  try {
+    fn();
+    current.cases.push({ name, ok: true });
+    passed++;
+  } catch (err) {
+    current.cases.push({ name, ok: false, detail: err && err.message ? err.message : String(err) });
+    failed++;
+  }
+}
+function assert(cond, msg) { if (!cond) throw new Error(msg || 'Erwartung nicht erfüllt'); }
+function assertEq(actual, expected, msg) {
+  if (!eq(actual, expected)) {
+    throw new Error((msg ? msg + '\n' : '') +
+      'erwartet: ' + JSON.stringify(expected) + '\nerhalten: ' + JSON.stringify(actual));
+  }
+}
+
+// ── Testdaten ──────────────────────────────────────────────────
+const HEAD = 'Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,' +
+             'Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner';
+const row = o => Object.assign({
+  Quelle:'', QuelleAbteilung:'', QuelleBereich:'', QuelleOrganisation:'', QuelleRolle:'',
+  Beziehung:'', Ziel:'', Datentyp:'', 'Häufigkeit':'', Format:'', Schutzbedarf:'',
+  Erfassungsart:'', Anmerkungen:'', Ansprechpartner:''
+}, o);
+
+function runAll(win) {
+  const { parseCSV, toCSV, esc, calcVollstaendigkeit, betweennessCentrality, labelPropagation,
+          computeTopologyRisks, diffSnapshots, findDuplicate, formatSnapAge, buildCyStyle } = win;
+
+  // ── parseCSV ─────────────────────────────────────────────────
+  group('parseCSV – der handgeschriebene Parser', () => {
+    test('einfache Zeile wird zu einem Objekt', () => {
+      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,Meldungen,,,,,,');
+      assertEq(r.length, 1);
+      assertEq(r[0].Quelle, 'Amt A');
+      assertEq(r[0].Ziel, 'Amt B');
+      assertEq(r[0].Datentyp, 'Meldungen');
+    });
+
+    test('Komma innerhalb von Anführungszeichen trennt nicht', () => {
+      const r = parseCSV(HEAD + '\n"Amt A, Abteilung 1",,,,,übergibt,Amt B,,,,,,,');
+      assertEq(r[0].Quelle, 'Amt A, Abteilung 1');
+      assertEq(r[0].Ziel, 'Amt B');
+    });
+
+    test('doppelte Anführungszeichen werden zu einem', () => {
+      const r = parseCSV(HEAD + '\n"Amt ""A""",,,,,übergibt,Amt B,,,,,,,');
+      assertEq(r[0].Quelle, 'Amt "A"');
+    });
+
+    test('CRLF-Zeilenenden werden verstanden', () => {
+      const r = parseCSV(HEAD + '\r\nAmt A,,,,,übergibt,Amt B,,,,,,,\r\nAmt C,,,,,nutzt,Amt D,,,,,,,');
+      assertEq(r.length, 2);
+      assertEq(r[1].Quelle, 'Amt C');
+      assert(!r[0].Ziel.includes('\r'), 'Wagenrücklauf darf nicht im Wert landen');
+    });
+
+    test('Zeilenumbruch innerhalb eines gequoteten Feldes bleibt erhalten', () => {
+      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,,,,,,"Zeile 1\nZeile 2",');
+      assertEq(r.length, 1, 'darf nicht als zwei Zeilen gelesen werden');
+      assertEq(r[0].Anmerkungen, 'Zeile 1\nZeile 2');
+    });
+
+    test('leere Zeilen werden übersprungen', () => {
+      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,,,,,,,\n\n\nAmt C,,,,,nutzt,Amt D,,,,,,,');
+      assertEq(r.length, 2);
+    });
+
+    test('nur Kopfzeile ergibt leeres Ergebnis', () => assertEq(parseCSV(HEAD), []));
+    test('leerer String ergibt leeres Ergebnis', () => assertEq(parseCSV(''), []));
+
+    test('Leerraum um ungequotete Werte wird entfernt', () => {
+      const r = parseCSV(HEAD + '\n  Amt A  ,,,,,übergibt,  Amt B,,,,,,,');
+      assertEq(r[0].Quelle, 'Amt A');
+      assertEq(r[0].Ziel, 'Amt B');
+    });
+  });
+
+  // ── toCSV ────────────────────────────────────────────────────
+  group('toCSV – Export', () => {
+    test('Round-Trip: parseCSV(toCSV(x)) ergibt wieder x', () => {
+      const data = [row({ Quelle:'Amt A', Beziehung:'übergibt', Ziel:'Amt B', Datentyp:'Meldungen' })];
+      assertEq(parseCSV(toCSV(data)), data);
+    });
+
+    test('die Zeichenkette "0" überlebt den Export', () => {
+      const data = [row({ Quelle:'Amt A', Beziehung:'übergibt', Ziel:'Amt B', Datentyp:'0' })];
+      assertEq(parseCSV(toCSV(data))[0].Datentyp, '0');
+    });
+
+    test('die Zahl 0 geht nicht verloren', () => {
+      // Der eigentliche Falsy-Fall: '0' ist truthy, die Zahl 0 nicht.
+      // Zahlen können über geteilte Links oder LocalStorage in die Daten geraten.
+      const data = [row({ Quelle:'Amt A', Beziehung:'übergibt', Ziel:'Amt B', Datentyp: 0 })];
+      assertEq(parseCSV(toCSV(data))[0].Datentyp, '0',
+        'ein !v-Guard würde hier stillschweigend eine leere Zelle schreiben');
+    });
+
+    test('Komma im Wert wird gequotet', () => {
+      const data = [row({ Quelle:'Amt A, Abt. 1', Beziehung:'übergibt', Ziel:'Amt B' })];
+      assert(toCSV(data).includes('"Amt A, Abt. 1"'), 'Wert mit Komma muss in Anführungszeichen stehen');
+      assertEq(parseCSV(toCSV(data))[0].Quelle, 'Amt A, Abt. 1');
+    });
+
+    test('Anführungszeichen im Wert überleben den Round-Trip', () => {
+      const data = [row({ Quelle:'Amt "A"', Beziehung:'übergibt', Ziel:'Amt B' })];
+      assertEq(parseCSV(toCSV(data))[0].Quelle, 'Amt "A"');
+    });
+
+    test('Zeilenumbruch im Wert überlebt den Round-Trip', () => {
+      const data = [row({ Quelle:'Amt A', Beziehung:'übergibt', Ziel:'Amt B', Anmerkungen:'Zeile 1\nZeile 2' })];
+      assertEq(parseCSV(toCSV(data))[0].Anmerkungen, 'Zeile 1\nZeile 2');
+    });
+  });
+
+  // ── esc ──────────────────────────────────────────────────────
+  group('esc – XSS-Schutz', () => {
+    test('escaped < > & "', () => {
+      assertEq(esc('<script>'), '&lt;script&gt;');
+      assertEq(esc('a & b'), 'a &amp; b');
+      assertEq(esc('sag "hallo"'), 'sag &quot;hallo&quot;');
+    });
+    test('Reihenfolge stimmt: & wird nicht doppelt escaped', () => {
+      assertEq(esc('&lt;'), '&amp;lt;');
+    });
+    test('leerer und fehlender Wert ergeben leeren String', () => {
+      assertEq(esc(''), ''); assertEq(esc(null), ''); assertEq(esc(undefined), '');
+    });
+  });
+
+  // ── Vollständigkeits-Score ───────────────────────────────────
+  group('calcVollstaendigkeit – Score', () => {
+    test('leerer Datensatz ergibt 0 und leere Kategorien', () => {
+      const v = calcVollstaendigkeit([]);
+      assertEq(v.score, 0); assertEq(v.categories, []); assertEq(v.gaps, []);
+    });
+
+    test('vollständig gefüllt ergibt 100', () => {
+      const v = calcVollstaendigkeit([row({
+        Quelle:'A', Beziehung:'übergibt', Ziel:'B', Datentyp:'Meldungen',
+        Schutzbedarf:'Intern', Erfassungsart:'Manuell', QuelleOrganisation:'Stadt', Ansprechpartner:'Person'
+      })]);
+      assertEq(v.score, 100);
+      assertEq(v.gaps, []);
+    });
+
+    test('immer genau fünf Kategorien', () => {
+      const v = calcVollstaendigkeit([row({ Quelle:'A', Ziel:'B' })]);
+      assertEq(v.categories.length, 5);
+    });
+
+    test('ohne DSGVO-Zeilen gibt es volle Punkte für Ansprechpartner', () => {
+      const v = calcVollstaendigkeit([row({
+        Quelle:'A', Ziel:'B', Datentyp:'X', Schutzbedarf:'Intern',
+        Erfassungsart:'Manuell', QuelleOrganisation:'Stadt'  // kein Ansprechpartner
+      })]);
+      const cat = v.categories.find(c => c.label.startsWith('Ansprechpartner'));
+      assertEq(cat.pct, 100, 'ohne DSGVO-Zeilen darf der fehlende Ansprechpartner nicht zählen');
+      assertEq(v.score, 100);
+    });
+
+    test('DSGVO-Zeile ohne Ansprechpartner kostet Punkte', () => {
+      const v = calcVollstaendigkeit([row({
+        Quelle:'A', Ziel:'B', Datentyp:'X', Schutzbedarf:'DSGVO-relevant',
+        Erfassungsart:'Manuell', QuelleOrganisation:'Stadt'  // kein Ansprechpartner
+      })]);
+      const cat = v.categories.find(c => c.label.startsWith('Ansprechpartner'));
+      assertEq(cat.pct, 0);
+      assertEq(v.score, 75, 'Ansprechpartner wiegt 25 von 100');
+      assert(v.gaps.length > 0, 'Lücke muss in gaps auftauchen');
+    });
+
+    test('fehlende Schutzklasse kostet 25 Punkte', () => {
+      const v = calcVollstaendigkeit([row({
+        Quelle:'A', Ziel:'B', Datentyp:'X', Erfassungsart:'Manuell', QuelleOrganisation:'Stadt'
+      })]);
+      assertEq(v.score, 75);
+    });
+  });
+
+  // ── Betweenness ──────────────────────────────────────────────
+  group('betweennessCentrality – Gatekeeper-Erkennung', () => {
+    test('in der Kette A→B→C hat B den höchsten Wert', () => {
+      const nodes = ['A','B','C'];
+      const adj = { A:{B:1}, B:{C:1}, C:{} };
+      const bc = betweennessCentrality(nodes, adj);
+      assert(bc.B > bc.A && bc.B > bc.C, `B muss führen, war A=${bc.A} B=${bc.B} C=${bc.C}`);
+    });
+
+    test('im Stern hat das Zentrum den höchsten Wert', () => {
+      const nodes = ['Z','A','B','C'];
+      const adj = { Z:{A:1,B:1,C:1}, A:{Z:1}, B:{Z:1}, C:{Z:1} };
+      const bc = betweennessCentrality(nodes, adj);
+      assert(bc.Z > bc.A && bc.Z > bc.B && bc.Z > bc.C, 'Zentrum muss führen');
+    });
+
+    test('ohne Kanten ist alles 0', () => {
+      const bc = betweennessCentrality(['A','B'], { A:{}, B:{} });
+      assertEq(bc.A, 0); assertEq(bc.B, 0);
+    });
+
+    test('Endknoten einer Kette haben 0', () => {
+      const bc = betweennessCentrality(['A','B','C'], { A:{B:1}, B:{C:1}, C:{} });
+      assertEq(bc.A, 0); assertEq(bc.C, 0);
+    });
+  });
+
+  // ── Label Propagation ────────────────────────────────────────
+  group('labelPropagation – Community-Erkennung', () => {
+    test('zwei getrennte Paare ergeben zwei Cluster', () => {
+      const nodes = ['A','B','C','D'];
+      const adj = { A:{B:1}, B:{}, C:{D:1}, D:{} };
+      assertEq(labelPropagation(nodes, adj).length, 2);
+    });
+    test('eine durchgehende Kette ergibt einen Cluster', () => {
+      const nodes = ['A','B','C'];
+      const adj = { A:{B:1}, B:{C:1}, C:{} };
+      assertEq(labelPropagation(nodes, adj).length, 1);
+    });
+    test('ohne Knoten kommt eine leere Liste', () => assertEq(labelPropagation([], {}), []));
+  });
+
+  // ── Topologie-Risiken ────────────────────────────────────────
+  group('computeTopologyRisks – Hubs & Gatekeeper', () => {
+    test('gibt hubs und gatekeepers als Set zurück', () => {
+      const r = computeTopologyRisks([
+        row({ Quelle:'Z', Ziel:'A', Beziehung:'übergibt' }),
+        row({ Quelle:'Z', Ziel:'B', Beziehung:'übergibt' }),
+        row({ Quelle:'Z', Ziel:'C', Beziehung:'übergibt' }),
+        row({ Quelle:'A', Ziel:'D', Beziehung:'übergibt' })
+      ]);
+      // Achtung: instanceof trägt nicht über die Iframe-Grenze – Set stammt aus dem anderen Realm.
+      assert(r.hubs instanceof win.Set, 'hubs muss ein Set sein');
+      assert(r.gatekeepers instanceof win.Set, 'gatekeepers muss ein Set sein');
+    });
+    test('der Verteiler im Stern wird als Hub erkannt', () => {
+      // Schwelle ist max(4, doppelter Durchschnitt). Mit fünf Quellknoten
+      // liegt der Durchschnitt bei 1,8 – Z überschreitet die 4 damit klar.
+      const r = computeTopologyRisks([
+        row({ Quelle:'Z', Ziel:'A' }), row({ Quelle:'Z', Ziel:'B' }),
+        row({ Quelle:'Z', Ziel:'C' }), row({ Quelle:'Z', Ziel:'D' }),
+        row({ Quelle:'Z', Ziel:'E' }),
+        row({ Quelle:'A', Ziel:'F' }), row({ Quelle:'B', Ziel:'F' }),
+        row({ Quelle:'C', Ziel:'F' }), row({ Quelle:'D', Ziel:'F' })
+      ]);
+      assert(r.hubs.has('Z'), 'Z verteilt an fünf Knoten und muss Hub sein');
+      assert(!r.hubs.has('A'), 'ein Knoten mit einer Kante darf kein Hub sein');
+    });
+    test('leere Daten führen zu leeren Mengen', () => {
+      const r = computeTopologyRisks([]);
+      assertEq(r.hubs.size, 0); assertEq(r.gatekeepers.size, 0);
+    });
+  });
+
+  // ── Snapshot-Diff ────────────────────────────────────────────
+  group('diffSnapshots – Veränderungen', () => {
+    const A = row({ Quelle:'A', Ziel:'B', Datentyp:'X', Schutzbedarf:'Intern' });
+    const B = row({ Quelle:'C', Ziel:'D', Datentyp:'Y', Schutzbedarf:'Intern' });
+
+    test('neue Verbindung landet in added', () => {
+      const d = diffSnapshots([A], [A, B]);
+      assertEq(d.added.length, 1); assertEq(d.added[0].Quelle, 'C');
+      assertEq(d.removed.length, 0);
+    });
+    test('entfallene Verbindung landet in removed', () => {
+      const d = diffSnapshots([A, B], [A]);
+      assertEq(d.removed.length, 1); assertEq(d.removed[0].Quelle, 'C');
+      assertEq(d.added.length, 0);
+    });
+    test('geänderter Schutzbedarf landet in schutzChanged', () => {
+      const A2 = row({ Quelle:'A', Ziel:'B', Datentyp:'X', Schutzbedarf:'DSGVO-relevant' });
+      const d = diffSnapshots([A], [A2]);
+      assertEq(d.schutzChanged.length, 1);
+      assertEq(d.added.length, 0, 'gleiche Kante darf nicht als neu gelten');
+    });
+    test('identische Stände ergeben keine Unterschiede', () => {
+      const d = diffSnapshots([A, B], [A, B]);
+      assertEq(d.added.length, 0); assertEq(d.removed.length, 0); assertEq(d.schutzChanged.length, 0);
+    });
+  });
+
+  // ── Duplikate ────────────────────────────────────────────────
+  group('findDuplicate – Duplikat-Erkennung', () => {
+    const data = [
+      row({ Quelle:'A', Ziel:'B', Datentyp:'X' }),
+      row({ Quelle:'C', Ziel:'D', Datentyp:'Y' })
+    ];
+    test('findet die Position eines Duplikats', () => {
+      assertEq(findDuplicate(data, { Quelle:'C', Ziel:'D', Datentyp:'Y' }), 1);
+    });
+    test('meldet -1 wenn es keins gibt', () => {
+      assertEq(findDuplicate(data, { Quelle:'E', Ziel:'F', Datentyp:'Z' }), -1);
+    });
+    test('überspringt den bearbeiteten Eintrag', () => {
+      assertEq(findDuplicate(data, { Quelle:'C', Ziel:'D', Datentyp:'Y' }, 1), -1,
+        'beim Bearbeiten darf der eigene Eintrag nicht als Duplikat gelten');
+    });
+  });
+
+  // ── Snapshot-Alter ───────────────────────────────────────────
+  group('formatSnapAge – Altersanzeige', () => {
+    const TAG = 86400000;
+    test('heute', ()   => assertEq(formatSnapAge(Date.now()), 'heute'));
+    test('gestern', () => assertEq(formatSnapAge(Date.now() - TAG - 1000), 'gestern'));
+    test('vor mehreren Tagen', () => assertEq(formatSnapAge(Date.now() - 3*TAG - 1000), 'vor 3 Tagen'));
+    test('ohne Zeitstempel leer', () => assertEq(formatSnapAge(null), ''));
+    test('älter als eine Woche wird zum Datum', () => {
+      const s = formatSnapAge(Date.now() - 30*TAG);
+      assert(/\d{2}\.\d{2}\.\d{4}/.test(s), 'erwartet ein Datum, erhalten: ' + s);
+    });
+  });
+
+  // ── Theme-abhängige Graph-Styles ─────────────────────────────
+  group('buildCyStyle – Graph-Farben je Theme', () => {
+    const root = win.document.documentElement;
+    const before = root.getAttribute('data-theme');
+
+    test('liefert für beide Themes unterschiedliche Compound-Farben', () => {
+      root.setAttribute('data-theme', 'light');
+      const light = buildCyStyle().find(r => r.selector === ':parent').style.color;
+      root.setAttribute('data-theme', 'dark');
+      const dark = buildCyStyle().find(r => r.selector === ':parent').style.color;
+      assert(light !== dark, 'Compound-Label muss sich mit dem Theme ändern');
+    });
+
+    test('die Basis-Konstante CY_STYLE wird nicht verändert', () => {
+      const orig = win.eval("CY_STYLE.find(r => r.selector === ':parent').style.color");
+      root.setAttribute('data-theme', 'dark');
+      buildCyStyle();
+      const after = win.eval("CY_STYLE.find(r => r.selector === ':parent').style.color");
+      assertEq(after, orig, 'buildCyStyle() darf CY_STYLE nicht mutieren');
+    });
+
+    root.setAttribute('data-theme', before || 'light');
+  });
+}
+
+// ── Ausgabe ────────────────────────────────────────────────────
+function render() {
+  document.getElementById('results').innerHTML = groups.map(g => {
+    const bad = g.cases.filter(c => !c.ok).length;
+    return `<div class="group">
+      <div class="group-head">
+        <span>${g.name}</span>
+        <span style="color:${bad ? 'var(--fail)' : 'var(--ok)'}">${g.cases.length - bad}/${g.cases.length}</span>
+      </div>
+      ${g.cases.map(c => `
+        <div class="case ${c.ok ? 'pass' : 'fail'}">
+          <span class="mark">${c.ok ? '✓' : '✗'}</span>
+          <span>${c.name}${c.detail ? `<div class="detail">${c.detail.replace(/[<>&]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))}</div>` : ''}</span>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+
+  const ok = failed === 0;
+  document.getElementById('summary').innerHTML =
+    `<span id="verdict" style="color:${ok ? 'var(--ok)' : 'var(--fail)'}">${ok ? '✓ Alle Tests bestanden' : '✗ ' + failed + ' Test(s) fehlgeschlagen'}</span>
+     <span class="count"><b>${passed}</b> bestanden · <b>${failed}</b> fehlgeschlagen · <b>${passed + failed}</b> gesamt</span>`;
+
+  // Für automatisierte Aufrufe
+  window.__testResults = { passed, failed, total: passed + failed,
+    failures: groups.flatMap(g => g.cases.filter(c => !c.ok).map(c => g.name + ' › ' + c.name)) };
+  document.title = (ok ? '✓' : '✗') + ' DatenGraf Tests';
+}
+
+document.getElementById('frame').addEventListener('load', () => {
+  const win = document.getElementById('frame').contentWindow;
+  try {
+    if (typeof win.parseCSV !== 'function') throw new Error('app.js wurde im Iframe nicht geladen');
+    runAll(win);
+  } catch (err) {
+    groups.push({ name: 'Testlauf', cases: [{ name: 'Harness konnte nicht starten', ok: false, detail: String(err && err.stack || err) }] });
+    failed++;
+  }
+  render();
+});
+</script>
+</body>
+</html>
