@@ -12,7 +12,7 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-bereit-420093?style=flat-square&logo=github&logoColor=white)](https://daimpad.github.io/datengraf)
 [![Privacy](https://img.shields.io/badge/Privacy-Local--First-420093?style=flat-square&logo=shield&logoColor=white)](https://github.com/daimpad/DatenGraf)
 [![Barrierefrei](https://img.shields.io/badge/Barrierefreiheit-WCAG%20AA-420093?style=flat-square)](https://github.com/daimpad/DatenGraf)
-[![Tests](https://img.shields.io/badge/Tests-66%20im%20Browser-420093?style=flat-square)](test.html)
+[![Tests](https://img.shields.io/badge/Tests-84%20im%20Browser-420093?style=flat-square)](test.html)
 [![Zero Server](https://img.shields.io/badge/Zero--Server-100%25%20lokal-black?style=flat-square)](https://nozilla.de)
 [![nozilla](https://img.shields.io/badge/by-nozilla-00FF9C?style=flat-square)](https://nozilla.de)
 
@@ -32,6 +32,7 @@
 | ✏️ | **Bearbeiten & duplizieren** | Einträge direkt in der Listenansicht bearbeiten oder als Vorlage klonen; Doppelklick auf einen Knoten öffnet den Wizard im Bearbeitungsmodus |
 | 📥 | **Flexibler CSV-Import** | Einfügen per Paste, Laden per URL oder Dateiupload; Komma, Semikolon und Tabulator werden automatisch erkannt – plus CSV-Vorlage zum Download |
 | 👀 | **Import-Vorschau** | Vor dem Übernehmen zeigt eine Tabelle die ersten Zeilen, markiert Pflichtspalten und warnt bei fehlenden Feldern |
+| 🪄 | **Normalisierungsprüfung** | Findet uneinheitliche Schreibweisen (`Kämmerei` / `Kaemmerei`, `Uebergibt` / `übergibt`) vor dem Import und vereinheitlicht sie auf Wunsch – sonst würde daraus je ein eigener Knoten |
 | ↩️ | **Undo** | `Strg`/`Cmd` + `Z` macht die letzten 20 Datenänderungen rückgängig |
 
 ### Visualisieren
@@ -168,7 +169,7 @@ Dafür trennt das Design-System bewusst zwischen **Flächenfarben** (`--c-succes
 
 ## Qualitätssicherung
 
-`test.html` prüft **66 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
+`test.html` prüft **84 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
 
 Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet die **echten** Funktionen über `contentWindow`. Es gibt also keine Kopie des Codes, die auseinanderlaufen könnte.
 
@@ -178,6 +179,7 @@ Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet di
 | **Trennzeichen** | Erkennung von Komma, Semikolon und Tabulator; Trennzeichen in Anführungszeichen zählen nicht |
 | **Export** | Round-Trip `parseCSV(toCSV(x)) === x`, Sonderzeichen, Falsy-Werte |
 | **Import-Validierung** | Erkennen unbrauchbarer Dateien vor dem Überschreiben |
+| **Normalisierung** | Vergleichsschlüssel, Erkennen abweichender Schreibweisen, Wahl der kanonischen Fassung |
 | **Score** | Gewichtung, Grenzfälle, DSGVO-Sonderregel |
 | **Graph-Algorithmen** | Betweenness, Label Propagation, Hub-/Gatekeeper-Schwellen |
 | **Weiteres** | Snapshot-Diff, Duplikat-Erkennung, XSS-Escaping, Theme-abhängige Graph-Farben |
