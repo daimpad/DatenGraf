@@ -99,7 +99,8 @@ const row = o => Object.assign({
 function runAll(win) {
   const { parseCSV, toCSV, esc, calcVollstaendigkeit, betweennessCentrality, labelPropagation,
           computeTopologyRisks, diffSnapshots, findDuplicate, formatSnapAge, buildCyStyle,
-          detectDelimiter, usableRowCount } = win;
+          detectDelimiter, usableRowCount, normKey, analyzeNormalization,
+          applyNormalization, normalizationIssueCount } = win;
 
   // ── parseCSV ─────────────────────────────────────────────────
   group('parseCSV – der handgeschriebene Parser', () => {
@@ -201,6 +202,101 @@ function runAll(win) {
       assertEq(usableRowCount([{Foo:'1',Bar:'2'}, {Foo:'3',Bar:'4'}]), 0);
     });
     test('leere Liste ergibt 0', () => assertEq(usableRowCount([]), 0));
+  });
+
+  // ── Normalisierung ───────────────────────────────────────────
+  group('normKey – Vergleichsschlüssel', () => {
+    test('ignoriert Groß-/Kleinschreibung', () => assertEq(normKey('Amt A'), normKey('amt a')));
+    test('ignoriert Satzzeichen am Ende', () => assertEq(normKey('Amt A.'), normKey('Amt A')));
+    test('normalisiert Mehrfach-Leerzeichen', () => assertEq(normKey('Amt  A'), normKey('Amt A')));
+    test('behandelt Umlaut und Umschrift gleich', () => {
+      assertEq(normKey('Kämmerei'), normKey('Kaemmerei'));
+      assertEq(normKey('Grüße'), normKey('Gruesse'));
+    });
+    test('unterscheidet echte Verschiedenheit', () => assert(normKey('Amt A') !== normKey('Amt B')));
+  });
+
+  group('analyzeNormalization – Abweichungen finden', () => {
+    test('erkennt abweichende Schreibweise im Vokabular', () => {
+      const f = analyzeNormalization([row({Quelle:'A', Ziel:'B', Beziehung:'Uebergibt'})]);
+      const v = f.vocab.find(x => x.field === 'Beziehung');
+      assertEq(v.suggestion, 'übergibt');
+    });
+    test('markiert unbekannte Werte ohne Vorschlag', () => {
+      const f = analyzeNormalization([row({Quelle:'A', Ziel:'B', Beziehung:'sendet'})]);
+      assertEq(f.vocab.find(x => x.field === 'Beziehung').suggestion, null);
+    });
+    test('findet Akteur-Varianten', () => {
+      const f = analyzeNormalization([
+        row({Quelle:'Amt A', Ziel:'B', Beziehung:'nutzt'}),
+        row({Quelle:'amt a', Ziel:'C', Beziehung:'nutzt'})
+      ]);
+      assertEq(f.actors.length, 1);
+      assertEq(f.actors[0].canonical, 'Amt A', 'die großgeschriebene Fassung soll gewinnen');
+    });
+    test('bevorzugt den Umlaut vor der Umschrift', () => {
+      const f = analyzeNormalization([
+        row({Quelle:'Kaemmerei', Ziel:'B', Beziehung:'nutzt'}),
+        row({Quelle:'Kämmerei',  Ziel:'C', Beziehung:'nutzt'})
+      ]);
+      assertEq(f.actors[0].canonical, 'Kämmerei');
+    });
+    test('die häufigste Schreibweise gewinnt vor der Heuristik', () => {
+      const f = analyzeNormalization([
+        row({Quelle:'amt a', Ziel:'B', Beziehung:'nutzt'}),
+        row({Quelle:'amt a', Ziel:'C', Beziehung:'nutzt'}),
+        row({Quelle:'Amt A', Ziel:'D', Beziehung:'nutzt'})
+      ]);
+      assertEq(f.actors[0].canonical, 'amt a');
+    });
+    test('findet Organisations-Varianten über beide Spalten', () => {
+      const f = analyzeNormalization([
+        row({Quelle:'A', Ziel:'B', Beziehung:'nutzt', QuelleOrganisation:'Stadt X'}),
+        row({Quelle:'C', Ziel:'D', Beziehung:'nutzt', ZielOrganisation:'stadt x'})
+      ]);
+      assertEq(f.orgs.length, 1);
+      assertEq(f.orgs[0].canonical, 'Stadt X');
+    });
+    test('saubere Daten ergeben keine Hinweise', () => {
+      const f = analyzeNormalization([
+        row({Quelle:'Amt A', Ziel:'Amt B', Beziehung:'übergibt', Schutzbedarf:'Intern',
+             Erfassungsart:'Manuell', QuelleOrganisation:'Stadt X', ZielOrganisation:'Stadt X'})
+      ]);
+      assertEq(normalizationIssueCount(f), 0);
+    });
+    test('leere Werte werden ignoriert', () => {
+      assertEq(normalizationIssueCount(analyzeNormalization([row({Quelle:'A', Ziel:'B'})])), 0);
+    });
+  });
+
+  group('applyNormalization – Vereinheitlichen', () => {
+    const rows = [
+      row({Quelle:'Standesamt',  Ziel:'Kämmerei',  Beziehung:'übergibt',  QuelleOrganisation:'Stadt X'}),
+      row({Quelle:'standesamt',  Ziel:'Kaemmerei', Beziehung:'Uebergibt', QuelleOrganisation:'stadt x'})
+    ];
+    test('führt Akteur-Varianten zusammen', () => {
+      const fixed = applyNormalization(rows, analyzeNormalization(rows));
+      assertEq([...new Set(fixed.map(r => r.Quelle))], ['Standesamt']);
+      assertEq([...new Set(fixed.map(r => r.Ziel))], ['Kämmerei']);
+    });
+    test('korrigiert das Vokabular', () => {
+      const fixed = applyNormalization(rows, analyzeNormalization(rows));
+      assertEq([...new Set(fixed.map(r => r.Beziehung))], ['übergibt']);
+    });
+    test('nach dem Anwenden bleiben keine lösbaren Hinweise', () => {
+      const fixed = applyNormalization(rows, analyzeNormalization(rows));
+      const rest = analyzeNormalization(fixed);
+      assertEq(rest.actors.length, 0);
+      assertEq(rest.orgs.length, 0);
+      assertEq(rest.vocab.filter(v => v.suggestion).length, 0);
+    });
+    test('unbekannte Werte bleiben unangetastet', () => {
+      const r2 = [row({Quelle:'A', Ziel:'B', Beziehung:'sendet'})];
+      assertEq(applyNormalization(r2, analyzeNormalization(r2))[0].Beziehung, 'sendet');
+    });
+    test('verändert die Zeilenzahl nicht', () => {
+      assertEq(applyNormalization(rows, analyzeNormalization(rows)).length, rows.length);
+    });
   });
 
   // ── toCSV ────────────────────────────────────────────────────

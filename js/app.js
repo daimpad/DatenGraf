@@ -110,6 +110,104 @@ function parseCSV(csv) {
   });
 }
 
+// ── Normalisierungsprüfung ────────────────────────────────────────────────────
+// Tippfehler und uneinheitliche Schreibweisen wirken sich direkt auf die Analyse
+// aus: Ein zweimal geschriebener Akteur wird zu zwei Knoten, eine abweichend
+// geschriebene Organisation zu einer eigenen Farbe. Deshalb vor dem Import prüfen.
+const VOCAB_FIELDS = {
+  Beziehung:     BEZIEHUNG_OPTS,
+  Schutzbedarf:  SCHUTZ_OPTS,
+  Erfassungsart: ERFASSUNG_OPTS,
+  QuelleRolle:   ROLLEN_OPTS
+};
+const NAME_FIELDS = ['Quelle', 'Ziel'];
+const ORG_FIELDS  = ['QuelleOrganisation', 'ZielOrganisation'];
+
+// Vergleichsschlüssel: ignoriert Groß-/Kleinschreibung, Mehrfach-Leerzeichen,
+// Satzzeichen am Ende und Umlaut-Umschreibungen (ue/ae/oe/ss).
+function normKey(v) {
+  return String(v ?? '').toLowerCase().trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[.,;:!?]+$/, '')
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+}
+
+function analyzeNormalization(rows) {
+  const vocab = [];
+  Object.entries(VOCAB_FIELDS).forEach(([field, opts]) => {
+    const canonical = new Map(opts.map(o => [normKey(o), o]));
+    const seen = new Map();
+    rows.forEach(r => {
+      const v = String(r[field] ?? '').trim();
+      if (v) seen.set(v, (seen.get(v) || 0) + 1);
+    });
+    seen.forEach((count, raw) => {
+      const hit = canonical.get(normKey(raw));
+      if (hit && hit !== raw)      vocab.push({ field, raw, suggestion: hit, count });
+      else if (!hit)               vocab.push({ field, raw, suggestion: null, count });
+    });
+  });
+
+  // Bei gleicher Häufigkeit entscheidet die sauberere Schreibweise:
+  // großgeschrieben, mit deutschen Umlauten statt Umschrift, ohne Satzzeichen
+  // am Ende und ohne doppelte Leerzeichen.
+  const variantScore = v =>
+    (/^[A-ZÄÖÜ]/.test(v)   ? 2 : 0) +
+    (/[äöüßÄÖÜ]/.test(v)   ? 1 : 0) +
+    (/[.,;:!?]$/.test(v)   ? 0 : 2) +
+    (/\s{2,}/.test(v)      ? 0 : 1);
+
+  // Freitextfelder: Schreibweisen, die auf denselben Schlüssel fallen
+  const variantGroups = fields => {
+    const groups = new Map();
+    rows.forEach(r => fields.forEach(f => {
+      const v = String(r[f] ?? '').trim();
+      if (!v) return;
+      const k = normKey(v);
+      if (!groups.has(k)) groups.set(k, new Map());
+      const m = groups.get(k);
+      m.set(v, (m.get(v) || 0) + 1);
+    }));
+    return [...groups.values()]
+      .filter(m => m.size > 1)
+      .map(m => {
+        const variants = [...m.entries()]
+          .map(([value, count]) => ({ value, count }))
+          .sort((a, b) => b.count - a.count
+                       || variantScore(b.value) - variantScore(a.value)
+                       || a.value.localeCompare(b.value));
+        return { canonical: variants[0].value, variants };
+      });
+  };
+
+  return { vocab, actors: variantGroups(NAME_FIELDS), orgs: variantGroups(ORG_FIELDS) };
+}
+
+function normalizationIssueCount(f) {
+  return f.vocab.length + f.actors.length + f.orgs.length;
+}
+
+// Wendet nur eindeutige Vorschläge an. Unbekannte Vokabularwerte bleiben
+// unangetastet — dort lässt sich nicht raten, was gemeint war.
+function applyNormalization(rows, findings) {
+  const vocabMap = new Map();
+  findings.vocab.forEach(v => { if (v.suggestion) vocabMap.set(v.field + ' ' + v.raw, v.suggestion); });
+  const nameMap = new Map(), orgMap = new Map();
+  findings.actors.forEach(g => g.variants.forEach(v => nameMap.set(v.value, g.canonical)));
+  findings.orgs.forEach(g => g.variants.forEach(v => orgMap.set(v.value, g.canonical)));
+
+  return rows.map(r => {
+    const out = { ...r };
+    Object.keys(VOCAB_FIELDS).forEach(f => {
+      const s = vocabMap.get(f + ' ' + String(out[f] ?? '').trim());
+      if (s) out[f] = s;
+    });
+    NAME_FIELDS.forEach(f => { const c = nameMap.get(String(out[f] ?? '').trim()); if (c) out[f] = c; });
+    ORG_FIELDS.forEach(f  => { const c = orgMap.get(String(out[f] ?? '').trim());  if (c) out[f] = c; });
+    return out;
+  });
+}
+
 // Ein Import ohne einzige verwertbare Zeile ist fast immer ein Formatproblem
 // (falsches Trennzeichen, verschobene Spalten). Dann lieber abweisen als
 // den bestehenden Datensatz durch Unbrauchbares ersetzen.
@@ -1683,8 +1781,55 @@ function showCSVPreview(text) {
       `<tr>${headers.map(h => `<td>${esc(row[h] || '')}</td>`).join('')}</tr>`
     ).join('')}</tbody>`;
 
+  renderNormalizationHints(parsed);
   panel.classList.remove('hidden');
 }
+
+function renderNormalizationHints(rows) {
+  const box  = document.getElementById('csv-quality');
+  const list = document.getElementById('csv-quality-list');
+  const btn  = document.getElementById('btn-normalize');
+  const f = analyzeNormalization(rows);
+  if (!normalizationIssueCount(f)) { box.classList.add('hidden'); return; }
+
+  const times = n => `${n}×`;
+  const items = [];
+
+  f.vocab.forEach(v => {
+    items.push(v.suggestion
+      ? `<li><span class="q-field">${esc(v.field)}</span> „${esc(v.raw)}" (${times(v.count)}) → <strong>${esc(v.suggestion)}</strong></li>`
+      : `<li><span class="q-field q-unknown">${esc(v.field)}</span> „${esc(v.raw)}" (${times(v.count)}) — unbekannter Wert, bleibt unverändert</li>`);
+  });
+  const groupItem = (label, g) =>
+    `<li><span class="q-field">${label}</span> ${g.variants.map(v => `„${esc(v.value)}" (${times(v.count)})`).join(', ')} → <strong>${esc(g.canonical)}</strong></li>`;
+  f.actors.forEach(g => items.push(groupItem('Akteur', g)));
+  f.orgs.forEach(g   => items.push(groupItem('Organisation', g)));
+
+  list.innerHTML = items.join('');
+  // Nur anbieten, wenn es etwas eindeutig Anwendbares gibt
+  const applicable = f.vocab.some(v => v.suggestion) || f.actors.length || f.orgs.length;
+  btn.classList.toggle('hidden', !applicable);
+  box.classList.remove('hidden');
+}
+
+// Vereinheitlichte Fassung sichtbar in das Eingabefeld schreiben, damit klar ist,
+// was importiert wird — und damit alle drei Importwege sie danach verwenden.
+document.getElementById('btn-normalize').addEventListener('click', () => {
+  getCSVText().then(text => {
+    const rows = parseCSV(text);
+    if (!rows.length) return;
+    const before = analyzeNormalization(rows);
+    const fixed  = applyNormalization(rows, before);
+    document.getElementById('csv-input').value = toCSV(fixed);
+    document.querySelectorAll('.import-method-tab').forEach(t => t.classList.toggle('active', t.dataset.import === 'paste'));
+    document.querySelectorAll('.import-section').forEach(s => s.classList.toggle('active', s.id === 'import-paste'));
+    showCSVPreview(document.getElementById('csv-input').value);
+    const offen = analyzeNormalization(fixed).vocab.filter(v => !v.suggestion).length;
+    setStatus(offen
+      ? `Schreibweisen vereinheitlicht. ${offen} unbekannte${offen === 1 ? 'r Wert' : ' Werte'} bleibt zur Prüfung.`
+      : 'Schreibweisen vereinheitlicht.', 'success');
+  }).catch(e => setStatus(e.message, 'error'));
+});
 
 function setStatus(msg, type = '') {
   const el = document.getElementById('status-message');

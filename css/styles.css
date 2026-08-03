@@ -2885,6 +2885,60 @@ textarea.csv-textarea:focus {
 .csv-preview-table tr:last-child td { border-bottom: none; }
 .csv-preview-table tbody tr:hover td { background: rgba(66,0,147,0.03); }
 
+/* ── Normalisierungshinweise im Import ───────────────────────── */
+.csv-quality {
+  border-top: 1px solid var(--c-border-s);
+  padding: 12px 14px 14px;
+  background: var(--surface-2);
+}
+.csv-quality.hidden { display: none; }
+.csv-quality-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.csv-quality-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-warn);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.csv-quality-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.csv-quality-list li {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--c-muted);
+}
+.csv-quality-list strong { color: var(--c-text); }
+.q-field {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--c-accent);
+  background: rgba(66,0,147,0.08);
+  padding: 1px 7px;
+  border-radius: 20px;
+  margin-right: 6px;
+}
+.q-unknown { color: var(--ink-warn); background: rgba(212,130,10,0.12); }
+#btn-normalize.hidden { display: none; }
+
 /* ── Cytoscape Node Tooltip ─────────────────────────────────────────────────── */
 .cy-tooltip {
   position: fixed;

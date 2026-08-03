@@ -13,7 +13,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v64` (Script-Tag: `<script src="js/app.js?v=64">`)
+- **Aktuelle Version:** `v65` (Script-Tag: `<script src="js/app.js?v=65">`)
 
 ---
 
@@ -30,8 +30,8 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v64</span>
-<script src="js/app.js?v=64"></script>
+<span class="footer-version">v65</span>
+<script src="js/app.js?v=65"></script>
 ```
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape und LZ-String unter `assets/vendor/`. Zur Laufzeit gibt es keine externen Aufrufe.
@@ -191,6 +191,18 @@ Nie umgekehrt — `applyFilters()` nutzt die von `buildSidebarFilters()` aufgeba
 
 `usableRowCount(rows)` zählt Zeilen mit Quelle, Ziel und Beziehung. Ergibt ein Import **null** verwertbare Zeilen, weisen beide Import-Buttons ihn mit einer erklärenden Meldung ab, statt den bestehenden Datensatz zu überschreiben.
 
+### Normalisierungsprüfung
+
+Uneinheitliche Schreibweisen wirken direkt auf die Analyse: Ein zweimal geschriebener Akteur wird zu zwei Knoten, eine abweichend geschriebene Organisation zu einer eigenen Farbe. `analyzeNormalization(rows)` findet solche Fälle vor dem Import.
+
+- `normKey(v)` ist der Vergleichsschlüssel: Kleinschreibung, getrimmt, Mehrfach-Leerzeichen zusammengefasst, Satzzeichen am Ende entfernt, Umlaute auf `ae/oe/ue/ss` abgebildet. Dadurch fallen `Kämmerei` und `Kaemmerei` zusammen.
+- Geprüft werden die kontrollierten Vokabulare (`VOCAB_FIELDS`: Beziehung, Schutzbedarf, Erfassungsart, QuelleRolle) sowie die Freitextfelder `NAME_FIELDS` und `ORG_FIELDS`.
+- **Kanonische Fassung:** häufigste Schreibweise zuerst; bei Gleichstand entscheidet eine Heuristik zugunsten von Großschreibung, echten Umlauten, fehlendem Satzzeichen am Ende und einfachen Leerzeichen. Ohne sie gewänne die Alphabetik — und damit `kaemmerei` statt `Kämmerei`.
+- `applyNormalization()` wendet **nur eindeutige** Vorschläge an. Unbekannte Vokabularwerte (`sendet` statt `übergibt`) bleiben unverändert; dort lässt sich nicht raten.
+- Die Schaltfläche schreibt die vereinheitlichte Fassung sichtbar ins Eingabefeld und wechselt auf den Einfügen-Tab — so ist nachvollziehbar, was importiert wird, und alle drei Importwege nutzen sie danach.
+
+Die fünf Beispieldatensätze erzeugen bewusst **null** Hinweise; sie taugen damit als Referenz für Fehlalarme.
+
 ### toCSV / Falsy-Werte
 
 `toCSV` prüft `v == null || v === ''` (nicht `!v`). Geschützt wird damit die **Zahl** `0`: Der String `'0'` ist truthy und war nie gefährdet, die Zahl `0` ist es nicht. Zahlen können über geteilte Links oder LocalStorage in den Datensatz geraten, ein `!v`-Guard würde dort stillschweigend leere Zellen schreiben. Der Testfall dazu steht in `test.html`.
@@ -335,6 +347,7 @@ Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal 
 | Mobile-Nav | — | `#mobile-nav`, `#mobile-nav-btn`, `.mobile-nav-tab` |
 | CSV-Import | `parseCSV(csv)`, `detectDelimiter(csv)`, `usableRowCount(rows)` — State-Machine über den gesamten String; Quotes, `""`-Escapes, CRLF, BOM und Komma/Semikolon/Tabulator | `#import-body`, `#csv-input` |
 | Import-Vorschau | `showCSVPreview(text)` | `#csv-preview` |
+| Normalisierungsprüfung | `normKey()`, `analyzeNormalization()`, `applyNormalization()`, `renderNormalizationHints()` | `#csv-quality`, `#btn-normalize` |
 | CSV-Export | `toCSV(data)` | `#export-csv-btn` |
 | PNG/SVG-Export | `downloadBlob(blob, filename)` | `#btn-export-png`, `#btn-export-svg` |
 | PDF-Bericht | `buildReportHTML(networkImgUri)` | `#pdf-report-btn` |
@@ -411,7 +424,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v64) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v65) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
@@ -483,3 +496,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v63 | Test-Harness `test.html`: 48 Tests für die reinen Funktionen, läuft im Browser ohne Build; dabei zwei Doku-Fehler gefunden (`diffSnapshots` liefert `schutzChanged`, und der Falsy-Guard in `toCSV` schützt die Zahl `0`, nicht den String `'0'`) |
 | v63 | Spalte `ZielOrganisation`: reine Empfänger können jetzt eine Organisation tragen (vorher farblos in der Org-Ansicht). Quellangaben behalten Vorrang. Vorlage und Beispieldaten um `ZielOrganisation` **und** das bislang fehlende `Ansprechpartner` ergänzt |
 | v64 | Testrunde über die gesamte App (151 Prüfungen). Drei Fehler behoben: SVG-Export war seit jeher kaputt (Erweiterung `cytoscape-svg` fehlte), Semikolon- und Tabulator-CSV wurden nicht erkannt (deutsches Excel), und unbrauchbare Importe meldeten Erfolg statt Fehler |
+| v65 | Normalisierungsprüfung beim Import: erkennt uneinheitliche Schreibweisen in Akteuren, Organisationen und kontrollierten Vokabularen und vereinheitlicht sie auf Wunsch. Im Test kollabierten 7 Knoten auf die 4 tatsächlichen Akteure |
