@@ -56,8 +56,25 @@ let activeFilters = {
 };
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
+// Deutsche Excel-Versionen exportieren standardmäßig mit Semikolon, manche Werkzeuge
+// mit Tabulator. Das Trennzeichen wird deshalb aus der Kopfzeile abgeleitet, statt
+// Komma vorauszusetzen — sonst landet die ganze Zeile in einer einzigen Spalte.
+function detectDelimiter(csv) {
+  const counts = { ',': 0, ';': 0, '\t': 0 };
+  let inQuotes = false;
+  for (let i = 0; i < csv.length; i++) {
+    const c = csv[i];
+    if (c === '"') { inQuotes = !inQuotes; continue; }
+    if (inQuotes) continue;                      // Trennzeichen im Wert zählen nicht
+    if (c === '\n' || c === '\r') break;         // nur die Kopfzeile entscheidet
+    if (c in counts) counts[c]++;
+  }
+  return [',', ';', '\t'].reduce((best, d) => counts[d] > counts[best] ? d : best, ',');
+}
+
 function parseCSV(csv) {
   const rows = [];
+  const DELIM = detectDelimiter(csv);
   let i = 0;
   const n = csv.length;
   while (i < n) {
@@ -73,11 +90,11 @@ function parseCSV(csv) {
           } else { field += csv[i++]; }
         }
       } else {
-        while (i < n && csv[i] !== ',' && csv[i] !== '\n' && csv[i] !== '\r') field += csv[i++];
+        while (i < n && csv[i] !== DELIM && csv[i] !== '\n' && csv[i] !== '\r') field += csv[i++];
         field = field.trim();
       }
       fields.push(field);
-      if (i < n && csv[i] === ',') { i++; continue; }
+      if (i < n && csv[i] === DELIM) { i++; continue; }
       if (i < n && csv[i] === '\r') i++;
       if (i < n && csv[i] === '\n') i++;
       break;
@@ -91,6 +108,13 @@ function parseCSV(csv) {
     headers.forEach((h, j) => { obj[h] = fields[j] ?? ''; });
     return obj;
   });
+}
+
+// Ein Import ohne einzige verwertbare Zeile ist fast immer ein Formatproblem
+// (falsches Trennzeichen, verschobene Spalten). Dann lieber abweisen als
+// den bestehenden Datensatz durch Unbrauchbares ersetzen.
+function usableRowCount(rows) {
+  return rows.filter(r => r.Quelle && r.Ziel && r.Beziehung).length;
 }
 
 function toCSV(data) {
@@ -904,6 +928,11 @@ function showAnalyseBriefing() {
 }
 
 // ── Network view ─────────────────────────────────────────────────────────────
+// cy.svg() stammt aus der Erweiterung cytoscape-svg und muss registriert werden.
+if (typeof cytoscape !== 'undefined' && typeof cytoscapeSvg !== 'undefined') {
+  cytoscape.use(cytoscapeSvg);
+}
+
 function isDarkTheme() {
   return document.documentElement.getAttribute('data-theme') === 'dark';
 }
@@ -1578,8 +1607,13 @@ function getCSVText() {
 document.getElementById('btn-visualize').addEventListener('click', () => {
   getCSVText().then(text => {
     if (!text) { setStatus('Keine Daten.', 'error'); return; }
+    const parsed = parseCSV(text);
+    if (parsed.length && !usableRowCount(parsed)) {
+      setStatus('Keine verwertbaren Zeilen — es fehlen die Pflichtspalten Quelle, Beziehung und Ziel. Bitte Kopfzeile und Trennzeichen prüfen.', 'error');
+      return;
+    }
     if (allData.length) pushUndo();
-    allData = parseCSV(text);
+    allData = parsed;
     buildSidebarFilters();
     restoreFilters();
     applyFilters();
@@ -1592,6 +1626,10 @@ document.getElementById('btn-append').addEventListener('click', () => {
   getCSVText().then(text => {
     if (!text) { setStatus('Keine Daten.', 'error'); return; }
     const newRows = parseCSV(text);
+    if (newRows.length && !usableRowCount(newRows)) {
+      setStatus('Keine verwertbaren Zeilen — es fehlen die Pflichtspalten Quelle, Beziehung und Ziel. Bitte Kopfzeile und Trennzeichen prüfen.', 'error');
+      return;
+    }
     pushUndo();
     allData = [...allData, ...newRows];
     buildSidebarFilters();
@@ -1738,6 +1776,10 @@ document.getElementById('btn-export-png').addEventListener('click', () => {
 
 document.getElementById('btn-export-svg').addEventListener('click', () => {
   if (!networkChart) return;
+  if (typeof networkChart.svg !== 'function') {
+    setStatus('SVG-Export nicht verfügbar (Bibliothek fehlt) – bitte PNG verwenden.', 'error');
+    return;
+  }
   const svg  = networkChart.svg({ full: true });
   const blob = new Blob([svg], { type: 'image/svg+xml' });
   downloadBlob(blob, 'datengraf-netzwerk.svg');

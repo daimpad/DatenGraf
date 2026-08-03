@@ -29,7 +29,7 @@
 |---|---|---|
 | 🧭 | **Schritt-für-Schritt-Wizard** | Strukturierte Erfassung neuer Datenflüsse in geführten Schritten – mit Duplikat-Erkennung und Validierung (Quelle ≠ Ziel) vor dem Speichern |
 | ✏️ | **Bearbeiten & duplizieren** | Einträge direkt in der Listenansicht bearbeiten oder als Vorlage klonen; Doppelklick auf einen Knoten öffnet den Wizard im Bearbeitungsmodus |
-| 📥 | **Flexibler CSV-Import** | Einfügen per Paste, Laden per URL oder lokaler Dateiupload – plus CSV-Vorlage zum Download |
+| 📥 | **Flexibler CSV-Import** | Einfügen per Paste, Laden per URL oder Dateiupload; Komma, Semikolon und Tabulator werden automatisch erkannt – plus CSV-Vorlage zum Download |
 | 👀 | **Import-Vorschau** | Vor dem Übernehmen zeigt eine Tabelle die ersten Zeilen, markiert Pflichtspalten und warnt bei fehlenden Feldern |
 | ↩️ | **Undo** | `Strg`/`Cmd` + `Z` macht die letzten 20 Datenänderungen rückgängig |
 
@@ -126,6 +126,8 @@ Anmerkungen,Ansprechpartner
 
 `ZielOrganisation` ist nur nötig, wenn der Empfänger einer anderen Organisation angehört oder nirgends selbst als Quelle auftaucht – etwa ein Archiv, eine Aufsichtsbehörde oder ein externer Dienstleister. Ohne die Angabe bliebe ein solcher Akteur ohne Organisationszuordnung und damit farblos in der Org-Ansicht.
 
+Als Trennzeichen werden **Komma, Semikolon und Tabulator** automatisch erkannt – eine aus deutschem Excel exportierte Datei funktioniert also ohne Umwandlung. Ein UTF-8-BOM stört nicht.
+
 Importiere deine Datei über den **CSV-Import-Bereich** (Einfügen / URL / Datei), oder nutze den **Wizard** für die manuelle Einzelerfassung. Eine Vorlage zum kollaborativen Befüllen steht direkt in der App zum Download bereit.
 
 ---
@@ -180,7 +182,7 @@ Dafür trennt das Design-System bewusst zwischen **Flächenfarben** (`--c-succes
 
 > Keine Build-Tools, kein npm-Workflow zur Laufzeit, keine Transpiler — nur HTML, CSS und JS.
 
-**Keine externen Aufrufe zur Laufzeit.** Cytoscape.js und LZ-String liegen als geprüfte Kopien unter `assets/vendor/`, Inter und Font Awesome unter `assets/fonts/`. Die Anwendung lädt nichts von fremden Servern – sie funktioniert damit auch in Netzen, die CDNs sperren, und vollständig offline. Sollte eine Bibliothek dennoch fehlen, erklärt die App das und arbeitet mit Liste, Insights und Briefing weiter.
+**Keine externen Aufrufe zur Laufzeit.** Cytoscape.js, die SVG-Erweiterung und LZ-String liegen als geprüfte Kopien unter `assets/vendor/`, Inter und Font Awesome unter `assets/fonts/`. Die Anwendung lädt nichts von fremden Servern – sie funktioniert damit auch in Netzen, die CDNs sperren, und vollständig offline. Sollte eine Bibliothek dennoch fehlen, erklärt die App das und arbeitet mit Liste, Insights und Briefing weiter.
 
 Zum Aktualisieren der Vendor-Dateien dient `npm run vendor`; zur Laufzeit wird nichts installiert.
 
@@ -256,6 +258,7 @@ DatenGraf/
 ├── assets/
 │   ├── vendor/
 │   │   ├── cytoscape.min.js          # Cytoscape.js 3.23.0 (lokal, kein CDN)
+│   │   ├── cytoscape-svg.js          # SVG-Export-Erweiterung 0.4.0
 │   │   └── lz-string.min.js          # LZ-String 1.5.0 (lokal, kein CDN)
 │   └── fonts/
 │       ├── fa/all.min.css            # Font Awesome 6.7.2 CSS

@@ -98,7 +98,8 @@ const row = o => Object.assign({
 
 function runAll(win) {
   const { parseCSV, toCSV, esc, calcVollstaendigkeit, betweennessCentrality, labelPropagation,
-          computeTopologyRisks, diffSnapshots, findDuplicate, formatSnapAge, buildCyStyle } = win;
+          computeTopologyRisks, diffSnapshots, findDuplicate, formatSnapAge, buildCyStyle,
+          detectDelimiter, usableRowCount } = win;
 
   // ── parseCSV ─────────────────────────────────────────────────
   group('parseCSV – der handgeschriebene Parser', () => {
@@ -147,6 +148,59 @@ function runAll(win) {
       assertEq(r[0].Quelle, 'Amt A');
       assertEq(r[0].Ziel, 'Amt B');
     });
+  });
+
+  // ── Trennzeichen ─────────────────────────────────────────────
+  group('detectDelimiter – Trennzeichen erkennen', () => {
+    test('Komma ist der Standard', () => assertEq(detectDelimiter('a,b,c\n1,2,3'), ','));
+    test('Semikolon wird erkannt (deutsches Excel)', () => assertEq(detectDelimiter('a;b;c\n1;2;3'), ';'));
+    test('Tabulator wird erkannt', () => assertEq(detectDelimiter('a\tb\tc\n1\t2\t3'), '\t'));
+    test('nur die Kopfzeile entscheidet', () => {
+      // Datenzeilen voller Semikolons dürfen ein Komma-CSV nicht umdeuten
+      assertEq(detectDelimiter('a,b\n"x;y;z;w",2\n"p;q;r;s",4'), ',');
+    });
+    test('Trennzeichen in Anführungszeichen zählt nicht', () => {
+      assertEq(detectDelimiter('"a;b;c;d",e\n1,2'), ',');
+    });
+    test('ohne Trennzeichen bleibt es beim Komma', () => assertEq(detectDelimiter('abc'), ','));
+  });
+
+  group('parseCSV – andere Trennzeichen', () => {
+    test('Semikolon-CSV wird korrekt zerlegt', () => {
+      const r = parseCSV('Quelle;Beziehung;Ziel\nAmt A;übergibt;Amt B');
+      assertEq(r.length, 1);
+      assertEq(r[0].Quelle, 'Amt A');
+      assertEq(r[0].Ziel, 'Amt B');
+    });
+    test('Tabulator-CSV wird korrekt zerlegt', () => {
+      const r = parseCSV('Quelle\tBeziehung\tZiel\nAmt A\tübergibt\tAmt B');
+      assertEq(r[0].Quelle, 'Amt A');
+      assertEq(r[0].Ziel, 'Amt B');
+    });
+    test('Semikolon-CSV mit CRLF und BOM', () => {
+      const r = parseCSV('\uFEFFQuelle;Beziehung;Ziel\r\nAmt A;übergibt;Amt B\r\n');
+      assertEq(r[0].Quelle, 'Amt A', 'BOM darf den Spaltennamen nicht verfälschen');
+      assertEq(r[0].Ziel, 'Amt B');
+    });
+    test('gequotetes Semikolon bleibt Teil des Werts', () => {
+      const r = parseCSV('Quelle;Beziehung;Ziel\n"Amt A;Nord";übergibt;Amt B');
+      assertEq(r[0].Quelle, 'Amt A;Nord');
+    });
+    test('gequotetes Komma bleibt Teil des Werts (Komma-CSV)', () => {
+      const r = parseCSV('Quelle,Beziehung,Ziel\n"Amt A, Nord",übergibt,Amt B');
+      assertEq(r[0].Quelle, 'Amt A, Nord');
+    });
+  });
+
+  // ── Import-Validierung ───────────────────────────────────────
+  group('usableRowCount – unbrauchbare Importe erkennen', () => {
+    test('zählt vollständige Zeilen', () => {
+      assertEq(usableRowCount([row({Quelle:'A',Ziel:'B',Beziehung:'übergibt'}), row({Quelle:'C'})]), 1);
+    });
+    test('Zeilen ohne Pflichtfelder zählen nicht', () => {
+      assertEq(usableRowCount([{Foo:'1',Bar:'2'}, {Foo:'3',Bar:'4'}]), 0);
+    });
+    test('leere Liste ergibt 0', () => assertEq(usableRowCount([]), 0));
   });
 
   // ── toCSV ────────────────────────────────────────────────────
