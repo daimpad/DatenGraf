@@ -26,6 +26,8 @@ python3 -m http.server 8080
 
 `file://` funktioniert nicht, da `fetch()` für CSV-Beispieldaten nötig ist. Kein `npm install`, kein Bundler, keine Build-Pipeline zur Laufzeit.
 
+**Tests:** `http://localhost:8080/test.html` — prüft die reinen Funktionen und meldet oben, ob alles bestanden ist. Details siehe Abschnitt *Tests*.
+
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
 <span class="footer-version">v62</span>
@@ -183,7 +185,7 @@ Nie umgekehrt — `applyFilters()` nutzt die von `buildSidebarFilters()` aufgeba
 
 ### toCSV / Falsy-Werte
 
-`toCSV` prüft `v == null || v === ''` (nicht `!v`) — damit wird der String `"0"` korrekt als Zellwert exportiert.
+`toCSV` prüft `v == null || v === ''` (nicht `!v`). Geschützt wird damit die **Zahl** `0`: Der String `'0'` ist truthy und war nie gefährdet, die Zahl `0` ist es nicht. Zahlen können über geteilte Links oder LocalStorage in den Datensatz geraten, ein `!v`-Guard würde dort stillschweigend leere Zellen schreiben. Der Testfall dazu steht in `test.html`.
 
 ### Barrierefreiheit
 
@@ -246,7 +248,7 @@ Wichtige Hilfsfunktionen:
 
 - `listSnapshots()` — liest alle `datengraf_snap_*` aus localStorage
 - `getBaselineSnapshot()` — gibt markierte Basis oder neuesten Snapshot zurück
-- `diffSnapshots(oldData, newData)` — gibt `{ added, removed, changed }` zurück
+- `diffSnapshots(prev, curr)` — gibt `{ added, removed, schutzChanged }` zurück (nicht `changed`)
 - `formatSnapAge(savedAt)` — menschenlesbare Altersanzeige
 
 ### Schicht 3 – `generateNarrativeLLM(data, findings, vs)` (async)
@@ -271,6 +273,23 @@ Wichtige Hilfsfunktionen:
 | Organisation | 15 | `QuelleOrganisation` gesetzt |
 
 `categories` enthält alle fünf Kategorien (`{ label, weight, ok, missing, pct }`), `gaps` nur die mit `missing > 0`, absteigend sortiert.
+
+---
+
+## Tests
+
+`test.html` prüft die reinen Funktionen aus `app.js`. Aufruf über HTTP: `http://localhost:8080/test.html`.
+
+**Wie es funktioniert:** Die Seite lädt `index.html` unsichtbar in einem Iframe und testet die echten Funktionen über `iframe.contentWindow` — keine Kopie des Codes, kein Build-Schritt, keine Abhängigkeit. Passt damit zur Projektphilosophie.
+
+Abgedeckt sind `parseCSV` (State-Machine: Quotes, `""`-Escapes, CRLF, Zeilenumbrüche im Feld), `toCSV` inklusive Round-Trip, `esc`, `calcVollstaendigkeit`, `betweennessCentrality`, `labelPropagation`, `computeTopologyRisks`, `diffSnapshots`, `findDuplicate`, `formatSnapAge` und `buildCyStyle` (inkl. der Zusicherung, dass `CY_STYLE` nicht mutiert wird).
+
+**Beim Schreiben neuer Tests beachten:**
+- `instanceof` trägt **nicht** über die Iframe-Grenze. Für Objekte aus der App `win.Set` statt `Set` verwenden.
+- Top-Level-`const` (z. B. `CY_STYLE`) liegen nicht auf `window`; über `win.eval('CY_STYLE')` zugreifen. Funktions-Deklarationen sind dagegen direkt erreichbar.
+- Für automatisierte Aufrufe steht das Ergebnis in `window.__testResults` (`{passed, failed, total, failures}`), der Titel beginnt mit `✓` oder `✗`.
+
+Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal die geprüfte Stelle testweise brechen und sehen, ob der Test anschlägt.
 
 ---
 
@@ -394,6 +413,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 - **Ziel-only Knoten:** Erhalten `org: ''` auch wenn sie in anderen Zeilen als Quelle mit Organisation auftauchen — bekanntes Pre-existing-Issue
 - **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
 - **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
+- **Tests laufen gegen den echten Code:** `test.html` lädt `index.html` per Iframe. Nach Umbenennen einer Funktion die Tests mitziehen — sie schlagen sonst mit „ist keine Funktion" fehl
 - **PDF-Bericht ist eigenständig:** läuft im Print-Window ohne Zugriff auf `css/styles.css` — dort **keine** CSS-Variablen verwenden, sondern feste Werte
 - **LLM-Key-Validierung:** `sk-ant-` Prefix wird client-seitig geprüft; 401-Antwort setzt Key-Status auf `error`; andere HTTP-Fehler führen zu `null`-Rückgabe (kein UI-Fehler)
 
@@ -450,3 +470,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v60 | Dark Theme mit Umschalter; Tokens aus `docs/design-system.html`; ~44 hartcodierte Flächen tokenisiert |
 | v61 | CDN-Ausfallsicherheit (`renderNetwork`/Share-Link guarden); `buildCyStyle()` für themeabhängige Graph-Farben; Kontrast auf WCAG AA in beiden Themes (`--ink-*`, `--on-accent`, `--badge-*`, `--sector-*`, `--c-muted` nachgeschärft) |
 | v62 | Cytoscape und LZ-String lokal unter `assets/vendor/` (kein CDN mehr, App vollständig offline-fähig); Barrierefreiheit: Fokus-Trap und Fokus-Rückgabe in allen Modals, `aria-live` für Statusmeldungen, Textalternative und sichtbarer Listen-Verweis unter der Netzwerkkarte |
+| v63 | Test-Harness `test.html`: 48 Tests für die reinen Funktionen, läuft im Browser ohne Build; dabei zwei Doku-Fehler gefunden (`diffSnapshots` liefert `schutzChanged`, und der Falsy-Guard in `toCSV` schützt die Zahl `0`, nicht den String `'0'`) |
