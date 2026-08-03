@@ -13,7 +13,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v62` (Script-Tag: `<script src="js/app.js?v=62">`)
+- **Aktuelle Version:** `v63` (Script-Tag: `<script src="js/app.js?v=63">`)
 
 ---
 
@@ -30,8 +30,8 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v62</span>
-<script src="js/app.js?v=62"></script>
+<span class="footer-version">v63</span>
+<script src="js/app.js?v=63"></script>
 ```
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape und LZ-String unter `assets/vendor/`. Zur Laufzeit gibt es keine externen Aufrufe.
@@ -101,11 +101,13 @@ Das Theme hält keinen JS-State: Quelle der Wahrheit ist `document.documentEleme
 
 ```
 Quelle, QuelleAbteilung, QuelleBereich, QuelleOrganisation, QuelleRolle,
-Beziehung, Ziel, Datentyp, Häufigkeit, Format, Schutzbedarf, Erfassungsart,
-Anmerkungen, Ansprechpartner
+Beziehung, Ziel, ZielOrganisation, Datentyp, Häufigkeit, Format, Schutzbedarf,
+Erfassungsart, Anmerkungen, Ansprechpartner
 ```
 
-`Ansprechpartner` ist die 14. Spalte (DSGVO Art. 30 – Pflichtfeld für DSGVO-relevante Flüsse im Vollständigkeits-Score).
+15 Spalten. `Ansprechpartner` ist DSGVO-Art.-30-relevant und Pflichtfeld für DSGVO-Flüsse im Vollständigkeits-Score.
+
+**`ZielOrganisation` (seit v63):** Das Schema beschrieb bis dahin nur die Quellseite reichhaltig; ein reiner Empfänger konnte keine Organisation tragen. Vorrangregel in `prepareElements()`: Eine Quellzeile ist die maßgebliche Erfassung eines Akteurs und überschreibt eine Organisation, die nur nebenbei als `ZielOrganisation` notiert wurde (`orgFromSource`-Flag). Umgekehrt füllt `ZielOrganisation` nur Lücken. Der Organisationsfilter greift, wenn **Quelle oder Ziel** zur gewählten Organisation gehören.
 
 ---
 
@@ -400,7 +402,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v62) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v63) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
@@ -410,7 +412,6 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 - **Datenmutationsreihenfolge:** Immer `pushUndo()` → `buildSidebarFilters()` → `applyFilters()`
 - **Squash-Merge-Konflikte:** Jeder PR-Merge erzeugt Squash-Commits; beim nächsten Branch-Merge entstehen scheinbare Konflikte. Auflösung: `git fetch origin main && git merge origin/main` → Konflikte → `git checkout --ours index.html js/app.js css/styles.css` → `git add` → `git commit` → `git push`. Alternativ den Branch auf `origin/main` zurücksetzen (`git checkout -B <branch> origin/main`), wenn er keine unveröffentlichten Commits trägt
 - **`showAnalyseBriefing()` ≠ `renderAll()`:** Das Briefing operiert auf `allData` und wird nicht automatisch bei Filter-Änderungen aktualisiert. Ein `filterNote`-Hinweis erscheint wenn `filterCount > 0`
-- **Ziel-only Knoten:** Erhalten `org: ''` auch wenn sie in anderen Zeilen als Quelle mit Organisation auftauchen — bekanntes Pre-existing-Issue
 - **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
 - **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
 - **Tests laufen gegen den echten Code:** `test.html` lädt `index.html` per Iframe. Nach Umbenennen einer Funktion die Tests mitziehen — sie schlagen sonst mit „ist keine Funktion" fehl
@@ -471,3 +472,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v61 | CDN-Ausfallsicherheit (`renderNetwork`/Share-Link guarden); `buildCyStyle()` für themeabhängige Graph-Farben; Kontrast auf WCAG AA in beiden Themes (`--ink-*`, `--on-accent`, `--badge-*`, `--sector-*`, `--c-muted` nachgeschärft) |
 | v62 | Cytoscape und LZ-String lokal unter `assets/vendor/` (kein CDN mehr, App vollständig offline-fähig); Barrierefreiheit: Fokus-Trap und Fokus-Rückgabe in allen Modals, `aria-live` für Statusmeldungen, Textalternative und sichtbarer Listen-Verweis unter der Netzwerkkarte |
 | v63 | Test-Harness `test.html`: 48 Tests für die reinen Funktionen, läuft im Browser ohne Build; dabei zwei Doku-Fehler gefunden (`diffSnapshots` liefert `schutzChanged`, und der Falsy-Guard in `toCSV` schützt die Zahl `0`, nicht den String `'0'`) |
+| v63 | Spalte `ZielOrganisation`: reine Empfänger können jetzt eine Organisation tragen (vorher farblos in der Org-Ansicht). Quellangaben behalten Vorrang. Vorlage und Beispieldaten um `ZielOrganisation` **und** das bislang fehlende `Ansprechpartner` ergänzt |

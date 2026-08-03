@@ -89,10 +89,10 @@ function assertEq(actual, expected, msg) {
 
 // ── Testdaten ──────────────────────────────────────────────────
 const HEAD = 'Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,' +
-             'Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner';
+             'Beziehung,Ziel,ZielOrganisation,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner';
 const row = o => Object.assign({
   Quelle:'', QuelleAbteilung:'', QuelleBereich:'', QuelleOrganisation:'', QuelleRolle:'',
-  Beziehung:'', Ziel:'', Datentyp:'', 'Häufigkeit':'', Format:'', Schutzbedarf:'',
+  Beziehung:'', Ziel:'', ZielOrganisation:'', Datentyp:'', 'Häufigkeit':'', Format:'', Schutzbedarf:'',
   Erfassungsart:'', Anmerkungen:'', Ansprechpartner:''
 }, o);
 
@@ -103,7 +103,7 @@ function runAll(win) {
   // ── parseCSV ─────────────────────────────────────────────────
   group('parseCSV – der handgeschriebene Parser', () => {
     test('einfache Zeile wird zu einem Objekt', () => {
-      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,Meldungen,,,,,,');
+      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,,Meldungen,,,,,,');
       assertEq(r.length, 1);
       assertEq(r[0].Quelle, 'Amt A');
       assertEq(r[0].Ziel, 'Amt B');
@@ -111,31 +111,31 @@ function runAll(win) {
     });
 
     test('Komma innerhalb von Anführungszeichen trennt nicht', () => {
-      const r = parseCSV(HEAD + '\n"Amt A, Abteilung 1",,,,,übergibt,Amt B,,,,,,,');
+      const r = parseCSV(HEAD + '\n"Amt A, Abteilung 1",,,,,übergibt,Amt B,,,,,,,,');
       assertEq(r[0].Quelle, 'Amt A, Abteilung 1');
       assertEq(r[0].Ziel, 'Amt B');
     });
 
     test('doppelte Anführungszeichen werden zu einem', () => {
-      const r = parseCSV(HEAD + '\n"Amt ""A""",,,,,übergibt,Amt B,,,,,,,');
+      const r = parseCSV(HEAD + '\n"Amt ""A""",,,,,übergibt,Amt B,,,,,,,,');
       assertEq(r[0].Quelle, 'Amt "A"');
     });
 
     test('CRLF-Zeilenenden werden verstanden', () => {
-      const r = parseCSV(HEAD + '\r\nAmt A,,,,,übergibt,Amt B,,,,,,,\r\nAmt C,,,,,nutzt,Amt D,,,,,,,');
+      const r = parseCSV(HEAD + '\r\nAmt A,,,,,übergibt,Amt B,,,,,,,,\r\nAmt C,,,,,nutzt,Amt D,,,,,,,,');
       assertEq(r.length, 2);
       assertEq(r[1].Quelle, 'Amt C');
       assert(!r[0].Ziel.includes('\r'), 'Wagenrücklauf darf nicht im Wert landen');
     });
 
     test('Zeilenumbruch innerhalb eines gequoteten Feldes bleibt erhalten', () => {
-      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,,,,,,"Zeile 1\nZeile 2",');
+      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,,,,,,,"Zeile 1\nZeile 2",');
       assertEq(r.length, 1, 'darf nicht als zwei Zeilen gelesen werden');
       assertEq(r[0].Anmerkungen, 'Zeile 1\nZeile 2');
     });
 
     test('leere Zeilen werden übersprungen', () => {
-      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,,,,,,,\n\n\nAmt C,,,,,nutzt,Amt D,,,,,,,');
+      const r = parseCSV(HEAD + '\nAmt A,,,,,übergibt,Amt B,,,,,,,,\n\n\nAmt C,,,,,nutzt,Amt D,,,,,,,,');
       assertEq(r.length, 2);
     });
 
@@ -143,7 +143,7 @@ function runAll(win) {
     test('leerer String ergibt leeres Ergebnis', () => assertEq(parseCSV(''), []));
 
     test('Leerraum um ungequotete Werte wird entfernt', () => {
-      const r = parseCSV(HEAD + '\n  Amt A  ,,,,,übergibt,  Amt B,,,,,,,');
+      const r = parseCSV(HEAD + '\n  Amt A  ,,,,,übergibt,  Amt B,,,,,,,,');
       assertEq(r[0].Quelle, 'Amt A');
       assertEq(r[0].Ziel, 'Amt B');
     });
@@ -183,6 +183,37 @@ function runAll(win) {
     test('Zeilenumbruch im Wert überlebt den Round-Trip', () => {
       const data = [row({ Quelle:'Amt A', Beziehung:'übergibt', Ziel:'Amt B', Anmerkungen:'Zeile 1\nZeile 2' })];
       assertEq(parseCSV(toCSV(data))[0].Anmerkungen, 'Zeile 1\nZeile 2');
+    });
+  });
+
+  // ── ZielOrganisation ─────────────────────────────────────────
+  group('ZielOrganisation – Organisation reiner Empfänger', () => {
+    test('die Spalte überlebt den CSV-Round-Trip', () => {
+      const data = [row({ Quelle:'Amt A', QuelleOrganisation:'Stadt X',
+                          Beziehung:'übergibt', Ziel:'Landesamt', ZielOrganisation:'Land Y' })];
+      assertEq(parseCSV(toCSV(data))[0].ZielOrganisation, 'Land Y');
+    });
+
+    test('ein reiner Empfänger bekommt seine Organisation', () => {
+      const els = win.prepareElements([row({
+        Quelle:'Amt A', QuelleOrganisation:'Stadt X',
+        Beziehung:'übergibt', Ziel:'Landesamt', ZielOrganisation:'Land Y' })]);
+      const ziel = els.find(e => e.data.id === 'Landesamt');
+      assertEq(ziel.data.org, 'Land Y', 'ohne die Spalte blieb dieser Knoten ohne Organisation');
+    });
+
+    test('Angaben der Quellseite haben Vorrang', () => {
+      // Derselbe Akteur einmal als Ziel (mit ZielOrganisation), einmal als Quelle
+      const els = win.prepareElements([
+        row({ Quelle:'Amt A', Beziehung:'übergibt', Ziel:'Amt B', ZielOrganisation:'Falsch' }),
+        row({ Quelle:'Amt B', QuelleOrganisation:'Richtig', Beziehung:'übergibt', Ziel:'Amt C' })
+      ]);
+      assertEq(els.find(e => e.data.id === 'Amt B').data.org, 'Richtig');
+    });
+
+    test('ohne Angabe bleibt die Organisation leer', () => {
+      const els = win.prepareElements([row({ Quelle:'Amt A', Beziehung:'übergibt', Ziel:'Amt B' })]);
+      assertEq(els.find(e => e.data.id === 'Amt B').data.org, '');
     });
   });
 

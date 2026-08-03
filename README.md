@@ -120,8 +120,11 @@ Die Testsuite liegt unter `localhost:8080/test.html` und prüft die reinen Funkt
 
 ```
 Quelle,QuelleAbteilung,QuelleBereich,QuelleOrganisation,QuelleRolle,
-Beziehung,Ziel,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,Anmerkungen,Ansprechpartner
+Beziehung,Ziel,ZielOrganisation,Datentyp,Häufigkeit,Format,Schutzbedarf,Erfassungsart,
+Anmerkungen,Ansprechpartner
 ```
+
+`ZielOrganisation` ist nur nötig, wenn der Empfänger einer anderen Organisation angehört oder nirgends selbst als Quelle auftaucht – etwa ein Archiv, eine Aufsichtsbehörde oder ein externer Dienstleister. Ohne die Angabe bliebe ein solcher Akteur ohne Organisationszuordnung und damit farblos in der Org-Ansicht.
 
 Importiere deine Datei über den **CSV-Import-Bereich** (Einfügen / URL / Datei), oder nutze den **Wizard** für die manuelle Einzelerfassung. Eine Vorlage zum kollaborativen Befüllen steht direkt in der App zum Download bereit.
 

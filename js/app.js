@@ -95,7 +95,7 @@ function parseCSV(csv) {
 
 function toCSV(data) {
   const headers = ['Quelle','QuelleAbteilung','QuelleBereich','QuelleOrganisation','QuelleRolle',
-    'Beziehung','Ziel','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen','Ansprechpartner'];
+    'Beziehung','Ziel','ZielOrganisation','Datentyp','Häufigkeit','Format','Schutzbedarf','Erfassungsart','Anmerkungen','Ansprechpartner'];
   const escape = v => {
     if (v == null || v === '') return '';
     const s = String(v);
@@ -113,7 +113,10 @@ function applyFilters() {
     if (activeFilters.relation.size   > 0 && !activeFilters.relation.has(row.Beziehung))           return false;
     if (activeFilters.schutz.size     > 0 && !activeFilters.schutz.has(row.Schutzbedarf))           return false;
     if (activeFilters.erfassung.size  > 0 && !activeFilters.erfassung.has(row.Erfassungsart))       return false;
-    if (activeFilters.organization !== 'all' && row.QuelleOrganisation !== activeFilters.organization) return false;
+    // Eine Zeile gehört zur Organisation, wenn Quelle ODER Ziel ihr zugeordnet ist
+    if (activeFilters.organization !== 'all' &&
+        row.QuelleOrganisation !== activeFilters.organization &&
+        row.ZielOrganisation   !== activeFilters.organization) return false;
     if (activeFilters.department   !== 'all' && row.QuelleAbteilung    !== activeFilters.department)    return false;
     if (activeFilters.frequency    !== 'all' && row.Häufigkeit         !== activeFilters.frequency)     return false;
     if (activeFilters.format       !== 'all' && row.Format             !== activeFilters.format)        return false;
@@ -209,7 +212,9 @@ function buildSidebarFilters() {
   buildChipGroup('filter-chips-relation',  [...new Set(allData.map(r => r.Beziehung).filter(Boolean))],    'relation');
   buildChipGroup('filter-chips-schutz',    [...new Set(allData.map(r => r.Schutzbedarf).filter(Boolean))], 'schutz');
   buildChipGroup('filter-chips-erfassung', [...new Set(allData.map(r => r.Erfassungsart).filter(Boolean))],'erfassung');
-  updateSelectFilter('filter-organization', [...new Set(allData.map(r => r.QuelleOrganisation).filter(Boolean))]);
+  updateSelectFilter('filter-organization', [...new Set(
+    [...allData.map(r => r.QuelleOrganisation), ...allData.map(r => r.ZielOrganisation)].filter(Boolean)
+  )]);
   updateSelectFilter('filter-department',   [...new Set(allData.map(r => r.QuelleAbteilung).filter(Boolean))]);
   updateSelectFilter('filter-frequency',    [...new Set(allData.map(r => r.Häufigkeit).filter(Boolean))]);
   updateSelectFilter('filter-format',       [...new Set(allData.map(r => r.Format).filter(Boolean))]);
@@ -968,15 +973,27 @@ function prepareElements(data, useHierarchy = false) {
   data.forEach(row => {
     if (!row.Quelle || !row.Ziel || !row.Beziehung) return;
     if (!nodes.has(row.Quelle)) {
-      nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '', bereich: row.QuelleBereich || '', out: 0, inn: 0 });
+      nodes.set(row.Quelle, { dept: row.QuelleAbteilung || '', org: row.QuelleOrganisation || '',
+                              bereich: row.QuelleBereich || '', orgFromSource: !!row.QuelleOrganisation, out: 0, inn: 0 });
     } else {
-      // Update org/bereich if previously registered only as Ziel (no org data)
       const n = nodes.get(row.Quelle);
-      if (!n.org && row.QuelleOrganisation) n.org = row.QuelleOrganisation;
-      if (!n.bereich && row.QuelleBereich)  n.bereich = row.QuelleBereich;
+      // Die Quellzeile ist die maßgebliche Erfassung eines Akteurs: sie überschreibt
+      // eine Organisation, die nur als ZielOrganisation nebenbei notiert wurde.
+      if (row.QuelleOrganisation && (!n.org || !n.orgFromSource)) {
+        n.org = row.QuelleOrganisation;
+        n.orgFromSource = true;
+      }
+      if (!n.dept    && row.QuelleAbteilung) n.dept    = row.QuelleAbteilung;
+      if (!n.bereich && row.QuelleBereich)   n.bereich = row.QuelleBereich;
     }
     nodes.get(row.Quelle).out++;
-    if (!nodes.has(row.Ziel)) nodes.set(row.Ziel, { dept: '', org: '', bereich: '', out: 0, inn: 0 });
+    // Reine Empfänger tragen ihre Organisation ausschließlich über ZielOrganisation.
+    if (!nodes.has(row.Ziel)) {
+      nodes.set(row.Ziel, { dept: '', org: row.ZielOrganisation || '', bereich: '', orgFromSource: false, out: 0, inn: 0 });
+    } else {
+      const t = nodes.get(row.Ziel);
+      if (!t.org && row.ZielOrganisation) t.org = row.ZielOrganisation;
+    }
     nodes.get(row.Ziel).inn++;
     edges.push(row);
   });
@@ -1298,7 +1315,10 @@ const WIZARD_STEPS = [
     label: 'Ziel',
     hint: 'Schritt 2 von 4',
     render: () => `
-      <div class="form-row"><label>Name des Ziel-Akteurs *</label><input type="text" name="Ziel" placeholder="z. B. Dezernat 10" required></div>
+      <div class="form-row-cols">
+        <div class="form-row"><label>Name des Ziel-Akteurs *</label><input type="text" name="Ziel" placeholder="z. B. Dezernat 10" required></div>
+        <div class="form-row"><label>Organisation des Ziels</label><input type="text" name="ZielOrganisation" placeholder="nur falls abweichend"></div>
+      </div>
       <div class="form-row"><label>Art der Beziehung *</label>
         <select name="Beziehung">${BEZIEHUNG_OPTS.map(b => `<option>${b}</option>`).join('')}</select>
       </div>
@@ -2287,7 +2307,7 @@ function buildReportHTML(networkImgUri) {
 
   const nodes = new Set([...data.map(r => r.Quelle), ...data.map(r => r.Ziel)].filter(Boolean));
   const dsgvoCount = data.filter(r => r.Schutzbedarf === 'DSGVO-relevant').length;
-  const orgs = new Set(data.map(r => r.QuelleOrganisation).filter(Boolean));
+  const orgs = new Set([...data.map(r => r.QuelleOrganisation), ...data.map(r => r.ZielOrganisation)].filter(Boolean));
 
   const deg = {};
   data.forEach(r => {
