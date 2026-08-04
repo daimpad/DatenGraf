@@ -191,7 +191,7 @@ function normalizationIssueCount(f) {
 // unangetastet — dort lässt sich nicht raten, was gemeint war.
 function applyNormalization(rows, findings) {
   const vocabMap = new Map();
-  findings.vocab.forEach(v => { if (v.suggestion) vocabMap.set(v.field + ' ' + v.raw, v.suggestion); });
+  findings.vocab.forEach(v => { if (v.suggestion) vocabMap.set(v.field + '\u0000' + v.raw, v.suggestion); });
   const nameMap = new Map(), orgMap = new Map();
   findings.actors.forEach(g => g.variants.forEach(v => nameMap.set(v.value, g.canonical)));
   findings.orgs.forEach(g => g.variants.forEach(v => orgMap.set(v.value, g.canonical)));
@@ -199,7 +199,7 @@ function applyNormalization(rows, findings) {
   return rows.map(r => {
     const out = { ...r };
     Object.keys(VOCAB_FIELDS).forEach(f => {
-      const s = vocabMap.get(f + ' ' + String(out[f] ?? '').trim());
+      const s = vocabMap.get(f + '\u0000' + String(out[f] ?? '').trim());
       if (s) out[f] = s;
     });
     NAME_FIELDS.forEach(f => { const c = nameMap.get(String(out[f] ?? '').trim()); if (c) out[f] = c; });
@@ -2460,10 +2460,6 @@ document.getElementById('hero-sample-btn').addEventListener('click', () => {
 document.getElementById('topbar-brand-link').addEventListener('click', () => location.reload());
 
 // ── Theory Modal ──────────────────────────────────────────────────────────────
-const theoryBackdrop = document.getElementById('theory-backdrop');
-document.getElementById('open-theory-btn').addEventListener('click', () => theoryBackdrop.classList.remove('hidden'));
-document.getElementById('theory-close').addEventListener('click',    () => theoryBackdrop.classList.add('hidden'));
-theoryBackdrop.addEventListener('click', e => { if (e.target === theoryBackdrop) theoryBackdrop.classList.add('hidden'); });
 
 // ── PDF-Bericht ───────────────────────────────────────────────────────────────
 function buildReportHTML(networkImgUri) {
@@ -2784,15 +2780,6 @@ function closeSettingsModal() {
   document.getElementById('settings-backdrop').classList.add('hidden');
 }
 
-function openFaqModal() {
-  document.getElementById('faq-backdrop').classList.remove('hidden');
-}
-function closeFaqModal() {
-  document.getElementById('faq-backdrop').classList.add('hidden');
-}
-document.getElementById('faq-btn').addEventListener('click', openFaqModal);
-document.getElementById('faq-close-btn').addEventListener('click', closeFaqModal);
-document.getElementById('faq-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeFaqModal(); });
 
 // ── Theme-Toggle (Hell/Dunkel) ──────────────────────────────────
 const LS_THEME_KEY = 'datengraf_theme';
@@ -2818,7 +2805,7 @@ function toggleTheme() {
 // ── Fokus-Management für Modals ─────────────────────────────────
 // Beobachtet die .hidden-Klasse, damit es unabhängig davon greift,
 // welche Stelle ein Modal öffnet oder schließt (inkl. Escape).
-const MODAL_BACKDROP_IDS = ['wizard-backdrop', 'snapshot-backdrop', 'settings-backdrop', 'faq-backdrop', 'theory-backdrop'];
+const MODAL_BACKDROP_IDS = ['wizard-backdrop', 'snapshot-backdrop', 'settings-backdrop'];
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
 let focusBeforeModal = null;
 
@@ -2908,7 +2895,7 @@ document.getElementById('settings-api-key').addEventListener('keydown', e => {
 });
 
 document.addEventListener('keydown', e => {
-  const anyModalOpen = ['wizard-backdrop','snapshot-backdrop','settings-backdrop','faq-backdrop','theory-backdrop']
+  const anyModalOpen = MODAL_BACKDROP_IDS
     .some(id => !document.getElementById(id).classList.contains('hidden'));
 
   if (e.key === 'Escape') {
@@ -2916,8 +2903,6 @@ document.addEventListener('keydown', e => {
       ['wizard-backdrop',   closeWizard],
       ['snapshot-backdrop', closeSnapshotModal],
       ['settings-backdrop', closeSettingsModal],
-      ['faq-backdrop',      closeFaqModal],
-      ['theory-backdrop',   () => document.getElementById('theory-backdrop').classList.add('hidden')],
     ];
     for (const [id, fn] of pairs) {
       if (!document.getElementById(id).classList.contains('hidden')) { fn(); break; }

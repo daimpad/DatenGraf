@@ -18,7 +18,7 @@
 
 <br>
 
-[**→ Jetzt starten**](https://datengraf.nozilla.net) · [Sicherheit](SECURITY.md) · [Mitmachen](.github/CONTRIBUTING.md) · [Design-System](docs/design-system.html)
+[**→ Jetzt starten**](https://datengraf.nozilla.net) · [Hintergrund](https://datengraf.nozilla.net/theorie.html) · [Fragen & Antworten](https://datengraf.nozilla.net/faq.html) · [Sicherheit](SECURITY.md) · [Mitmachen](.github/CONTRIBUTING.md)
 
 ---
 
@@ -79,7 +79,7 @@
 | 🌗 | **Hell & Dunkel** | Umschaltbares Theme, das die Auswahl merkt und beim Erststart der Systemeinstellung folgt |
 | ♿ | **Barrierefreiheit** | AA-Kontraste in beiden Themes, Fokusführung in Dialogen, Textalternative zur Karte (siehe unten) |
 | 🧯 | **Vollständig offline-fähig** | Alle Bibliotheken werden lokal ausgeliefert – kein CDN, keine externen Aufrufe zur Laufzeit |
-| ❓ | **FAQ-Panel** | Eingebaute Antworten zu Kantenfarben, Hierarchie, Import, Briefing und Snapshots |
+| ❓ | **Eigene Inhaltsseiten** | [Hintergrund zur Netzwerkanalyse](https://datengraf.nozilla.net/theorie.html) und [Fragen &amp; Antworten](https://datengraf.nozilla.net/faq.html) als eigenständige, verlinkbare Seiten |
 | 📱 | **Mobile-Navigation** | Responsives Layout mit mobilem Menü-Dropdown für Tab-Wechsel und Wizard-Zugang |
 
 ---
@@ -297,6 +297,8 @@ DatenGraf/
 │   ├── sample-verwaltung.csv         # Beispiel: Stadtverwaltung Musterstadt
 │   ├── sample-wissenschaft.csv       # Beispiel: Institut für Klimaforschung
 │   └── sample-medien.csv             # Beispiel: Tagesblatt Regional GmbH
+├── theorie.html                      # Hintergrund zur Netzwerkanalyse (6 Muster)
+├── faq.html                          # Fragen & Antworten (FAQPage-Schema)
 ├── test.html                         # Testsuite (im Browser aufrufbar, kein Build nötig)
 ├── docs/
 │   ├── design-system.html            # Interaktive Referenz aller Design-Tokens

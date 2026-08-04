@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://daimpad.github.io/DatenGraf/sitemap.xml
+Sitemap: https://datengraf.nozilla.net/sitemap.xml

@@ -11,9 +11,10 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Einstiegspunkt:** `index.html`
 - **Styles:** `css/styles.css` (~2930 Zeilen)
 - **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
+- **Inhaltsseiten:** `theorie.html`, `faq.html` — eigenständige HTML-Seiten, die `css/styles.css` mitnutzen, aber **kein** `app.js` laden
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v65` (Script-Tag: `<script src="js/app.js?v=65">`)
+- **Aktuelle Version:** `v66` (Script-Tag: `<script src="js/app.js?v=66">`)
 
 ---
 
@@ -30,8 +31,8 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v65</span>
-<script src="js/app.js?v=65"></script>
+<span class="footer-version">v66</span>
+<script src="js/app.js?v=66"></script>
 ```
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape und LZ-String unter `assets/vendor/`. Zur Laufzeit gibt es keine externen Aufrufe.
@@ -211,7 +212,7 @@ Die fünf Beispieldatensätze erzeugen bewusst **null** Hinweise; sie taugen dam
 
 Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). Bei neuen Farbkombinationen den Kontrast prüfen, statt Werte zu schätzen — besonders bei getönten Chips (transparente Fläche über wechselndem Grund) und bei Text auf Akzentflächen.
 
-**Fokus in Dialogen:** Ein `MutationObserver` auf der `.hidden`-Klasse der fünf Backdrops (`MODAL_BACKDROP_IDS`) setzt beim Öffnen den Fokus ins Modal und gibt ihn beim Schließen zurück; ein globaler Tab-Handler hält ihn im obersten offenen Dialog. Der Observer-Ansatz ist bewusst gewählt, damit er unabhängig von der öffnenden Code-Stelle greift — auch beim Theorie-Modal und bei `Esc`. Neue Modals nur in `MODAL_BACKDROP_IDS` eintragen, sonst nichts zu tun.
+**Fokus in Dialogen:** Ein `MutationObserver` auf der `.hidden`-Klasse der drei Backdrops (`MODAL_BACKDROP_IDS`) setzt beim Öffnen den Fokus ins Modal und gibt ihn beim Schließen zurück; ein globaler Tab-Handler hält ihn im obersten offenen Dialog. Der Observer-Ansatz ist bewusst gewählt, damit er unabhängig von der öffnenden Code-Stelle greift — auch bei `Esc`. Neue Modals nur in `MODAL_BACKDROP_IDS` eintragen, sonst nichts zu tun.
 
 **Canvas-Alternative:** Die Netzwerkkarte ist für Screenreader nicht erschließbar. `#network-container` trägt deshalb `role="img"` mit Textalternative, darunter verweist `.network-a11y-note` sichtbar auf die Listenansicht. Listenansicht und Briefing müssen inhaltlich gleichwertig bleiben — die Karte darf nie der einzige Zugang zu einer Information werden.
 
@@ -338,8 +339,7 @@ Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal 
 | Snapshots | `listSnapshots()`, `getBaselineSnapshot()`, `diffSnapshots()` | `#snapshot-backdrop`, `#snapshot-list` |
 | LLM-Narrativ | `generateNarrativeLLM(data, findings, vs)` | `.briefing-narrative-text` |
 | Settings Modal | `openSettingsModal()`, `closeSettingsModal()`, `updateKeyStatus()` | `#settings-backdrop`, `#settings-api-key` |
-| FAQ Modal | `openFaqModal()`, `closeFaqModal()` | `#faq-backdrop`, `#faq-btn` |
-| Theorie Modal | — | `#theory-backdrop`, `#open-theory-btn` |
+| Inhaltsseiten | — (statisches HTML) | `theorie.html`, `faq.html` |
 | Theme-Toggle | `toggleTheme()`, `applyThemeIcon()`, `isDarkTheme()` | `#theme-toggle-btn` |
 | Fokus-Management | `focusablesIn()`, `openModalBackdrops()`, `MODAL_BACKDROP_IDS` | alle `*-backdrop` |
 | Canvas-Alternative | — | `#network-a11y-to-list`, `.network-a11y-note` |
@@ -366,11 +366,28 @@ Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal 
 
 ---
 
+## Inhaltsseiten und SEO
+
+Bis v65 lagen Hintergrund und FAQ in Modals — rund 1.300 Wörter, die Google als `display:none` kaum wertete. Seit v66 sind es **eigenständige Seiten**:
+
+| Seite | Inhalt | Besonderheit |
+|---|---|---|
+| `theorie.html` | Sechs Muster der Netzwerkanalyse (~814 sichtbare Wörter) | `TechArticle`-Schema |
+| `faq.html` | Neun Fragen (~618 Wörter), `<details open>` | `FAQPage`-Schema für Rich Results |
+
+Beide nutzen `css/styles.css` mit, laden aber **kein `app.js`** — sie sind statisches HTML ohne Anwendungslogik. Die Klassen `.theory-*` und `.faq-*` stylen weiterhin den Inhalt; die frühere Modal-Hülle (`.theory-modal`, `.faq-modal` …) wurde entfernt.
+
+Links aus der App tragen `target="_blank"`: Der Datensatz lebt nur im Speicher, ein Wegnavigieren würde nicht gespeicherte Arbeit verlieren.
+
+**Kanonische Domain ist `datengraf.nozilla.net`.** Die Seite wird zusätzlich über GitHub Pages ausgeliefert; weil `canonical` auf nozilla.net zeigt, konsolidiert Google die Signale dort. Bei neuen Seiten immer `canonical`, `og:url` und einen Eintrag in `sitemap.xml` ergänzen.
+
+---
+
 ## Seitenaufbau (Landingpage)
 
 Reihenfolge unterhalb der App-Shell:
 
-1. `.cta-section` — lila Band „Was steckt hinter Netzwerkanalysen?" → Theorie-Modal
+1. `.cta-section` — lila Band „Was steckt hinter Netzwerkanalysen?" → verlinkt `theorie.html` (neuer Tab)
 2. `.feature-duo-section` — heller Container mit Datenatlas und DatenLotse (Logo-Platzhalter mit Hover-Effekt)
 3. `.contact-cta-section` — dunkles Band (`#18181b`) → nozilla-Kontakt
 4. `.site-footer` — Brand links, Links rechtsbündig, Versionsnummer
@@ -424,7 +441,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v65) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v66) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
@@ -497,3 +514,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v63 | Spalte `ZielOrganisation`: reine Empfänger können jetzt eine Organisation tragen (vorher farblos in der Org-Ansicht). Quellangaben behalten Vorrang. Vorlage und Beispieldaten um `ZielOrganisation` **und** das bislang fehlende `Ansprechpartner` ergänzt |
 | v64 | Testrunde über die gesamte App (151 Prüfungen). Drei Fehler behoben: SVG-Export war seit jeher kaputt (Erweiterung `cytoscape-svg` fehlte), Semikolon- und Tabulator-CSV wurden nicht erkannt (deutsches Excel), und unbrauchbare Importe meldeten Erfolg statt Fehler |
 | v65 | Normalisierungsprüfung beim Import: erkennt uneinheitliche Schreibweisen in Akteuren, Organisationen und kontrollierten Vokabularen und vereinheitlicht sie auf Wunsch. Im Test kollabierten 7 Knoten auf die 4 tatsächlichen Akteure |
+| v66 | SEO: kanonische Domain auf `datengraf.nozilla.net` korrigiert (zeigte auf github.io); Hintergrund und FAQ aus den Modals in die eigenständigen Seiten `theorie.html` und `faq.html` überführt (+1.432 indexierbare Wörter, FAQPage-Schema); Title und Description auf die angezeigten Längen gekürzt; interne Verlinkung und Sitemap ergänzt |
