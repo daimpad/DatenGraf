@@ -59,7 +59,7 @@
 | 📊 | **Netzwerk-Insights** | Out-/In-Degree, Betweenness Centrality und Community Cluster |
 | 🔍 | **Filter-Sidebar** | Filtern nach Beziehungstyp, Schutzbedarf, Erfassungsart, Organisation, Abteilung, Häufigkeit, Format und Freitextsuche – Einstellungen bleiben erhalten |
 | 📸 | **Snapshots & Vergleichsbasis** | Datenstände benennen und speichern; Vergleichsbasis für die Diff-Analyse festlegen |
-| 🤖 | **KI-Narrativ (opt-in)** | Mit eigenem Anthropic API-Key erstellt Claude ein kontextbezogenes Netzwerk-Narrativ |
+| 🤖 | **KI-Narrativ (opt-in)** | Mit eigenem Anthropic API-Key formuliert Claude ein Netzwerk-Narrativ. Übertragen werden nur Kennzahlen und die Namen der drei größten Hubs – nicht der Datensatz ([Details](SECURITY.md)) |
 | 🧪 | **5 Beispieldatensätze** | Wirtschaft, Zivilgesellschaft, Verwaltung, Wissenschaft, Medien – jeweils mit Analyse-Infopanel |
 
 ### Teilen & Exportieren

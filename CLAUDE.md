@@ -14,7 +14,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Inhaltsseiten:** `theorie.html`, `faq.html` — eigenständige HTML-Seiten, die `css/styles.css` mitnutzen, aber **kein** `app.js` laden
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v66` (Script-Tag: `<script src="js/app.js?v=66">`)
+- **Aktuelle Version:** `v67` (Script-Tag: `<script src="js/app.js?v=67">`)
 
 ---
 
@@ -31,8 +31,8 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v66</span>
-<script src="js/app.js?v=66"></script>
+<span class="footer-version">v67</span>
+<script src="js/app.js?v=67"></script>
 ```
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape und LZ-String unter `assets/vendor/`. Zur Laufzeit gibt es keine externen Aufrufe.
@@ -281,6 +281,8 @@ Wichtige Hilfsfunktionen:
 - Template-Narrativ bleibt Fallback; LLM-Text ersetzt es in-place nach dem Laden
 - Fehlerbehandlung: 401/auth → `updateKeyStatus('error')`; andere Fehler → silent `null`
 
+> **Was übertragen wird, ist dokumentationspflichtig.** Gesendet werden `nodeCount`, `edgeCount`, `dsgvoCount`, `findingTypes`, `completenessScore`, `completenessGaps` — und `topHubs` mit den **Klartext-Namen** der drei grössten Akteure. Nicht der Datensatz. Ändert sich der Umfang, müssen `SECURITY.md` und der Hinweis im Einstellungsdialog mitgezogen werden.
+
 ### Vollständigkeits-Score
 
 `calcVollstaendigkeit(data)` → `{ score: 0–100, gaps: [], categories: [] }`
@@ -441,7 +443,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v66) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v67) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
@@ -515,3 +517,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v64 | Testrunde über die gesamte App (151 Prüfungen). Drei Fehler behoben: SVG-Export war seit jeher kaputt (Erweiterung `cytoscape-svg` fehlte), Semikolon- und Tabulator-CSV wurden nicht erkannt (deutsches Excel), und unbrauchbare Importe meldeten Erfolg statt Fehler |
 | v65 | Normalisierungsprüfung beim Import: erkennt uneinheitliche Schreibweisen in Akteuren, Organisationen und kontrollierten Vokabularen und vereinheitlicht sie auf Wunsch. Im Test kollabierten 7 Knoten auf die 4 tatsächlichen Akteure |
 | v66 | SEO: kanonische Domain auf `datengraf.nozilla.net` korrigiert (zeigte auf github.io); Hintergrund und FAQ aus den Modals in die eigenständigen Seiten `theorie.html` und `faq.html` überführt (+1.432 indexierbare Wörter, FAQPage-Schema); Title und Description auf die angezeigten Längen gekürzt; interne Verlinkung und Sitemap ergänzt |
+| v67 | `SECURITY.md` faktentreu gemacht: Die Richtlinie behauptete CDN-Aufrufe, die es seit v62 nicht mehr gibt, zeigte ein veraltetes `esc()`-Beispiel ohne `"`-Escaping und verschwieg die opt-in-LLM-Übertragung vollständig. Der Einstellungsdialog nennt jetzt konkret, welche Felder an Anthropic gehen |

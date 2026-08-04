@@ -2624,6 +2624,16 @@ textarea.csv-textarea:focus {
   color: var(--c-muted);
   margin: 0;
 }
+.settings-hint-privacy {
+  background: var(--surface-2);
+  border: 1px solid var(--c-border-s);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.settings-hint-privacy i { color: var(--c-accent); margin-right: 5px; }
+
 .settings-field { display: flex; flex-direction: column; gap: 6px; }
 .settings-field label { font-size: 12px; font-weight: 500; color: var(--c-text); }
 .settings-api-row { display: flex; gap: 8px; }

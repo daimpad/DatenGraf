@@ -647,7 +647,8 @@
     <div class="settings-modal-body">
       <div class="settings-section">
         <h3>KI-Analyse <span class="settings-badge-opt">optional</span></h3>
-        <p class="settings-hint">Mit einem eigenen Anthropic-API-Key analysiert Claude dein Datenflussnetzwerk und liefert eine kontextbezogene Einschätzung im Briefing. Der Key wird ausschließlich in diesem Browser gespeichert und direkt an die Anthropic-API gesendet – kein DatenGraf-Backend ist beteiligt.</p>
+        <p class="settings-hint">Mit einem eigenen Anthropic-API-Key formuliert Claude aus den Befunden ein Fließtext-Narrativ im Analyse-Briefing. Der Key wird ausschließlich in diesem Browser gespeichert; die Anfrage geht direkt an Anthropic – kein DatenGraf-Backend ist beteiligt.</p>
+        <p class="settings-hint settings-hint-privacy"><i class="fas fa-circle-info"></i> <strong>Was dabei übertragen wird:</strong> nicht der Datensatz, sondern Kennzahlen (Anzahl Akteure, Flüsse, DSGVO-Fälle), die Typen der Befunde, der Vollständigkeits-Score – und die <strong>Namen der drei Akteure mit den meisten ausgehenden Flüssen</strong>. Ohne Key wird nichts gesendet und das Template-Narrativ bleibt aktiv.</p>
         <div class="settings-field">
           <label for="settings-api-key">Anthropic API-Key</label>
           <div class="settings-api-row">
@@ -689,9 +690,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v66</span>
+  <span class="footer-version">v67</span>
 </footer>
 
-<script src="js/app.js?v=66"></script>
+<script src="js/app.js?v=67"></script>
 </body>
 </html>

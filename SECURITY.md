@@ -4,10 +4,25 @@
 
 **DatenGraf** ist eine **vollständig browserbasierte Anwendung ohne Backend**. Das hat direkte Sicherheitsimplikationen:
 
-- **Keine Daten verlassen Ihr Gerät.** Alle importierten CSV-Daten, alle über den Wizard erfassten Einträge und alle gespeicherten Zustände verbleiben ausschließlich im Browser (LocalStorage des Nutzers).
+- **Ihre Daten verlassen das Gerät nicht.** Alle importierten CSV-Daten, alle über den Wizard erfassten Einträge und alle gespeicherten Zustände verbleiben ausschließlich im Browser (LocalStorage). Ausnahmen sind ausschließlich die beiden unten beschriebenen Funktionen, die der Nutzer aktiv auslöst.
 - **Kein Server, keine Datenbank, kein Account.** Es existiert keine serverseitige Komponente, die Nutzerdaten empfangen oder speichern könnte.
-- **Kein Tracking, keine Telemetrie.** Die Anwendung sendet keinerlei Anfragen an Dritte – mit Ausnahme des CDN-Aufrufs für Cytoscape.js (`cdnjs.cloudflare.com`), Font Awesome Icons und Google Fonts beim ersten Laden.
-- **CSV per URL-Import.** Wenn der Nutzer aktiv eine externe URL eingibt, wird diese per `fetch()` geladen. Die Anfrage geht vom Browser des Nutzers aus – nicht von einem Server.
+- **Kein Tracking, keine Telemetrie, keine externen Aufrufe beim Laden.** Seit v62 werden alle Bibliotheken (Cytoscape.js, cytoscape-svg, LZ-String) und Schriften (Inter, Font Awesome) lokal aus dem Projekt ausgeliefert. Es gibt keine CDN-Aufrufe, keine Google Fonts und keinerlei Verbindung zu Dritten, solange der Nutzer keine der folgenden Funktionen nutzt.
+
+### Die beiden Ausnahmen
+
+**CSV-Import per URL.** Gibt der Nutzer aktiv eine URL ein, wird diese per `fetch()` geladen. Die Anfrage geht vom Browser des Nutzers aus, nicht von einem Server.
+
+**KI-Narrativ (standardmäßig aus).** Hinterlegt der Nutzer in den Einstellungen einen eigenen Anthropic-API-Key, sendet die Anwendung beim Erzeugen des Analyse-Briefings eine Anfrage direkt an `api.anthropic.com`. Übertragen wird bewusst datensparsam **nicht der Datensatz**, sondern nur:
+
+| Feld | Inhalt |
+|---|---|
+| `nodeCount`, `edgeCount` | Anzahl Akteure und Datenflüsse |
+| `dsgvoCount` | Anzahl DSGVO-relevanter Flüsse |
+| `topHubs` | **Namen der drei Akteure mit den meisten ausgehenden Flüssen**, je mit Anzahl |
+| `findingTypes` | Typen der erkannten Befunde (z. B. `hub`, `gatekeeper`) |
+| `completenessScore`, `completenessGaps` | Score und Bezeichnungen der Lücken-Kategorien |
+
+**Der Eintrag `topHubs` enthält Klartext-Namen aus Ihrem Datensatz** (etwa „Bürgermeisterbüro"). Wer das vermeiden will, lässt das Feld für den API-Key leer – dann bleibt das Template-Narrativ aktiv und es wird keine Anfrage gestellt. Der Key selbst wird ausschließlich im LocalStorage abgelegt und an keine andere Stelle als Anthropic gesendet.
 
 ---
 
@@ -31,9 +46,11 @@ Da Datengraf beliebige CSV-Dateien einliest und deren Inhalt als HTML rendert, i
 ```js
 function esc(str) {
   if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 ```
+
+Das Escapen von `"` deckt auch Attribut-Injection in dynamisch erzeugtem HTML ab. Die Abdeckung wird durch automatisierte Tests geprüft: `test.html` enthält Fälle für `esc()`, und die Regressionsläufe schleusen Nutzdaten mit `<img onerror>`, `<svg onload>` und Tabellen-Ausbruchsversuchen durch Listenansicht, Netzwerk, Insights, Analyse-Briefing, Knotendetail und PDF-Bericht.
 
 Trotzdem könnten Bypässe existieren, etwa durch:
 - Nicht gecoverte DOM-Einfüge-Pfade (z. B. `innerHTML` ohne `esc()`)
@@ -68,6 +85,6 @@ Sie erhalten innerhalb von **5 Werktagen** eine Antwort. Öffentliche Bekanntmac
 Folgende Punkte sind **kein** Sicherheitsproblem im Kontext dieser Anwendung:
 
 - Daten, die ein Nutzer bewusst selbst in das Tool eingibt (keine fremden Daten involviert)
-- Fehlende HTTPS-Erzwingung (liegt beim Hosting-Anbieter / GitHub Pages)
+- Fehlende HTTPS-Erzwingung (liegt beim Hosting-Anbieter)
 - Fehlende Rate-Limits (kein Server vorhanden)
 - Content Security Policy (CSP) des Hosting-Anbieters
