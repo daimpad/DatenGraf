@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DatenGraf – Datenflüsse in Organisationen visualisieren &amp; analysieren</title>
-  <meta name="description" content="Kartiere und analysiere Datenflüsse in deiner Organisation: interaktive Netzwerkkarte, Gatekeeper-Erkennung, DSGVO-Vollständigkeitscheck und Betweenness Centrality – kostenlos, browserbasiert, ohne Datenweitergabe.">
+  <title>DatenGraf – Datenflüsse in Organisationen visualisieren</title>
+  <meta name="description" content="Datenflüsse in Organisationen kartieren und analysieren: Netzwerkkarte, Gatekeeper-Erkennung, DSGVO-Check. Kostenlos im Browser, ohne Datenweitergabe.">
   <meta name="author" content="nozilla">
 
   <!-- Canonical -->
-  <link rel="canonical" href="https://daimpad.github.io/DatenGraf/">
+  <link rel="canonical" href="https://datengraf.nozilla.net/">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -19,11 +19,11 @@
   <link rel="manifest" href="/site.webmanifest" />
 
   <!-- Open Graph -->
-  <meta property="og:title"       content="DatenGraf – Datenflüsse in Organisationen visualisieren &amp; analysieren">
+  <meta property="og:title"       content="DatenGraf – Datenflüsse in Organisationen visualisieren">
   <meta property="og:description" content="Kartiere und analysiere Datenflüsse in deiner Organisation: interaktive Netzwerkkarte, Gatekeeper-Erkennung, DSGVO-Vollständigkeitscheck – kostenlos, browserbasiert, ohne Datenweitergabe.">
   <meta property="og:type"        content="website">
-  <meta property="og:url"         content="https://daimpad.github.io/DatenGraf/">
-  <meta property="og:image"       content="https://daimpad.github.io/DatenGraf/social-preview.svg">
+  <meta property="og:url"         content="https://datengraf.nozilla.net/">
+  <meta property="og:image"       content="https://datengraf.nozilla.net/social-preview.svg">
   <meta property="og:image:width"  content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:locale"      content="de_DE">
@@ -31,9 +31,9 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
-  <meta name="twitter:title"       content="DatenGraf – Datenflüsse in Organisationen visualisieren &amp; analysieren">
+  <meta name="twitter:title"       content="DatenGraf – Datenflüsse in Organisationen visualisieren">
   <meta name="twitter:description" content="Kartiere und analysiere Datenflüsse in deiner Organisation: Netzwerkkarte, Gatekeeper-Erkennung, Betweenness Centrality – kostenlos im Browser.">
-  <meta name="twitter:image"       content="https://daimpad.github.io/DatenGraf/social-preview.svg">
+  <meta name="twitter:image"       content="https://datengraf.nozilla.net/social-preview.svg">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -44,7 +44,7 @@
     "description": "Interaktive Kartierung und Analyse von Datenflüssen in Organisationen – browserbasiert, ohne Backend, ohne Datenweitergabe.",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Any",
-    "url": "https://daimpad.github.io/DatenGraf/",
+    "url": "https://datengraf.nozilla.net/",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -56,7 +56,7 @@
       "url": "https://nozilla.de/"
     },
     "inLanguage": "de",
-    "screenshot": "https://daimpad.github.io/DatenGraf/social-preview.svg"
+    "screenshot": "https://datengraf.nozilla.net/social-preview.svg"
   }
   </script>
 
@@ -183,7 +183,7 @@
       </div>
       <div class="topbar-spacer"></div>
       <button class="btn btn-primary btn-sm" id="open-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
-      <button class="btn btn-secondary btn-icon" id="faq-btn" title="Häufige Fragen" aria-label="Häufige Fragen"><i class="fas fa-question"></i></button>
+      <a class="btn btn-secondary btn-icon" href="faq.html" target="_blank" rel="noopener" title="Häufige Fragen" aria-label="Häufige Fragen"><i class="fas fa-question"></i></a>
       <button class="btn btn-secondary btn-icon" id="theme-toggle-btn" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten"><i class="fas fa-moon"></i></button>
       <button class="btn btn-secondary btn-icon" id="settings-btn" title="Einstellungen" aria-label="Einstellungen"><i class="fas fa-gear"></i></button>
       <button class="btn btn-secondary btn-icon mobile-nav-btn" id="mobile-nav-btn" aria-label="Navigation öffnen"><i class="fas fa-ellipsis-vertical"></i></button>
@@ -583,9 +583,9 @@
       <h2 class="cta-headline">Was steckt hinter Netzwerkanalysen?</h2>
       <p class="cta-sub">Erfahre, wie Graphentheorie, Betweenness Centrality und Community Detection Datenflüsse in Organisationen sichtbar und analysierbar machen.</p>
     </div>
-    <button class="btn btn-primary btn-lg cta-btn" id="open-theory-btn">
+    <a class="btn btn-primary btn-lg cta-btn" href="theorie.html" target="_blank" rel="noopener">
       <i class="fas fa-book-open"></i> Hintergrund lesen
-    </button>
+    </a>
   </div>
 </section>
 
@@ -620,166 +620,6 @@
   </div>
 </section>
 
-<!-- ── Theory Modal ───────────────────────────────────────────── -->
-<div class="modal-backdrop hidden" id="theory-backdrop">
-  <div class="theory-modal" role="dialog" aria-modal="true" aria-labelledby="theory-title">
-    <div class="theory-modal-header">
-      <h2 id="theory-title"><i class="fas fa-circle-nodes"></i> Datenflüsse verstehen &amp; analysieren</h2>
-      <button class="theory-close" id="theory-close" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="theory-modal-body">
-
-      <p class="theory-intro">Das Netzwerkdiagramm zeigt Akteure (Systeme, Abteilungen, Personen) als Knoten und Datenflüsse als gerichtete Pfeile. Die folgenden Beispiele zeigen, wie typische Muster erkannt und gezielt verbessert werden können.</p>
-
-      <!-- Legende -->
-      <div class="theory-legend">
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent)"></span> Knoten = Akteur (System, Abteilung, Person)</div>
-        <div class="theory-legend-item"><span class="theory-legend-arrow">→</span> Pfeil = Datenfluss (Richtung des Transfers)</div>
-        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent); opacity:0.9"></span> Lila Rahmen = hohe Zentralität (Hub / Gatekeeper)</div>
-        <div class="theory-legend-item"><span class="theory-legend-arrow" style="font-size:13px">⇄</span> Doppelpfeil = bidirektionaler Fluss</div>
-      </div>
-
-      <!-- Beispiel 1 -->
-      <div class="theory-example">
-        <div class="theory-example-header">
-          <span class="theory-example-badge">Beispiel 1</span>
-          <h3>Der zentrale Datenproduzent – HR-System als Hub</h3>
-        </div>
-        <div class="theory-example-diagram">
-          <div class="theory-node theory-node-hub">HR-System</div>
-          <div class="theory-arrows-out">
-            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Lohnbuchhaltung</div></div>
-            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Zugangsverwaltung</div></div>
-            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Mitarbeiterverzeichnis</div></div>
-            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Reporting</div></div>
-          </div>
-        </div>
-        <p><strong>Was zu sehen ist:</strong> Ein Knoten mit vielen ausgehenden Pfeilen (hoher Out-Degree). Im Insights-Panel erscheint dieser Akteur ganz oben in der „Top Datenproduzenten"-Liste.</p>
-        <p><strong>Was es bedeutet:</strong> Das HR-System ist eine kritische Datenquelle. Fällt es aus oder liefert fehlerhafte Daten, sind sofort vier nachgelagerte Prozesse betroffen. Das ist ein starkes Argument für hohe Verfügbarkeit und Datenqualitätskontrollen an diesem Knoten.</p>
-        <p><strong>Handlungsempfehlung:</strong> Prüfen, ob alle vier Abnehmer wirklich Rohdaten benötigen oder ob ein gemeinsamer Zwischendienst Redundanz reduzieren könnte.</p>
-      </div>
-
-      <!-- Beispiel 2 -->
-      <div class="theory-example">
-        <div class="theory-example-header">
-          <span class="theory-example-badge">Beispiel 2</span>
-          <h3>Der Flaschenhals – Controlling als Gatekeeper</h3>
-        </div>
-        <div class="theory-example-diagram">
-          <div class="theory-node">Vertrieb</div><span class="theory-arrow">→</span>
-          <div class="theory-node theory-node-hub">Controlling</div><span class="theory-arrow">→</span>
-          <div class="theory-node">Geschäftsführung</div>
-          <div class="theory-diagram-row-2">
-            <div class="theory-node">Produktion</div><span class="theory-arrow">→</span>
-            <div class="theory-node theory-node-hub" style="opacity:0.3">Controlling</div>
-            <div class="theory-node">Aufsichtsrat</div><span class="theory-arrow-rev">←</span><div class="theory-node theory-node-hub" style="opacity:0.3">Controlling</div>
-          </div>
-        </div>
-        <p><strong>Was zu sehen ist:</strong> Ein Knoten liegt auf nahezu jedem Pfad zwischen anderen Gruppen – hohe Betweenness Centrality. Im Insights-Panel erscheint er prominent in der „Gatekeeper"-Karte.</p>
-        <p><strong>Was es bedeutet:</strong> Controlling empfängt Rohdaten aus allen Bereichen, verarbeitet sie und ist die einzige Brücke zur Unternehmensleitung. Ist diese Person krank, im Urlaub oder überlastet, stockt der gesamte Berichtsfluss.</p>
-        <p><strong>Handlungsempfehlung:</strong> Stellvertretungsregelung einführen, Automatisierungsgrad der Aufbereitungsschritte erhöhen oder direkte Lesezugriffe für die Geschäftsführung prüfen.</p>
-      </div>
-
-      <!-- Beispiel 3 -->
-      <div class="theory-example">
-        <div class="theory-example-header">
-          <span class="theory-example-badge">Beispiel 3</span>
-          <h3>Das Datensilo – IT und Fachbereich ohne Verbindung</h3>
-        </div>
-        <div class="theory-example-diagram theory-example-diagram--clusters">
-          <div class="theory-cluster">
-            <div class="theory-cluster-label">Cluster A – IT</div>
-            <div class="theory-node">Ticketsystem</div><span class="theory-arrow">→</span>
-            <div class="theory-node">Monitoring</div>
-            <div class="theory-arrow-down">↕</div>
-            <div class="theory-node">Deployments</div>
-          </div>
-          <div class="theory-cluster-bridge">⟵ einzige Verbindung ⟶</div>
-          <div class="theory-cluster">
-            <div class="theory-cluster-label">Cluster B – Fachbereich</div>
-            <div class="theory-node">CRM</div><span class="theory-arrow">→</span>
-            <div class="theory-node">ERP</div>
-            <div class="theory-arrow-down">↕</div>
-            <div class="theory-node">Reporting</div>
-          </div>
-        </div>
-        <p><strong>Was zu sehen ist:</strong> Zwei dicht verbundene Gruppen mit nur einer schwachen Kante dazwischen. Die Community Detection färbt beide Cluster unterschiedlich ein.</p>
-        <p><strong>Was es bedeutet:</strong> IT und Fachbereich arbeiten größtenteils in eigenen Datenwelten. Das kann gewollt sein (Sicherheitszonentrennung), ist aber häufig historisch gewachsen – mit Folge: doppelte Datenhaltung, manuelle Übertragungen per Excel und fehlende Transparenz über IT-Vorfälle im Fachbereich.</p>
-        <p><strong>Handlungsempfehlung:</strong> Die einzige Brückenverbindung identifizieren und bewusst stärken oder durch eine definierte Schnittstelle (API, Datenpipeline) ersetzen.</p>
-      </div>
-
-      <!-- Beispiel 4 -->
-      <div class="theory-example">
-        <div class="theory-example-header">
-          <span class="theory-example-badge">Beispiel 4</span>
-          <h3>Der Datensauger – Data Warehouse als Endpunkt</h3>
-        </div>
-        <div class="theory-example-diagram">
-          <div class="theory-arrows-in">
-            <div class="theory-arrow-row"><div class="theory-node">CRM</div><span class="theory-arrow">→</span></div>
-            <div class="theory-arrow-row"><div class="theory-node">ERP</div><span class="theory-arrow">→</span></div>
-            <div class="theory-arrow-row"><div class="theory-node">Ticketsystem</div><span class="theory-arrow">→</span></div>
-            <div class="theory-arrow-row"><div class="theory-node">HR-System</div><span class="theory-arrow">→</span></div>
-          </div>
-          <div class="theory-node theory-node-hub">Data Warehouse</div>
-        </div>
-        <p><strong>Was zu sehen ist:</strong> Viele eingehende Pfeile auf einen Knoten, kaum ausgehende – hoher In-Degree. Im Insights-Panel erscheint dieser Akteur oben in der „Top Datenempfänger"-Liste.</p>
-        <p><strong>Was es bedeutet:</strong> Das Data Warehouse ist das zentrale Gedächtnis der Organisation. Aus DSGVO-Sicht ist das ein kritischer Punkt: Hier laufen personenbezogene Daten aus vielen Quellen zusammen. Wer hat Zugriff? Wie lange werden Daten gespeichert? Gibt es eine Löschstrategie?</p>
-        <p><strong>Handlungsempfehlung:</strong> Schutzbedarf aller eingehenden Flüsse prüfen – enthält einer davon DSGVO-relevante Daten, muss das Warehouse in der Datenschutzfolgenabschätzung berücksichtigt werden.</p>
-      </div>
-
-      <!-- Beispiel 5 -->
-      <div class="theory-example">
-        <div class="theory-example-header">
-          <span class="theory-example-badge">Beispiel 5</span>
-          <h3>Die überlange Kette – Felddaten auf dem Umweg (NGO)</h3>
-        </div>
-        <div class="theory-example-diagram">
-          <div class="theory-node">Feldteam</div>
-          <span class="theory-arrow">→</span>
-          <div class="theory-node theory-node-hub">Regionalkoord.</div>
-          <span class="theory-arrow">→</span>
-          <div class="theory-node theory-node-hub">Landesbüro</div>
-          <span class="theory-arrow">→</span>
-          <div class="theory-node theory-node-hub">M&amp;E-Abt.</div>
-          <span class="theory-arrow">→</span>
-          <div class="theory-node">Geschäftsführung</div>
-        </div>
-        <p><strong>Was zu sehen ist:</strong> Eine lineare Kette mit vier Hops – jede Zwischenstation hat hohe Betweenness Centrality, obwohl sie keine eigene inhaltliche Leistung erbringt. Im Insights-Panel erscheinen Regionalkoordination, Landesbüro und M&amp;E gleichauf als „Gatekeeper".</p>
-        <p><strong>Was es bedeutet:</strong> In der NGO erfassen Feldteams Projektdaten auf Papier, tippen sie lokal ab, schicken sie per E-Mail ans Landesbüro, das sie erneut in ein anderes Format überträgt. An jeder Station entstehen Verzögerungen von mehreren Tagen, Übertragungsfehler und Informationsverluste. Die Geschäftsführung sieht Felddaten im Schnitt drei Wochen nach der Erhebung.</p>
-        <p><strong>Verbesserungspotenzial:</strong> Pfadlänge aktiv reduzieren: eine gemeinsame Eingabeplattform direkt für Feldteams verkürzt die Kette auf einen Hop. Die Betweenness-Werte der Zwischenstationen sinken auf null – ein messbares Zeichen für schlanker gewordene Datenflüsse.</p>
-      </div>
-
-      <!-- Beispiel 6 -->
-      <div class="theory-example">
-        <div class="theory-example-header">
-          <span class="theory-example-badge">Beispiel 6</span>
-          <h3>Das Spinnennetz – organisch gewachsene Vernetzung ohne Struktur</h3>
-        </div>
-        <div class="theory-example-diagram theory-example-diagram--clusters">
-          <div class="theory-cluster" style="flex-direction: row; flex-wrap: wrap; max-width: 300px; border-color: var(--c-border-s);">
-            <div class="theory-node">Team A</div><span class="theory-arrow" style="font-size:11px">⇄</span>
-            <div class="theory-node">Team B</div><span class="theory-arrow" style="font-size:11px">⇄</span>
-            <div class="theory-node">Team C</div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:6px">
-              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
-              <div class="theory-node theory-node-hub" style="margin:0 8px">Koordination</div>
-              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
-            </div>
-            <div class="theory-node">Team D</div><span class="theory-arrow" style="font-size:11px">⇄</span>
-            <div class="theory-node">Team E</div><span class="theory-arrow" style="font-size:11px">⇄</span>
-            <div class="theory-node">Team F</div>
-          </div>
-        </div>
-        <p><strong>Was zu sehen ist:</strong> Ein sehr dichter Graph – fast jeder Knoten ist mit jedem anderen verbunden, überwiegend bidirektional. Die Kantendichte liegt weit über dem Durchschnitt vergleichbarer Netzwerke. Community Detection findet keine stabilen Cluster, weil die Grenzen ständig fließen.</p>
-        <p><strong>Was es bedeutet:</strong> In einer gewachsenen Organisation (häufig bei NGOs, Vereinen oder Start-ups) hat jedes Team direkte Absprachen mit jedem anderen entwickelt – per E-Mail, geteilte Tabellen, mündlich. Es gibt keine klare Dateneigentümerschaft: dieselbe Information existiert in fünf Versionen, niemand weiß, welche aktuell ist. Hohe Verbundenheit klingt gut, bedeutet hier aber vor allem: hohe Redundanz und hoher Abstimmungsaufwand.</p>
-        <p><strong>Verbesserungspotenzial:</strong> Kantenzahl aktiv reduzieren. Im gemeinsamen Workshop lässt sich mit dem Netzwerkdiagramm sichtbar machen, welche Verbindungen inhaltlich notwendig sind und welche durch eine klare Dateneigentümerschaft ersetzt werden können. Ziel: ein schlankes Netz mit weniger, aber definierten Flüssen – sichtbar als deutlich aufgeräumteres Diagramm nach der Überarbeitung.</p>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 <!-- ── Snapshot Modal ────────────────────────────────────────── -->
 <div class="modal-backdrop hidden" id="snapshot-backdrop">
   <div class="snapshot-modal" role="dialog" aria-modal="true" aria-label="Datensatz-Snapshots">
@@ -807,7 +647,8 @@
     <div class="settings-modal-body">
       <div class="settings-section">
         <h3>KI-Analyse <span class="settings-badge-opt">optional</span></h3>
-        <p class="settings-hint">Mit einem eigenen Anthropic-API-Key analysiert Claude dein Datenflussnetzwerk und liefert eine kontextbezogene Einschätzung im Briefing. Der Key wird ausschließlich in diesem Browser gespeichert und direkt an die Anthropic-API gesendet – kein DatenGraf-Backend ist beteiligt.</p>
+        <p class="settings-hint">Mit einem eigenen Anthropic-API-Key formuliert Claude aus den Befunden ein Fließtext-Narrativ im Analyse-Briefing. Der Key wird ausschließlich in diesem Browser gespeichert; die Anfrage geht direkt an Anthropic – kein DatenGraf-Backend ist beteiligt.</p>
+        <p class="settings-hint settings-hint-privacy"><i class="fas fa-circle-info"></i> <strong>Was dabei übertragen wird:</strong> nicht der Datensatz, sondern Kennzahlen (Anzahl Akteure, Flüsse, DSGVO-Fälle), die Typen der Befunde, der Vollständigkeits-Score – und die <strong>Namen der drei Akteure mit den meisten ausgehenden Flüssen</strong>. Ohne Key wird nichts gesendet und das Template-Narrativ bleibt aktiv.</p>
         <div class="settings-field">
           <label for="settings-api-key">Anthropic API-Key</label>
           <div class="settings-api-row">
@@ -817,129 +658,6 @@
         </div>
         <div class="settings-key-status" id="settings-key-status"></div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── FAQ Modal ──────────────────────────────────────────────── -->
-<div class="modal-backdrop hidden" id="faq-backdrop">
-  <div class="faq-modal" role="dialog" aria-modal="true" aria-labelledby="faq-title">
-    <div class="faq-modal-header">
-      <h2 id="faq-title"><i class="fas fa-question-circle"></i> Häufige Fragen</h2>
-      <button class="faq-close" id="faq-close-btn" aria-label="Schließen"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="faq-modal-body">
-
-      <details class="faq-item">
-        <summary class="faq-q">Was zeigen die Farben der Pfeile (Kanten)?</summary>
-        <div class="faq-a">
-          <p>Die Pfeilfarbe kodiert den <strong>Beziehungstyp</strong> – also die Art, wie Daten fließen:</p>
-          <ul>
-            <li><span class="faq-dot" style="background:#e67e22"></span> <strong>übergibt</strong> – Quelle gibt Daten aktiv weiter</li>
-            <li><span class="faq-dot" style="background:#2980b9"></span> <strong>nutzt</strong> – Quelle liest Daten aus dem Ziel</li>
-            <li><span class="faq-dot" style="background:#27ae60"></span> <strong>erstellt</strong> – Quelle erzeugt neue Daten im Ziel</li>
-            <li><span class="faq-dot" style="background:#8e44ad"></span> <strong>empfängt</strong> – Quelle bekommt Daten vom Ziel</li>
-            <li><span class="faq-dot" style="background:#c0392b"></span> <strong>verarbeitet</strong> – Quelle transformiert Daten</li>
-          </ul>
-          <p>Die automatische Legende (links unten im Netzwerk) zeigt nur die Beziehungstypen, die im aktuellen Datensatz tatsächlich vorkommen.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Was bedeutet die Dicke und der Stil der Pfeile?</summary>
-        <div class="faq-a">
-          <p>Mit dem Button <strong>„Häufigkeit einblenden"</strong> wird die <strong>Häufigkeit</strong> des Datenflusses visuell kodiert:</p>
-          <ul>
-            <li><strong>Dicke</strong> – je häufiger, desto dicker (sofort &gt; stündlich &gt; täglich …)</li>
-            <li><strong>Linienstil</strong> – häufige Flüsse sind durchgezogen, seltene gestrichelt oder gepunktet</li>
-            <li><strong>Transparenz</strong> – seltene Flüsse erscheinen blasser</li>
-          </ul>
-          <p>Ohne Häufigkeits-Modus haben alle Kanten gleiche Dicke und Stil.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Was ist die Hierarchie-Ansicht?</summary>
-        <div class="faq-a">
-          <p>Der Button <strong>„Hierarchie"</strong> gruppiert Knoten nach ihrem <strong>Bereich</strong> (Spalte <em>QuelleBereich</em>) in rechteckige Container. So erkennt man auf einen Blick, welche Systeme zum gleichen Organisationsbereich gehören.</p>
-          <p>Ein Klick auf einen Container hebt alle darin enthaltenen Knoten und ihre Verbindungen hervor – ohne die Detail-Ansicht zu öffnen. Ein Klick auf einen einzelnen Knoten öffnet wie gewohnt das Detailfenster.</p>
-          <p>Knoten ohne Bereichsangabe erscheinen nicht gruppiert.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Was bewirkt „Org-Farben"?</summary>
-        <div class="faq-a">
-          <p>Der Button <strong>„Org-Farben"</strong> färbt jeden Knoten anhand seiner <strong>Organisation</strong> ein (Spalte <em>QuelleOrganisation</em>, für reine Empfänger <em>ZielOrganisation</em>). So sind Knoten verschiedener Organisationen sofort unterscheidbar.</p>
-          <p>Knoten ohne Organisationsangabe behalten die Standardfarbe (lila). In der Legende erscheinen nur Organisationen, für die mindestens ein Knoten mit Eintrag vorhanden ist.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Wie importiere ich Daten?</summary>
-        <div class="faq-a">
-          <p>Es gibt drei Wege:</p>
-          <ol>
-            <li><strong>CSV-Datei hochladen</strong> – Im Bereich „Daten importieren" (Sidebar) eine CSV-Datei auswählen oder per Drag &amp; Drop einwerfen.</li>
-            <li><strong>CSV-Text einfügen</strong> – Den CSV-Inhalt direkt in das Textfeld kopieren und auf „Visualisieren" klicken.</li>
-            <li><strong>Beispieldaten laden</strong> – Über den Bereich „Beispieldaten" einen vorgefertigten Datensatz auswählen.</li>
-          </ol>
-          <p>Die CSV-Vorlage mit allen Spalten kann über „Vorlage herunterladen" bezogen werden.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Was ist das Analyse-Briefing?</summary>
-        <div class="faq-a">
-          <p>Das <strong>Analyse-Briefing</strong> (Tab „Analyse") wertet den gesamten Datensatz automatisch aus und zeigt:</p>
-          <ul>
-            <li><strong>Vollständigkeits-Score</strong> – wie gut die Pflichtfelder ausgefüllt sind (0–100 %)</li>
-            <li><strong>Hubs</strong> – Knoten mit sehr vielen Verbindungen (Flaschenhals-Risiko)</li>
-            <li><strong>Gatekeeper</strong> – Knoten, über die viele Pfade laufen</li>
-            <li><strong>Isolierte Bereiche</strong> – Teilgraphen ohne Verbindung zum Rest</li>
-            <li><strong>DSGVO-Lücken</strong> – fehlende Schutzbedarfs- oder Ansprechpartner-Angaben</li>
-            <li><strong>Snapshot-Vergleich</strong> – was sich seit dem letzten Snapshot verändert hat</li>
-          </ul>
-          <p>Mit einem optionalen Anthropic-API-Key (Einstellungen) wird zusätzlich ein KI-Narrativ generiert.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Wie speichere und lade ich meine Daten?</summary>
-        <div class="faq-a">
-          <p>DatenGraf speichert alles lokal im Browser – kein Server, keine Cloud:</p>
-          <ul>
-            <li><strong>Lokal speichern / laden</strong> – Buttons im Import-Bereich schreiben bzw. lesen den Datensatz im Browser-Speicher (localStorage).</li>
-            <li><strong>CSV exportieren</strong> – Exportiert den aktuellen Datensatz als Datei zum Download.</li>
-            <li><strong>Share-Link</strong> – Kodiert den Datensatz komprimiert in der URL; der Link öffnet DatenGraf direkt mit den Daten.</li>
-          </ul>
-          <p>Beim Schließen des Tabs bleiben Daten nur erhalten, wenn sie vorher lokal gespeichert wurden.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Was sind Snapshots und wozu brauche ich sie?</summary>
-        <div class="faq-a">
-          <p>Ein <strong>Snapshot</strong> ist eine gespeicherte Momentaufnahme des aktuellen Datensatzes. Mit mehreren Snapshots kann DatenGraf im Analyse-Briefing automatisch zeigen, <strong>was sich verändert hat</strong> – neu hinzugekommene oder weggefallene Flüsse, veränderte Topologien.</p>
-          <p>Einen Snapshot anlegen: Netzwerkkarte → „Snapshot speichern". Als <strong>Vergleichsbasis</strong> markierte Snapshots werden im Diff bevorzugt verwendet.</p>
-        </div>
-      </details>
-
-      <details class="faq-item">
-        <summary class="faq-q">Was bedeutet der Vollständigkeits-Score?</summary>
-        <div class="faq-a">
-          <p>Der Score (0–100 %) misst, wie gut die Datensätze ausgefüllt sind. Er berücksichtigt fünf gewichtete Kategorien:</p>
-          <ul>
-            <li>Pflichtfelder (Quelle, Beziehung, Ziel)</li>
-            <li>Organisationsangabe</li>
-            <li>DSGVO-Klassifikation (Schutzbedarf)</li>
-            <li>Beziehungstyp</li>
-            <li>Ansprechpartner (DSGVO Art. 30)</li>
-          </ul>
-          <p>Im Analyse-Briefing wird aufgeschlüsselt, in welchen Kategorien Einträge fehlen.</p>
-        </div>
-      </details>
-
     </div>
   </div>
 </div>
@@ -960,6 +678,10 @@
 <footer class="site-footer">
   <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
   <nav class="footer-links">
+    <a href="theorie.html">Hintergrund</a>
+    <span class="footer-sep">·</span>
+    <a href="faq.html">Fragen &amp; Antworten</a>
+    <span class="footer-sep">·</span>
     <a href="https://nozilla.de/impressum/"   target="_blank" rel="noopener">Impressum</a>
     <span class="footer-sep">·</span>
     <a href="https://nozilla.de/datenschutz/" target="_blank" rel="noopener">Datenschutz</a>
@@ -968,9 +690,9 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v65</span>
+  <span class="footer-version">v67</span>
 </footer>
 
-<script src="js/app.js?v=65"></script>
+<script src="js/app.js?v=67"></script>
 </body>
 </html>

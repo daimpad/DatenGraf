@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Netzwerkanalyse: Hubs, Gatekeeper und Datensilos erkennen</title>
+  <meta name="description" content="Wie Sie Hubs, Gatekeeper, Datensilos und überlange Ketten in Datenflüssen erkennen – sechs Muster aus der Praxis, verständlich erklärt.">
+  <meta name="author" content="nozilla">
+
+  <link rel="canonical" href="https://datengraf.nozilla.net/theorie.html">
+
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+  <meta property="og:title"       content="Netzwerkanalyse: Hubs, Gatekeeper und Datensilos erkennen">
+  <meta property="og:description" content="Wie Sie Hubs, Gatekeeper, Datensilos und überlange Ketten in Datenflüssen erkennen – sechs Muster aus der Praxis, verständlich erklärt.">
+  <meta property="og:type"        content="article">
+  <meta property="og:url"         content="https://datengraf.nozilla.net/theorie.html">
+  <meta property="og:image"       content="https://datengraf.nozilla.net/social-preview.svg">
+  <meta property="og:locale"      content="de_DE">
+  <meta property="og:site_name"   content="DatenGraf">
+  <meta name="twitter:card"       content="summary_large_image">
+  <meta name="twitter:title"      content="Netzwerkanalyse: Hubs, Gatekeeper und Datensilos erkennen">
+  <meta name="twitter:description" content="Wie Sie Hubs, Gatekeeper, Datensilos und überlange Ketten in Datenflüssen erkennen – sechs Muster aus der Praxis, verständlich erklärt.">
+  <meta name="twitter:image"      content="https://datengraf.nozilla.net/social-preview.svg">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Netzwerkanalyse von Datenflüssen: Hubs, Gatekeeper und Datensilos erkennen",
+    "description": "Wie sich Hubs, Gatekeeper, Datensilos und überlange Ketten in Datenflussnetzwerken erkennen lassen – mit sechs Beispielmustern aus der Praxis.",
+    "inLanguage": "de",
+    "author": { "@type": "Organization", "name": "nozilla", "url": "https://nozilla.de/" },
+    "publisher": { "@type": "Organization", "name": "nozilla", "url": "https://nozilla.de/" },
+    "mainEntityOfPage": "https://datengraf.nozilla.net/theorie.html",
+    "dateModified": "2026-08-04"
+  }
+  </script>
+
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('datengraf_theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="assets/fonts/inter/inter.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="assets/fonts/fa/all.min.css">
+</head>
+<body class="doc-page">
+
+<header class="topbar">
+  <a class="topbar-brand" href="/">
+    <img src="logo.svg" alt="" class="topbar-logo" aria-hidden="true">
+    <span class="topbar-brand-text">DatenGraf</span>
+  </a>
+  <div class="topbar-spacer"></div>
+  <nav class="doc-nav">
+    <a href="theorie.html" class="is-active" aria-current="page">Hintergrund</a>
+    <a href="faq.html">Fragen &amp; Antworten</a>
+  </nav>
+  <a class="btn btn-primary btn-sm" href="/"><i class="fas fa-circle-nodes"></i> Zur Anwendung</a>
+</header>
+
+<main class="doc-main">
+  <p class="doc-breadcrumb"><a href="/">Start</a> <span aria-hidden="true">›</span> Hintergrund</p>
+  <h1 class="doc-title">Datenflüsse verstehen und analysieren</h1>
+  <p class="doc-lead">Das Netzwerkdiagramm zeigt Akteure als Knoten und Datenflüsse als gerichtete Pfeile. Die folgenden sechs Muster treten in Organisationen immer wieder auf – und lassen sich gezielt verbessern.</p>
+
+      <!-- Legende -->
+      <div class="theory-legend">
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent)"></span> Knoten = Akteur (System, Abteilung, Person)</div>
+        <div class="theory-legend-item"><span class="theory-legend-arrow">→</span> Pfeil = Datenfluss (Richtung des Transfers)</div>
+        <div class="theory-legend-item"><span class="theory-legend-dot" style="background:var(--c-accent); opacity:0.9"></span> Lila Rahmen = hohe Zentralität (Hub / Gatekeeper)</div>
+        <div class="theory-legend-item"><span class="theory-legend-arrow" style="font-size:13px">⇄</span> Doppelpfeil = bidirektionaler Fluss</div>
+      </div>
+
+      <!-- Beispiel 1 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 1</span>
+          <h3>Der zentrale Datenproduzent – HR-System als Hub</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-node theory-node-hub">HR-System</div>
+          <div class="theory-arrows-out">
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Lohnbuchhaltung</div></div>
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Zugangsverwaltung</div></div>
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Mitarbeiterverzeichnis</div></div>
+            <div class="theory-arrow-row"><span class="theory-arrow">→</span><div class="theory-node">Reporting</div></div>
+          </div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Ein Knoten mit vielen ausgehenden Pfeilen (hoher Out-Degree). Im Insights-Panel erscheint dieser Akteur ganz oben in der „Top Datenproduzenten"-Liste.</p>
+        <p><strong>Was es bedeutet:</strong> Das HR-System ist eine kritische Datenquelle. Fällt es aus oder liefert fehlerhafte Daten, sind sofort vier nachgelagerte Prozesse betroffen. Das ist ein starkes Argument für hohe Verfügbarkeit und Datenqualitätskontrollen an diesem Knoten.</p>
+        <p><strong>Handlungsempfehlung:</strong> Prüfen, ob alle vier Abnehmer wirklich Rohdaten benötigen oder ob ein gemeinsamer Zwischendienst Redundanz reduzieren könnte.</p>
+      </div>
+
+      <!-- Beispiel 2 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 2</span>
+          <h3>Der Flaschenhals – Controlling als Gatekeeper</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-node">Vertrieb</div><span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">Controlling</div><span class="theory-arrow">→</span>
+          <div class="theory-node">Geschäftsführung</div>
+          <div class="theory-diagram-row-2">
+            <div class="theory-node">Produktion</div><span class="theory-arrow">→</span>
+            <div class="theory-node theory-node-hub" style="opacity:0.3">Controlling</div>
+            <div class="theory-node">Aufsichtsrat</div><span class="theory-arrow-rev">←</span><div class="theory-node theory-node-hub" style="opacity:0.3">Controlling</div>
+          </div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Ein Knoten liegt auf nahezu jedem Pfad zwischen anderen Gruppen – hohe Betweenness Centrality. Im Insights-Panel erscheint er prominent in der „Gatekeeper"-Karte.</p>
+        <p><strong>Was es bedeutet:</strong> Controlling empfängt Rohdaten aus allen Bereichen, verarbeitet sie und ist die einzige Brücke zur Unternehmensleitung. Ist diese Person krank, im Urlaub oder überlastet, stockt der gesamte Berichtsfluss.</p>
+        <p><strong>Handlungsempfehlung:</strong> Stellvertretungsregelung einführen, Automatisierungsgrad der Aufbereitungsschritte erhöhen oder direkte Lesezugriffe für die Geschäftsführung prüfen.</p>
+      </div>
+
+      <!-- Beispiel 3 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 3</span>
+          <h3>Das Datensilo – IT und Fachbereich ohne Verbindung</h3>
+        </div>
+        <div class="theory-example-diagram theory-example-diagram--clusters">
+          <div class="theory-cluster">
+            <div class="theory-cluster-label">Cluster A – IT</div>
+            <div class="theory-node">Ticketsystem</div><span class="theory-arrow">→</span>
+            <div class="theory-node">Monitoring</div>
+            <div class="theory-arrow-down">↕</div>
+            <div class="theory-node">Deployments</div>
+          </div>
+          <div class="theory-cluster-bridge">⟵ einzige Verbindung ⟶</div>
+          <div class="theory-cluster">
+            <div class="theory-cluster-label">Cluster B – Fachbereich</div>
+            <div class="theory-node">CRM</div><span class="theory-arrow">→</span>
+            <div class="theory-node">ERP</div>
+            <div class="theory-arrow-down">↕</div>
+            <div class="theory-node">Reporting</div>
+          </div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Zwei dicht verbundene Gruppen mit nur einer schwachen Kante dazwischen. Die Community Detection färbt beide Cluster unterschiedlich ein.</p>
+        <p><strong>Was es bedeutet:</strong> IT und Fachbereich arbeiten größtenteils in eigenen Datenwelten. Das kann gewollt sein (Sicherheitszonentrennung), ist aber häufig historisch gewachsen – mit Folge: doppelte Datenhaltung, manuelle Übertragungen per Excel und fehlende Transparenz über IT-Vorfälle im Fachbereich.</p>
+        <p><strong>Handlungsempfehlung:</strong> Die einzige Brückenverbindung identifizieren und bewusst stärken oder durch eine definierte Schnittstelle (API, Datenpipeline) ersetzen.</p>
+      </div>
+
+      <!-- Beispiel 4 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 4</span>
+          <h3>Der Datensauger – Data Warehouse als Endpunkt</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-arrows-in">
+            <div class="theory-arrow-row"><div class="theory-node">CRM</div><span class="theory-arrow">→</span></div>
+            <div class="theory-arrow-row"><div class="theory-node">ERP</div><span class="theory-arrow">→</span></div>
+            <div class="theory-arrow-row"><div class="theory-node">Ticketsystem</div><span class="theory-arrow">→</span></div>
+            <div class="theory-arrow-row"><div class="theory-node">HR-System</div><span class="theory-arrow">→</span></div>
+          </div>
+          <div class="theory-node theory-node-hub">Data Warehouse</div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Viele eingehende Pfeile auf einen Knoten, kaum ausgehende – hoher In-Degree. Im Insights-Panel erscheint dieser Akteur oben in der „Top Datenempfänger"-Liste.</p>
+        <p><strong>Was es bedeutet:</strong> Das Data Warehouse ist das zentrale Gedächtnis der Organisation. Aus DSGVO-Sicht ist das ein kritischer Punkt: Hier laufen personenbezogene Daten aus vielen Quellen zusammen. Wer hat Zugriff? Wie lange werden Daten gespeichert? Gibt es eine Löschstrategie?</p>
+        <p><strong>Handlungsempfehlung:</strong> Schutzbedarf aller eingehenden Flüsse prüfen – enthält einer davon DSGVO-relevante Daten, muss das Warehouse in der Datenschutzfolgenabschätzung berücksichtigt werden.</p>
+      </div>
+
+      <!-- Beispiel 5 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 5</span>
+          <h3>Die überlange Kette – Felddaten auf dem Umweg (NGO)</h3>
+        </div>
+        <div class="theory-example-diagram">
+          <div class="theory-node">Feldteam</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">Regionalkoord.</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">Landesbüro</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node theory-node-hub">M&amp;E-Abt.</div>
+          <span class="theory-arrow">→</span>
+          <div class="theory-node">Geschäftsführung</div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Eine lineare Kette mit vier Hops – jede Zwischenstation hat hohe Betweenness Centrality, obwohl sie keine eigene inhaltliche Leistung erbringt. Im Insights-Panel erscheinen Regionalkoordination, Landesbüro und M&amp;E gleichauf als „Gatekeeper".</p>
+        <p><strong>Was es bedeutet:</strong> In der NGO erfassen Feldteams Projektdaten auf Papier, tippen sie lokal ab, schicken sie per E-Mail ans Landesbüro, das sie erneut in ein anderes Format überträgt. An jeder Station entstehen Verzögerungen von mehreren Tagen, Übertragungsfehler und Informationsverluste. Die Geschäftsführung sieht Felddaten im Schnitt drei Wochen nach der Erhebung.</p>
+        <p><strong>Verbesserungspotenzial:</strong> Pfadlänge aktiv reduzieren: eine gemeinsame Eingabeplattform direkt für Feldteams verkürzt die Kette auf einen Hop. Die Betweenness-Werte der Zwischenstationen sinken auf null – ein messbares Zeichen für schlanker gewordene Datenflüsse.</p>
+      </div>
+
+      <!-- Beispiel 6 -->
+      <div class="theory-example">
+        <div class="theory-example-header">
+          <span class="theory-example-badge">Beispiel 6</span>
+          <h3>Das Spinnennetz – organisch gewachsene Vernetzung ohne Struktur</h3>
+        </div>
+        <div class="theory-example-diagram theory-example-diagram--clusters">
+          <div class="theory-cluster" style="flex-direction: row; flex-wrap: wrap; max-width: 300px; border-color: var(--c-border-s);">
+            <div class="theory-node">Team A</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team B</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team C</div>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:6px">
+              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
+              <div class="theory-node theory-node-hub" style="margin:0 8px">Koordination</div>
+              <span class="theory-arrow" style="font-size:11px; transform:rotate(90deg); display:inline-block">⇄</span>
+            </div>
+            <div class="theory-node">Team D</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team E</div><span class="theory-arrow" style="font-size:11px">⇄</span>
+            <div class="theory-node">Team F</div>
+          </div>
+        </div>
+        <p><strong>Was zu sehen ist:</strong> Ein sehr dichter Graph – fast jeder Knoten ist mit jedem anderen verbunden, überwiegend bidirektional. Die Kantendichte liegt weit über dem Durchschnitt vergleichbarer Netzwerke. Community Detection findet keine stabilen Cluster, weil die Grenzen ständig fließen.</p>
+        <p><strong>Was es bedeutet:</strong> In einer gewachsenen Organisation (häufig bei NGOs, Vereinen oder Start-ups) hat jedes Team direkte Absprachen mit jedem anderen entwickelt – per E-Mail, geteilte Tabellen, mündlich. Es gibt keine klare Dateneigentümerschaft: dieselbe Information existiert in fünf Versionen, niemand weiß, welche aktuell ist. Hohe Verbundenheit klingt gut, bedeutet hier aber vor allem: hohe Redundanz und hoher Abstimmungsaufwand.</p>
+        <p><strong>Verbesserungspotenzial:</strong> Kantenzahl aktiv reduzieren. Im gemeinsamen Workshop lässt sich mit dem Netzwerkdiagramm sichtbar machen, welche Verbindungen inhaltlich notwendig sind und welche durch eine klare Dateneigentümerschaft ersetzt werden können. Ziel: ein schlankes Netz mit weniger, aber definierten Flüssen – sichtbar als deutlich aufgeräumteres Diagramm nach der Überarbeitung.</p>
+      </div>
+
+  <section class="doc-cta">
+    <h2>Diese Muster im eigenen Netzwerk finden</h2>
+    <p>DatenGraf erkennt Hubs, Gatekeeper und isolierte Teilgraphen automatisch – kostenlos im Browser, ohne Anmeldung und ohne dass Daten das Gerät verlassen.</p>
+    <a class="btn btn-primary btn-lg" href="/"><i class="fas fa-circle-nodes"></i> DatenGraf öffnen</a>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
+  <nav class="footer-links">
+    <a href="/">Start</a>
+    <span class="footer-sep">·</span>
+    <a href="theorie.html">Hintergrund</a>
+    <span class="footer-sep">·</span>
+    <a href="faq.html">Fragen &amp; Antworten</a>
+    <span class="footer-sep">·</span>
+    <a href="https://nozilla.de/impressum/" target="_blank" rel="noopener">Impressum</a>
+    <span class="footer-sep">·</span>
+    <a href="https://nozilla.de/datenschutz/" target="_blank" rel="noopener">Datenschutz</a>
+  </nav>
+</footer>
+</body>
+</html>
