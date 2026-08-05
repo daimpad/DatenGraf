@@ -6,13 +6,26 @@
 
 - **Ihre Daten verlassen das Gerät nicht.** Alle importierten CSV-Daten, alle über den Wizard erfassten Einträge und alle gespeicherten Zustände verbleiben ausschließlich im Browser (LocalStorage). Ausnahmen sind ausschließlich die beiden unten beschriebenen Funktionen, die der Nutzer aktiv auslöst.
 - **Kein Server, keine Datenbank, kein Account.** Es existiert keine serverseitige Komponente, die Nutzerdaten empfangen oder speichern könnte.
-- **Kein Tracking, keine Telemetrie, keine externen Aufrufe beim Laden.** Seit v62 werden alle Bibliotheken (Cytoscape.js, cytoscape-svg, LZ-String) und Schriften (Inter, Font Awesome) lokal aus dem Projekt ausgeliefert. Es gibt keine CDN-Aufrufe, keine Google Fonts und keinerlei Verbindung zu Dritten, solange der Nutzer keine der folgenden Funktionen nutzt.
+- **Alle Bibliotheken lokal.** Seit v62 werden Cytoscape.js, cytoscape-svg, LZ-String sowie die Schriften Inter und Font Awesome aus dem Projekt selbst ausgeliefert. Keine CDN-Aufrufe, keine Google Fonts.
+- **Reichweitenmessung ohne Cookies.** Die Seite zählt Aufrufe über [GoatCounter](https://www.goatcounter.com/). Gemessen wird der **Seitenaufruf**, nicht Ihr Datensatz — dazu unten mehr.
+
+### Reichweitenmessung (GoatCounter)
+
+Eingebunden ist ein asynchrones Zählskript von `gc.zgo.at`, das einen Aufruf an `datengraf.goatcounter.com` sendet. **Ihre Daten sind davon nicht berührt:** Gezählt wird der Seitenaufruf, nicht der Inhalt der Anwendung. Importierte CSV-Dateien, erfasste Datenflüsse und gespeicherte Zustände verlassen den Browser weiterhin nicht.
+
+Erhoben werden laut [GoatCounter-Datenschutzerklärung](https://www.goatcounter.com/help/privacy): aufgerufene URL, Referrer, Browser und Betriebssystem, ungefähre Bildschirmgröße sowie das aus der IP abgeleitete Land. **Es werden keine Cookies gesetzt und keine IP-Adressen gespeichert.** Zur Unterscheidung wiederkehrender Aufrufe dient ein täglich wechselnder Hash, der nicht zurückgerechnet werden kann.
+
+Das Skript ist `async` eingebunden. Blockiert ein Netz oder ein Browser-Add-on den Aufruf, funktioniert die Anwendung unverändert — die Zählung entfällt dann einfach.
+
+Wer die Messung nicht wünscht, kann `gc.zgo.at` blockieren oder „Do Not Track" aktivieren; GoatCounter respektiert das Signal.
+
+---
 
 ### Die beiden Ausnahmen
 
-**CSV-Import per URL.** Gibt der Nutzer aktiv eine URL ein, wird diese per `fetch()` geladen. Die Anfrage geht vom Browser des Nutzers aus, nicht von einem Server.
+**1. CSV-Import per URL.** Gibt der Nutzer aktiv eine URL ein, wird diese per `fetch()` geladen. Die Anfrage geht vom Browser des Nutzers aus, nicht von einem Server.
 
-**KI-Narrativ (standardmäßig aus).** Hinterlegt der Nutzer in den Einstellungen einen eigenen Anthropic-API-Key, sendet die Anwendung beim Erzeugen des Analyse-Briefings eine Anfrage direkt an `api.anthropic.com`. Übertragen wird bewusst datensparsam **nicht der Datensatz**, sondern nur:
+**2. KI-Narrativ (standardmäßig aus).** Hinterlegt der Nutzer in den Einstellungen einen eigenen Anthropic-API-Key, sendet die Anwendung beim Erzeugen des Analyse-Briefings eine Anfrage direkt an `api.anthropic.com`. Übertragen wird bewusst datensparsam **nicht der Datensatz**, sondern nur:
 
 | Feld | Inhalt |
 |---|---|

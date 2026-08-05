@@ -35,7 +35,9 @@ python3 -m http.server 8080
 <script src="js/app.js?v=67"></script>
 ```
 
-**Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape und LZ-String unter `assets/vendor/`. Zur Laufzeit gibt es keine externen Aufrufe.
+**Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape, cytoscape-svg und LZ-String unter `assets/vendor/`. Es wird kein Programmcode von fremden Servern geladen.
+
+**Reichweitenmessung:** `index.html`, `theorie.html` und `faq.html` binden vor `</body>` das GoatCounter-Snippet ein (`gc.zgo.at`, `async`). `test.html` bewusst **nicht** — Testläufe würden die Zahlen verfälschen. Blockiert ein Netz den Aufruf, erscheint eine Konsolenmeldung, die Anwendung bleibt unbeeinträchtigt (nachgewiesen: in einer Umgebung mit gesperrter Domain laufen alle Prüfungen durch). Ändert sich der Umfang der Messung, müssen `SECURITY.md` und die README-Aussagen mitgezogen werden.
 
 ---
 
@@ -518,3 +520,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v65 | Normalisierungsprüfung beim Import: erkennt uneinheitliche Schreibweisen in Akteuren, Organisationen und kontrollierten Vokabularen und vereinheitlicht sie auf Wunsch. Im Test kollabierten 7 Knoten auf die 4 tatsächlichen Akteure |
 | v66 | SEO: kanonische Domain auf `datengraf.nozilla.net` korrigiert (zeigte auf github.io); Hintergrund und FAQ aus den Modals in die eigenständigen Seiten `theorie.html` und `faq.html` überführt (+1.432 indexierbare Wörter, FAQPage-Schema); Title und Description auf die angezeigten Längen gekürzt; interne Verlinkung und Sitemap ergänzt |
 | v67 | `SECURITY.md` faktentreu gemacht: Die Richtlinie behauptete CDN-Aufrufe, die es seit v62 nicht mehr gibt, zeigte ein veraltetes `esc()`-Beispiel ohne `"`-Escaping und verschwieg die opt-in-LLM-Übertragung vollständig. Der Einstellungsdialog nennt jetzt konkret, welche Felder an Anthropic gehen |
+| v67 | Reichweitenmessung via GoatCounter auf den drei Inhaltsseiten (cookiefrei, `async`); `SECURITY.md` und README entsprechend präzisiert — gezählt wird der Seitenaufruf, nicht der Datensatz |

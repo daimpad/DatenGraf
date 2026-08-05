@@ -78,7 +78,7 @@
 | 🛡️ | **Datenschutz-Dimensionen** | Schutzbedarf (DSGVO-relevant / Intern / Öffentlich), Erfassungsart, Ansprechpartner (Art. 30) |
 | 🌗 | **Hell & Dunkel** | Umschaltbares Theme, das die Auswahl merkt und beim Erststart der Systemeinstellung folgt |
 | ♿ | **Barrierefreiheit** | AA-Kontraste in beiden Themes, Fokusführung in Dialogen, Textalternative zur Karte (siehe unten) |
-| 🧯 | **Vollständig offline-fähig** | Alle Bibliotheken werden lokal ausgeliefert – kein CDN, keine externen Aufrufe zur Laufzeit |
+| 🧯 | **Bibliotheken lokal** | Cytoscape, SVG-Erweiterung und LZ-String liegen im Projekt – die Anwendung läuft auch in Netzen, die CDNs sperren |
 | ❓ | **Eigene Inhaltsseiten** | [Hintergrund zur Netzwerkanalyse](https://datengraf.nozilla.net/theorie.html) und [Fragen &amp; Antworten](https://datengraf.nozilla.net/faq.html) als eigenständige, verlinkbare Seiten |
 | 📱 | **Mobile-Navigation** | Responsives Layout mit mobilem Menü-Dropdown für Tab-Wechsel und Wizard-Zugang |
 
@@ -208,7 +208,9 @@ Ergänzend werden die Nutzerflüsse vor größeren Änderungen im Browser durchg
 
 > Keine Build-Tools, kein npm-Workflow zur Laufzeit, keine Transpiler — nur HTML, CSS und JS.
 
-**Keine externen Aufrufe zur Laufzeit.** Cytoscape.js, die SVG-Erweiterung und LZ-String liegen als geprüfte Kopien unter `assets/vendor/`, Inter und Font Awesome unter `assets/fonts/`. Die Anwendung lädt nichts von fremden Servern – sie funktioniert damit auch in Netzen, die CDNs sperren, und vollständig offline. Sollte eine Bibliothek dennoch fehlen, erklärt die App das und arbeitet mit Liste, Insights und Briefing weiter.
+**Keine fremden Bibliotheken zur Laufzeit.** Cytoscape.js, die SVG-Erweiterung und LZ-String liegen als geprüfte Kopien unter `assets/vendor/`, Inter und Font Awesome unter `assets/fonts/`. Die Anwendung lädt keinen Programmcode von fremden Servern – sie funktioniert damit auch in Netzen, die CDNs sperren. Sollte eine Bibliothek dennoch fehlen, erklärt die App das und arbeitet mit Liste, Insights und Briefing weiter.
+
+Einzige externe Verbindung im Normalbetrieb ist die cookiefreie Reichweitenmessung über GoatCounter; sie zählt den Seitenaufruf, nicht Ihre Daten, und ist `async` eingebunden – ein blockierter Aufruf beeinträchtigt nichts. Details in der [Sicherheitsrichtlinie](SECURITY.md).
 
 Zum Aktualisieren der Vendor-Dateien dient `npm run vendor`; zur Laufzeit wird nichts installiert.
 
