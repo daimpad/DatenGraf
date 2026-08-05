@@ -2850,6 +2850,80 @@ textarea.csv-textarea:focus {
 .doc-main .faq-item .faq-q { padding: 14px 0; }
 .doc-main .faq-item .faq-a { padding-bottom: 14px; }
 
+/* ── Rechtstext-Seiten (Datenschutz) ─────────────────────────
+   Fließtext mit Abschnitten, Listen und Tabellen. Die Theorie- und
+   FAQ-Seiten bringen ihre eigenen Klassen mit; hier wird stattdessen
+   direkt auf die Elemente gestylt, weil ein Rechtstext aus nichts
+   anderem als Überschriften, Absätzen und Aufzählungen besteht. */
+.legal h2 {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--c-text);
+  margin: 36px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border-s);
+}
+/* Kurzfassung und CTA sind eigene Karten – dort trennt schon der
+   Kartenrahmen, ein zusätzlicher Strich über der Überschrift wirkt wie
+   ein abgeschnittener Abschnitt. */
+.legal .legal-summary h2,
+.legal .doc-cta h2 { margin-top: 0; padding-top: 0; border-top: none; }
+.legal p { margin-bottom: 12px; color: var(--c-text); }
+.legal ul { margin: 0 0 14px 20px; }
+.legal li { margin-bottom: 7px; }
+.legal a { color: var(--c-accent); }
+.legal code {
+  font-family: 'Courier New', monospace;
+  font-size: 12.5px;
+  background: var(--surface-2);
+  border: 1px solid var(--c-border-s);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+
+.legal-summary {
+  background: var(--surface-alt);
+  border: 1px solid var(--c-border-s);
+  border-left: 3px solid var(--c-accent);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 8px;
+}
+.legal-summary ul { margin-bottom: 0; }
+
+/* Tabellen scrollen für sich, damit die Seite nicht seitwärts läuft. */
+.legal-table-wrap { overflow-x: auto; margin: 0 0 14px; }
+.legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 420px;
+}
+.legal-table th,
+.legal-table td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--c-border-s);
+  vertical-align: top;
+}
+.legal-table th {
+  font-weight: 700;
+  color: var(--c-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom-width: 2px;
+}
+.legal-table tbody tr:last-child td { border-bottom: none; }
+
+.legal-date {
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--c-muted);
+  font-style: italic;
+}
+
 .doc-cta {
   margin-top: 44px;
   padding: 28px;

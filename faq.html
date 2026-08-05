@@ -151,7 +151,7 @@
 
 
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Was zeigen die Farben der Pfeile (Kanten)?</summary>
         <div class="faq-a">
           <p>Die Pfeilfarbe kodiert den <strong>Beziehungstyp</strong> – also die Art, wie Daten fließen:</p>
@@ -166,7 +166,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Was bedeutet die Dicke und der Stil der Pfeile?</summary>
         <div class="faq-a">
           <p>Mit dem Button <strong>„Häufigkeit einblenden"</strong> wird die <strong>Häufigkeit</strong> des Datenflusses visuell kodiert:</p>
@@ -179,7 +179,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Was ist die Hierarchie-Ansicht?</summary>
         <div class="faq-a">
           <p>Der Button <strong>„Hierarchie"</strong> gruppiert Knoten nach ihrem <strong>Bereich</strong> (Spalte <em>QuelleBereich</em>) in rechteckige Container. So erkennt man auf einen Blick, welche Systeme zum gleichen Organisationsbereich gehören.</p>
@@ -188,7 +188,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Was bewirkt „Org-Farben"?</summary>
         <div class="faq-a">
           <p>Der Button <strong>„Org-Farben"</strong> färbt jeden Knoten anhand seiner <strong>Organisation</strong> ein (Spalte <em>QuelleOrganisation</em>, für reine Empfänger <em>ZielOrganisation</em>). So sind Knoten verschiedener Organisationen sofort unterscheidbar.</p>
@@ -196,7 +196,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Wie importiere ich Daten?</summary>
         <div class="faq-a">
           <p>Es gibt drei Wege:</p>
@@ -209,7 +209,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Was ist das Analyse-Briefing?</summary>
         <div class="faq-a">
           <p>Das <strong>Analyse-Briefing</strong> (Tab „Analyse") wertet den gesamten Datensatz automatisch aus und zeigt:</p>
@@ -225,7 +225,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Wie speichere und lade ich meine Daten?</summary>
         <div class="faq-a">
           <p>DatenGraf speichert alles lokal im Browser – kein Server, keine Cloud:</p>
@@ -238,7 +238,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Was sind Snapshots und wozu brauche ich sie?</summary>
         <div class="faq-a">
           <p>Ein <strong>Snapshot</strong> ist eine gespeicherte Momentaufnahme des aktuellen Datensatzes. Mit mehreren Snapshots kann DatenGraf im Analyse-Briefing automatisch zeigen, <strong>was sich verändert hat</strong> – neu hinzugekommene oder weggefallene Flüsse, veränderte Topologien.</p>
@@ -246,7 +246,7 @@
         </div>
       </details>
 
-      <details class="faq-item" open>
+      <details class="faq-item">
         <summary class="faq-q">Was bedeutet der Vollständigkeits-Score?</summary>
         <div class="faq-a">
           <p>Der Score (0–100 %) misst, wie gut die Datensätze ausgefüllt sind. Er berücksichtigt fünf gewichtete Kategorien:</p>
@@ -261,7 +261,7 @@
         </div>
       </details>
 
-      <details class="faq-item" id="datenschutz" open>
+      <details class="faq-item" id="datenschutz">
         <summary class="faq-q">Welche Daten verlassen den Browser?</summary>
         <div class="faq-a">
           <p><strong>Ihr Datensatz nicht.</strong> Importierte CSV-Dateien, erfasste Datenflüsse und Snapshots bleiben im Browser (localStorage) – es gibt kein Backend, das sie empfangen könnte. Drei Vorgänge erzeugen dennoch eine Verbindung nach außen:</p>
@@ -270,9 +270,28 @@
             <li><strong>KI-Narrativ</strong> (standardmäßig aus). Hinterlegen Sie in den Einstellungen einen eigenen Anthropic-API-Key, sendet DatenGraf beim Analyse-Briefing Kennzahlen an Anthropic – Anzahl Akteure und Flüsse, Typen der Befunde, Vollständigkeits-Score – <strong>und die Namen der drei Akteure mit den meisten ausgehenden Flüssen</strong>. Ohne Key wird nichts gesendet und das Template-Narrativ bleibt aktiv.</li>
             <li><strong>CSV-Import per URL.</strong> Geben Sie aktiv eine URL ein, lädt <em>Ihr</em> Browser diese Adresse – nicht ein Server von uns.</li>
           </ul>
-          <p>Bibliotheken und Schriften (Cytoscape, LZ-String, Inter, Font Awesome) werden aus dem Projekt selbst ausgeliefert, nicht von fremden Servern. Alle Einzelheiten stehen in der <a href="https://github.com/daimpad/DatenGraf/blob/main/SECURITY.md" target="_blank" rel="noopener">Sicherheitsrichtlinie</a>.</p>
+          <p>Bibliotheken und Schriften (Cytoscape, LZ-String, Inter, Font Awesome) werden aus dem Projekt selbst ausgeliefert, nicht von fremden Servern. Alle Einzelheiten – einschließlich Rechtsgrundlagen und Ihrer Rechte – stehen in der <a href="datenschutz.html">Datenschutzerklärung</a>; die technische Seite dokumentiert die <a href="https://github.com/daimpad/DatenGraf/blob/main/SECURITY.md" target="_blank" rel="noopener">Sicherheitsrichtlinie</a>.</p>
         </div>
       </details>
+
+  <script>
+    /* Die Einträge sind zugeklappt. Zeigt ein Link auf einen davon
+       (z. B. faq.html#datenschutz), muss er geöffnet und angesprungen
+       werden – sonst landet man auf einer Seite ohne sichtbare Antwort. */
+    (function () {
+      function openFromHash() {
+        var id = location.hash.slice(1);
+        if (!id) return;
+        var el = document.getElementById(id);
+        if (el && el.tagName === 'DETAILS') {
+          el.open = true;
+          el.scrollIntoView();
+        }
+      }
+      openFromHash();
+      addEventListener('hashchange', openFromHash);
+    })();
+  </script>
 
   <section class="doc-cta">
     <h2>Selbst ausprobieren</h2>
@@ -292,7 +311,7 @@
     <span class="footer-sep">·</span>
     <a href="https://nozilla.de/impressum/" target="_blank" rel="noopener">Impressum</a>
     <span class="footer-sep">·</span>
-    <a href="https://nozilla.de/datenschutz/" target="_blank" rel="noopener">Datenschutz</a>
+    <a href="datenschutz.html">Datenschutz</a>
   </nav>
 </footer>
 

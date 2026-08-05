@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datenschutz – DatenGraf</title>
+  <meta name="description" content="Welche Daten DatenGraf verarbeitet: Local Storage statt Server, cookiefreie Reichweitenmessung, optionale KI-Auswertung – im Detail erklärt.">
+  <meta name="author" content="nozilla">
+
+  <link rel="canonical" href="https://datengraf.nozilla.net/datenschutz.html">
+
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+  <meta property="og:title"       content="Datenschutz – DatenGraf">
+  <meta property="og:description" content="Welche Daten DatenGraf verarbeitet: Local Storage statt Server, cookiefreie Reichweitenmessung, optionale KI-Auswertung – im Detail erklärt.">
+  <meta property="og:type"        content="article">
+  <meta property="og:url"         content="https://datengraf.nozilla.net/datenschutz.html">
+  <meta property="og:image"       content="https://datengraf.nozilla.net/social-preview.svg">
+  <meta property="og:locale"      content="de_DE">
+  <meta property="og:site_name"   content="DatenGraf">
+  <meta name="twitter:card"       content="summary_large_image">
+  <meta name="twitter:title"      content="Datenschutz – DatenGraf">
+  <meta name="twitter:description" content="Welche Daten DatenGraf verarbeitet: Local Storage statt Server, cookiefreie Reichweitenmessung, optionale KI-Auswertung – im Detail erklärt.">
+  <meta name="twitter:image"      content="https://datengraf.nozilla.net/social-preview.svg">
+
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('datengraf_theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="assets/fonts/inter/inter.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="assets/fonts/fa/all.min.css">
+</head>
+<body class="doc-page">
+
+<header class="topbar">
+  <a class="topbar-brand" href="/">
+    <img src="logo.svg" alt="" class="topbar-logo" aria-hidden="true">
+    <span class="topbar-brand-text">DatenGraf</span>
+  </a>
+  <div class="topbar-spacer"></div>
+  <nav class="doc-nav">
+    <a href="theorie.html">Hintergrund</a>
+    <a href="faq.html">Fragen &amp; Antworten</a>
+  </nav>
+  <a class="btn btn-primary btn-sm" href="/"><i class="fas fa-circle-nodes"></i> Zur Anwendung</a>
+</header>
+
+<main class="doc-main legal">
+  <p class="doc-breadcrumb"><a href="/">Start</a> <span aria-hidden="true">›</span> Datenschutz</p>
+  <h1 class="doc-title">Datenschutzerklärung</h1>
+  <p class="doc-lead">DatenGraf ist eine Anwendung ohne Backend: Die Auswertung Ihrer Datenflüsse läuft vollständig in Ihrem Browser. Diese Erklärung beschreibt, was das konkret bedeutet – und an welchen drei Stellen trotzdem eine Verbindung nach außen entsteht.</p>
+
+  <div class="legal-summary">
+    <h2 id="kurzfassung">Kurzfassung</h2>
+    <ul>
+      <li><strong>Ihr Datensatz wird nicht übertragen.</strong> Importierte CSV-Dateien und erfasste Datenflüsse bleiben im Speicher Ihres Browsers. Es gibt keinen Server, der sie entgegennehmen könnte.</li>
+      <li><strong>Keine Cookies</strong>, kein Nutzerkonto, kein Login, kein Tracking über Seiten hinweg.</li>
+      <li><strong>Reichweitenmessung</strong> zählt cookiefrei den Seitenaufruf – nicht Ihre Inhalte.</li>
+      <li><strong>Die KI-Auswertung ist ausgeschaltet</strong>, solange Sie keinen eigenen API-Schlüssel hinterlegen.</li>
+    </ul>
+  </div>
+
+  <h2 id="verantwortlicher">1. Verantwortlicher</h2>
+  <p>Verantwortlich für die Verarbeitung personenbezogener Daten auf dieser Website ist der Betreiber, dessen vollständige Angaben im <a href="https://nozilla.de/impressum/" target="_blank" rel="noopener">Impressum</a> stehen.</p>
+  <p>Kontakt in Datenschutzfragen: <a href="mailto:contact@nozilla.de">contact@nozilla.de</a></p>
+
+  <h2 id="grundprinzip">2. Grundprinzip: Verarbeitung im Browser</h2>
+  <p>DatenGraf besteht aus HTML-, CSS- und JavaScript-Dateien, die Ihr Browser einmalig lädt und danach lokal ausführt. Es existiert <strong>keine Datenbank und keine serverseitige Anwendungslogik</strong>. Alles, was Sie eingeben, importieren, filtern oder analysieren, wird in Ihrem Gerät verarbeitet und verlässt es nicht – mit Ausnahme der unter Punkt 5 bis 7 beschriebenen Vorgänge, die Sie selbst auslösen.</p>
+  <p>Das bedeutet auch: Wir können Ihre Daten nicht einsehen, nicht auswerten und nicht wiederherstellen. Ein verlorener Datensatz ist für uns nicht rekonstruierbar.</p>
+
+  <h2 id="hosting">3. Auslieferung der Seite und Server-Protokolle</h2>
+  <p>Beim Aufruf der Seite überträgt Ihr Browser technisch notwendige Daten an den ausliefernden Server: IP-Adresse, Datum und Uhrzeit, die angeforderte Datei, den Referrer sowie Browser- und Betriebssystemkennung. Diese Protokolle sind für den Betrieb und die Sicherheit des Angebots erforderlich.</p>
+  <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem technisch fehlerfreien und sicheren Betrieb). Eine Zusammenführung dieser Protokolle mit anderen Daten findet nicht statt.</p>
+  <p>Der Quellcode wird zusätzlich über <strong>GitHub Pages</strong> (GitHub Inc., USA) veröffentlicht. Rufen Sie das Angebot über eine <code>github.io</code>-Adresse auf, gelten ergänzend die <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Datenschutzhinweise von GitHub</a>. Die kanonische Adresse dieses Angebots ist <code>datengraf.nozilla.net</code>.</p>
+
+  <h2 id="localstorage">4. Speicherung im Browser (Local Storage)</h2>
+  <p>DatenGraf setzt <strong>keine Cookies</strong>. Stattdessen nutzt die Anwendung den <em>Local Storage</em> Ihres Browsers – einen Speicherbereich, der Ihr Gerät nicht verlässt und auf den ausschließlich diese Website zugreifen kann. Abgelegt werden ausschließlich Daten, die Sie selbst erzeugen:</p>
+  <div class="legal-table-wrap">
+    <table class="legal-table">
+      <thead>
+        <tr><th>Schlüssel</th><th>Inhalt</th><th>Wann geschrieben</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>datengraf_data</code></td><td>Ihr aktueller Datensatz</td><td>Klick auf „Im Browser speichern“</td></tr>
+        <tr><td><code>datengraf_snap_*</code></td><td>Gespeicherte Snapshots</td><td>Klick auf „Snapshot speichern“</td></tr>
+        <tr><td><code>datengraf_baseline</code></td><td>Welcher Snapshot als Vergleichsbasis dient</td><td>Auswahl im Snapshot-Dialog</td></tr>
+        <tr><td><code>datengraf_filters</code></td><td>Ihre zuletzt gesetzten Filter</td><td>Beim Filtern</td></tr>
+        <tr><td><code>datengraf_theme</code></td><td>Helles oder dunkles Erscheinungsbild</td><td>Klick auf den Themenschalter</td></tr>
+        <tr><td><code>datengraf_api_key</code></td><td>Ihr Anthropic-API-Schlüssel (optional, siehe Punkt 6)</td><td>Eingabe in den Einstellungen</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Diese Einträge haben keine Ablauffrist. Sie löschen sie, indem Sie in Ihrem Browser die Websitedaten für diese Domain entfernen; der API-Schlüssel lässt sich zusätzlich direkt im Einstellungsdialog der Anwendung leeren.</p>
+  <p><strong>Rechtsgrundlage:</strong> Die Speicherung erfolgt auf Ihre Veranlassung hin und ist zur Bereitstellung der von Ihnen ausdrücklich gewünschten Funktion unbedingt erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG); soweit personenbezogene Daten betroffen sind, Art. 6 Abs. 1 lit. f DSGVO.</p>
+
+  <h2 id="goatcounter">5. Reichweitenmessung mit GoatCounter</h2>
+  <p>Um zu erfahren, ob und wie das Angebot genutzt wird, zählt die Seite Aufrufe über <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>. Dazu lädt Ihr Browser ein Zählskript von <code>gc.zgo.at</code> und meldet den Aufruf an <code>datengraf.goatcounter.com</code>.</p>
+  <p><strong>Gezählt wird der Seitenaufruf, nicht Ihr Datensatz.</strong> Welche Datenflüsse Sie erfassen, welche CSV-Datei Sie importieren und was die Analyse ergibt, ist davon nicht berührt und wird nicht übermittelt.</p>
+  <p>Erhoben werden laut <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">Datenschutzerklärung von GoatCounter</a>:</p>
+  <ul>
+    <li>die aufgerufene Seite (URL)</li>
+    <li>die verweisende Seite (Referrer)</li>
+    <li>Browser und Betriebssystem</li>
+    <li>die ungefähre Bildschirmgröße</li>
+    <li>das aus der IP-Adresse abgeleitete Land</li>
+  </ul>
+  <p>Es werden <strong>keine Cookies gesetzt und keine IP-Adressen gespeichert.</strong> Um wiederkehrende Aufrufe zu erkennen, bildet GoatCounter einen Hash, der täglich wechselt und sich nicht zurückrechnen lässt. Eine Wiedererkennung über Websites hinweg oder über den Tag hinaus ist damit ausgeschlossen. Betrieben wird der Dienst von Martin Tournoij (Irland); die Server stehen in der Europäischen Union.</p>
+  <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse liegt in einer datensparsamen Reichweitenmessung ohne Profilbildung. Da kein Zugriff auf Informationen in Ihrem Endgerät erfolgt und nichts dort gespeichert wird, ist keine Einwilligung nach § 25 Abs. 1 TDDDG erforderlich – deshalb sehen Sie auf dieser Seite auch kein Cookie-Banner.</p>
+  <p><strong>Widerspruch:</strong> GoatCounter wertet den „Do Not Track“-Hinweis Ihres Browsers aus und zählt Sie dann nicht. Ebenso wirksam ist es, die Domain <code>gc.zgo.at</code> über einen Inhaltsblocker zu sperren. Die Anwendung funktioniert in beiden Fällen unverändert – das Zählskript ist so eingebunden, dass ein blockierter Aufruf nichts beeinträchtigt.</p>
+
+  <h2 id="ki">6. Optionale KI-Auswertung (standardmäßig aus)</h2>
+  <p>Das Analyse-Briefing formuliert seine Zusammenfassung standardmäßig aus fest hinterlegten Textbausteinen – ohne jede Datenübertragung. Wenn Sie in den Einstellungen einen <strong>eigenen Anthropic-API-Schlüssel</strong> hinterlegen, wird die Zusammenfassung stattdessen von einem Sprachmodell formuliert. Ihr Browser sendet dafür eine Anfrage direkt an <code>api.anthropic.com</code>.</p>
+  <p>Übertragen wird bewusst <strong>nicht Ihr Datensatz</strong>, sondern nur:</p>
+  <div class="legal-table-wrap">
+    <table class="legal-table">
+      <thead><tr><th>Angabe</th><th>Inhalt</th></tr></thead>
+      <tbody>
+        <tr><td>Kennzahlen</td><td>Anzahl der Akteure, der Datenflüsse und der DSGVO-relevanten Flüsse</td></tr>
+        <tr><td>Befundtypen</td><td>Welche Muster erkannt wurden (etwa Hub, Gatekeeper, isolierter Bereich)</td></tr>
+        <tr><td>Vollständigkeit</td><td>Der Score und die Bezeichnungen der Lückenkategorien</td></tr>
+        <tr><td><strong>Namen der drei zentralsten Akteure</strong></td><td><strong>Im Klartext</strong>, jeweils mit der Anzahl ausgehender Flüsse – etwa „Bürgermeisterbüro“</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Der letzte Punkt ist der entscheidende: <strong>Diese Namen stammen aus Ihrem Datensatz.</strong> Enthalten sie personenbezogene Daten – etwa weil Sie Personen statt Systeme als Akteure erfasst haben –, werden diese an Anthropic übermittelt. Prüfen Sie das, bevor Sie einen Schlüssel hinterlegen. Anthropic PBC hat seinen Sitz in den USA; die Übermittlung erfolgt auf Grundlage der Standardvertragsklauseln und der Datenschutzbestimmungen von Anthropic.</p>
+  <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. a DSGVO (Einwilligung). Die Einwilligung erteilen Sie durch das Hinterlegen des Schlüssels; Sie widerrufen sie, indem Sie das Feld in den Einstellungen leeren. Ohne Schlüssel wird keine Anfrage gestellt.</p>
+  <p>Der Schlüssel selbst wird ausschließlich im Local Storage Ihres Browsers abgelegt und an keine andere Stelle als Anthropic gesendet. Wir erhalten ihn nicht.</p>
+
+  <h2 id="url-import">7. CSV-Import über eine Adresse</h2>
+  <p>Geben Sie im Importbereich aktiv eine URL an, lädt <em>Ihr</em> Browser diese Adresse direkt – nicht ein Server von uns. Der betreffende Anbieter sieht dabei Ihre IP-Adresse, so wie bei jedem anderen Seitenaufruf auch. <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b bzw. f DSGVO, da Sie den Vorgang selbst auslösen.</p>
+
+  <h2 id="share-link">8. Teilen-Link</h2>
+  <p>Die Funktion „Link teilen“ komprimiert Ihren Datensatz und schreibt ihn in die Adresse selbst (hinter das <code>#</code>-Zeichen). Dieser Teil einer URL wird von Browsern <strong>nicht</strong> an Server übertragen – der Datensatz gelangt also nicht zu uns.</p>
+  <p>Bedenken Sie dennoch: Wer den Link erhält, hat damit den vollständigen Datensatz. Links landen in Verläufen, Chatprotokollen und Weiterleitungen. Teilen Sie einen Datensatz mit schutzbedürftigen Inhalten besser als Datei über einen Kanal, den Sie kontrollieren.</p>
+
+  <h2 id="drittinhalte">9. Keine Einbindung fremder Inhalte</h2>
+  <p>Schriften (Inter, Font Awesome) und Programmbibliotheken (Cytoscape, LZ-String) werden aus diesem Projekt selbst ausgeliefert. Es findet <strong>keine Verbindung zu Google Fonts, zu einem CDN oder zu sozialen Netzwerken</strong> statt. Die einzige Verbindung zu Dritten beim bloßen Aufruf der Seite ist die unter Punkt 5 beschriebene Reichweitenmessung.</p>
+
+  <h2 id="rechte">10. Ihre Rechte</h2>
+  <p>Sie haben nach der DSGVO das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) sowie das Recht, einer auf Art. 6 Abs. 1 lit. f DSGVO gestützten Verarbeitung <strong>zu widersprechen</strong> (Art. 21). Eine erteilte Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen.</p>
+  <p>Zur Ausübung genügt eine Nachricht an <a href="mailto:contact@nozilla.de">contact@nozilla.de</a>. Beachten Sie dabei: Zu den Daten, die ausschließlich in Ihrem Browser liegen, können wir keine Auskunft erteilen – wir haben keinen Zugriff darauf. Sie kontrollieren diese Daten unmittelbar selbst.</p>
+  <p>Unabhängig davon steht Ihnen ein <strong>Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde</strong> zu (Art. 77 DSGVO), insbesondere in dem Mitgliedstaat Ihres Aufenthaltsorts oder des mutmaßlichen Verstoßes.</p>
+
+  <h2 id="aenderungen">11. Änderungen dieser Erklärung</h2>
+  <p>Ändert sich die Funktionsweise der Anwendung, wird diese Erklärung angepasst. Da der gesamte Quellcode <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener">öffentlich einsehbar</a> ist, lässt sich jede hier beschriebene Aussage nachprüfen; technische Einzelheiten dokumentiert zusätzlich die <a href="https://github.com/daimpad/DatenGraf/blob/main/SECURITY.md" target="_blank" rel="noopener">Sicherheitsrichtlinie</a>.</p>
+
+  <p class="legal-date">Stand: 5. August 2026</p>
+
+  <section class="doc-cta">
+    <h2>Noch Fragen?</h2>
+    <p>Die kurze Fassung – welche Daten den Browser verlassen und welche nicht – steht auch in den häufigen Fragen.</p>
+    <a class="btn btn-primary btn-lg" href="faq.html#datenschutz"><i class="fas fa-circle-question"></i> Zu den Fragen &amp; Antworten</a>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <a class="footer-brand" href="https://nozilla.de/" target="_blank" rel="noopener">nozilla | bits &amp; bytes mit ❤</a>
+  <nav class="footer-links">
+    <a href="/">Start</a>
+    <span class="footer-sep">·</span>
+    <a href="theorie.html">Hintergrund</a>
+    <span class="footer-sep">·</span>
+    <a href="faq.html">Fragen &amp; Antworten</a>
+    <span class="footer-sep">·</span>
+    <a href="https://nozilla.de/impressum/" target="_blank" rel="noopener">Impressum</a>
+    <span class="footer-sep">·</span>
+    <a href="datenschutz.html">Datenschutz</a>
+    <span class="footer-sep">·</span>
+    <a href="https://nozilla.de/kontakt/" target="_blank" rel="noopener">Kontakt</a>
+  </nav>
+</footer>
+
+<!-- Reichweitenmessung: GoatCounter – keine Cookies, keine personenbezogenen Daten.
+     async, damit ein blockierter Aufruf die Seite nicht beeinträchtigt. -->
+<script data-goatcounter="https://datengraf.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
