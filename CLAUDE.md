@@ -37,7 +37,7 @@ python3 -m http.server 8080
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape, cytoscape-svg und LZ-String unter `assets/vendor/`. Es wird kein Programmcode von fremden Servern geladen.
 
-**Reichweitenmessung:** `index.html`, `theorie.html` und `faq.html` binden vor `</body>` das GoatCounter-Snippet ein (`gc.zgo.at`, `async`). `test.html` bewusst **nicht** — Testläufe würden die Zahlen verfälschen. Blockiert ein Netz den Aufruf, erscheint eine Konsolenmeldung, die Anwendung bleibt unbeeinträchtigt (nachgewiesen: in einer Umgebung mit gesperrter Domain laufen alle Prüfungen durch). Ändert sich der Umfang der Messung, müssen `SECURITY.md` und die README-Aussagen mitgezogen werden.
+**Reichweitenmessung:** `index.html`, `theorie.html` und `faq.html` binden vor `</body>` das GoatCounter-Snippet ein (`gc.zgo.at`, `async`). `test.html` bewusst **nicht** — Testläufe würden die Zahlen verfälschen. Blockiert ein Netz den Aufruf, erscheint eine Konsolenmeldung, die Anwendung bleibt unbeeinträchtigt (nachgewiesen: in einer Umgebung mit gesperrter Domain laufen alle Prüfungen durch). Ändert sich der Umfang der Messung, müssen `SECURITY.md`, die README-Aussagen **und der FAQ-Eintrag `#datenschutz`** mitgezogen werden — Letzterer ist die einzige Stelle, an der Nutzende das im Produkt selbst nachlesen können.
 
 ---
 
@@ -283,7 +283,7 @@ Wichtige Hilfsfunktionen:
 - Template-Narrativ bleibt Fallback; LLM-Text ersetzt es in-place nach dem Laden
 - Fehlerbehandlung: 401/auth → `updateKeyStatus('error')`; andere Fehler → silent `null`
 
-> **Was übertragen wird, ist dokumentationspflichtig.** Gesendet werden `nodeCount`, `edgeCount`, `dsgvoCount`, `findingTypes`, `completenessScore`, `completenessGaps` — und `topHubs` mit den **Klartext-Namen** der drei grössten Akteure. Nicht der Datensatz. Ändert sich der Umfang, müssen `SECURITY.md` und der Hinweis im Einstellungsdialog mitgezogen werden.
+> **Was übertragen wird, ist dokumentationspflichtig.** Gesendet werden `nodeCount`, `edgeCount`, `dsgvoCount`, `findingTypes`, `completenessScore`, `completenessGaps` — und `topHubs` mit den **Klartext-Namen** der drei grössten Akteure. Nicht der Datensatz. Ändert sich der Umfang, müssen `SECURITY.md`, der Hinweis im Einstellungsdialog und der FAQ-Eintrag `#datenschutz` mitgezogen werden.
 
 ### Vollständigkeits-Score
 
@@ -377,7 +377,7 @@ Bis v65 lagen Hintergrund und FAQ in Modals — rund 1.300 Wörter, die Google a
 | Seite | Inhalt | Besonderheit |
 |---|---|---|
 | `theorie.html` | Sechs Muster der Netzwerkanalyse (~814 sichtbare Wörter) | `TechArticle`-Schema |
-| `faq.html` | Neun Fragen (~618 Wörter), `<details open>` | `FAQPage`-Schema für Rich Results |
+| `faq.html` | Zehn Fragen (~783 sichtbare Wörter), `<details open>` | `FAQPage`-Schema für Rich Results; der Eintrag `#datenschutz` ist von der Startseite aus verlinkt |
 
 Beide nutzen `css/styles.css` mit, laden aber **kein `app.js`** — sie sind statisches HTML ohne Anwendungslogik. Die Klassen `.theory-*` und `.faq-*` stylen weiterhin den Inhalt; die frühere Modal-Hülle (`.theory-modal`, `.faq-modal` …) wurde entfernt.
 
@@ -521,3 +521,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v66 | SEO: kanonische Domain auf `datengraf.nozilla.net` korrigiert (zeigte auf github.io); Hintergrund und FAQ aus den Modals in die eigenständigen Seiten `theorie.html` und `faq.html` überführt (+1.432 indexierbare Wörter, FAQPage-Schema); Title und Description auf die angezeigten Längen gekürzt; interne Verlinkung und Sitemap ergänzt |
 | v67 | `SECURITY.md` faktentreu gemacht: Die Richtlinie behauptete CDN-Aufrufe, die es seit v62 nicht mehr gibt, zeigte ein veraltetes `esc()`-Beispiel ohne `"`-Escaping und verschwieg die opt-in-LLM-Übertragung vollständig. Der Einstellungsdialog nennt jetzt konkret, welche Felder an Anthropic gehen |
 | v67 | Reichweitenmessung via GoatCounter auf den drei Inhaltsseiten (cookiefrei, `async`); `SECURITY.md` und README entsprechend präzisiert — gezählt wird der Seitenaufruf, nicht der Datensatz |
+| v67 | Datenschutz im Produkt nachvollziehbar gemacht: FAQ-Eintrag „Welche Daten verlassen den Browser?" (`#datenschutz`) benennt Reichweitenmessung, opt-in-LLM-Übertragung und URL-Import; die Startseite behauptete bis dahin pauschal „kein Datentransfer" |

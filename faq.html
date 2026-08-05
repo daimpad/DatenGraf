@@ -102,6 +102,14 @@
           "@type": "Answer",
           "text": "Der Score (0–100 %) misst, wie gut die Datensätze ausgefüllt sind. Er berücksichtigt fünf gewichtete Kategorien: Pflichtfelder (Quelle, Beziehung, Ziel) Organisationsangabe DSGVO-Klassifikation (Schutzbedarf) Beziehungstyp Ansprechpartner (DSGVO Art. 30) Im Analyse-Briefing wird aufgeschlüsselt, in welchen Kategorien Einträge fehlen."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "Welche Daten verlassen den Browser?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ihr Datensatz nicht. Importierte CSV-Dateien, erfasste Datenflüsse und Snapshots bleiben im Browser (localStorage); es gibt kein Backend, das sie empfangen könnte. Drei Vorgänge erzeugen dennoch eine Verbindung nach außen: 1. Reichweitenmessung: Die Seite zählt Aufrufe über GoatCounter. Gemessen wird der Seitenaufruf, nicht Ihr Datensatz. Es werden keine Cookies gesetzt und keine IP-Adressen gespeichert. 2. KI-Narrativ (standardmäßig aus): Hinterlegen Sie in den Einstellungen einen eigenen Anthropic-API-Key, sendet DatenGraf beim Analyse-Briefing Kennzahlen an Anthropic – und die Namen der drei Akteure mit den meisten ausgehenden Flüssen. Ohne Key wird nichts gesendet. 3. CSV-Import per URL: Geben Sie aktiv eine URL ein, lädt Ihr Browser diese Adresse. Bibliotheken und Schriften werden aus dem Projekt selbst ausgeliefert, nicht von fremden Servern."
+        }
       }
     ]
   }
@@ -250,6 +258,19 @@
             <li>Ansprechpartner (DSGVO Art. 30)</li>
           </ul>
           <p>Im Analyse-Briefing wird aufgeschlüsselt, in welchen Kategorien Einträge fehlen.</p>
+        </div>
+      </details>
+
+      <details class="faq-item" id="datenschutz" open>
+        <summary class="faq-q">Welche Daten verlassen den Browser?</summary>
+        <div class="faq-a">
+          <p><strong>Ihr Datensatz nicht.</strong> Importierte CSV-Dateien, erfasste Datenflüsse und Snapshots bleiben im Browser (localStorage) – es gibt kein Backend, das sie empfangen könnte. Drei Vorgänge erzeugen dennoch eine Verbindung nach außen:</p>
+          <ul>
+            <li><strong>Reichweitenmessung.</strong> Die Seite zählt Aufrufe über <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">GoatCounter</a>. Gemessen wird der <em>Seitenaufruf</em>, nicht Ihr Datensatz: aufgerufene URL, Referrer, Browser und Betriebssystem, ungefähre Bildschirmgröße und das aus der IP abgeleitete Land. Es werden <strong>keine Cookies gesetzt und keine IP-Adressen gespeichert</strong>. Wer das nicht möchte, blockiert <code>gc.zgo.at</code> oder aktiviert „Do Not Track" – das Signal wird respektiert.</li>
+            <li><strong>KI-Narrativ</strong> (standardmäßig aus). Hinterlegen Sie in den Einstellungen einen eigenen Anthropic-API-Key, sendet DatenGraf beim Analyse-Briefing Kennzahlen an Anthropic – Anzahl Akteure und Flüsse, Typen der Befunde, Vollständigkeits-Score – <strong>und die Namen der drei Akteure mit den meisten ausgehenden Flüssen</strong>. Ohne Key wird nichts gesendet und das Template-Narrativ bleibt aktiv.</li>
+            <li><strong>CSV-Import per URL.</strong> Geben Sie aktiv eine URL ein, lädt <em>Ihr</em> Browser diese Adresse – nicht ein Server von uns.</li>
+          </ul>
+          <p>Bibliotheken und Schriften (Cytoscape, LZ-String, Inter, Font Awesome) werden aus dem Projekt selbst ausgeliefert, nicht von fremden Servern. Alle Einzelheiten stehen in der <a href="https://github.com/daimpad/DatenGraf/blob/main/SECURITY.md" target="_blank" rel="noopener">Sicherheitsrichtlinie</a>.</p>
         </div>
       </details>
 
