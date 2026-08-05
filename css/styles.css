@@ -1510,7 +1510,7 @@ textarea.csv-textarea:focus {
   display: block;
 }
 
-.hero-card h3 {
+.hero-card h2 {
   font-size: 15px;
   font-weight: 700;
   margin-bottom: 10px;
@@ -1918,7 +1918,7 @@ textarea.csv-textarea:focus {
   gap: 10px;
   margin-bottom: 14px;
 }
-.theory-example-header h3 {
+.theory-example-header h2 {
   font-size: 14px;
   font-weight: 700;
   color: var(--c-accent);
