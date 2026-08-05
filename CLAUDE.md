@@ -9,8 +9,8 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 **DatenGraf** ist eine browserbasierte Single-Page-Application (SPA) zur Kartierung und Analyse von Datenflüssen in Organisationen. Kein Backend, kein Build-Prozess, kein Framework — nur HTML, CSS und Vanilla JS.
 
 - **Einstiegspunkt:** `index.html`
-- **Styles:** `css/styles.css` (~2930 Zeilen)
-- **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
+- **Styles:** `css/styles.css` (~3070 Zeilen)
+- **Logik:** `js/app.js` (~2940 Zeilen, eine einzige Datei)
 - **Inhaltsseiten:** `theorie.html`, `faq.html`, `datenschutz.html` — eigenständige HTML-Seiten, die `css/styles.css` mitnutzen, aber **kein** `app.js` laden
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
@@ -217,6 +217,8 @@ Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). B
 **Fokus in Dialogen:** Ein `MutationObserver` auf der `.hidden`-Klasse der drei Backdrops (`MODAL_BACKDROP_IDS`) setzt beim Öffnen den Fokus ins Modal und gibt ihn beim Schließen zurück; ein globaler Tab-Handler hält ihn im obersten offenen Dialog. Der Observer-Ansatz ist bewusst gewählt, damit er unabhängig von der öffnenden Code-Stelle greift — auch bei `Esc`. Neue Modals nur in `MODAL_BACKDROP_IDS` eintragen, sonst nichts zu tun.
 
 **Canvas-Alternative:** Die Netzwerkkarte ist für Screenreader nicht erschließbar. `#network-container` trägt deshalb `role="img"` mit Textalternative, darunter verweist `.network-a11y-note` sichtbar auf die Listenansicht. Listenansicht und Briefing müssen inhaltlich gleichwertig bleiben — die Karte darf nie der einzige Zugang zu einer Information werden.
+
+**Überschriftenhierarchie ohne Sprünge.** Auf jeder Seite genau eine `h1`, danach keine übersprungene Ebene. Bis v68 sprang die Startseite von `h1` auf die `h3` der Hero-Karten und `theorie.html` auf die `h3` der Beispielabschnitte — wer per Überschrift navigiert, fand dort keine Ebene, wo inhaltlich eine ist. Neue Abschnittsüberschriften deshalb an der umgebenden Ebene ausrichten, nicht an der gewünschten Schriftgröße; die Größe kommt aus dem CSS (`.hero-card h2`, `.theory-example-header h2`).
 
 **Statusmeldungen:** `#status-message` ist `role="status"` mit `aria-live="polite"`.
 
@@ -459,6 +461,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 - **Squash-Merge-Konflikte:** Jeder PR-Merge erzeugt Squash-Commits; beim nächsten Branch-Merge entstehen scheinbare Konflikte. Auflösung: `git fetch origin main && git merge origin/main` → Konflikte → `git checkout --ours index.html js/app.js css/styles.css` → `git add` → `git commit` → `git push`. Alternativ den Branch auf `origin/main` zurücksetzen (`git checkout -B <branch> origin/main`), wenn er keine unveröffentlichten Commits trägt
 - **`showAnalyseBriefing()` ≠ `renderAll()`:** Das Briefing operiert auf `allData` und wird nicht automatisch bei Filter-Änderungen aktualisiert. Ein `filterNote`-Hinweis erscheint wenn `filterCount > 0`
 - **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
+- **`cy.png()` braucht `full: true`:** Ohne die Option rendert Cytoscape den *sichtbaren* Ausschnitt. Auf einem inaktiven Tab ist der Container 0×0 groß, und der Export liefert stillschweigend `data:,` — ein leeres Bild im PDF-Bericht. Der Aufruf in `pdf-report-btn` setzt `full: true` und ist damit vom aktiven Tab unabhängig; ein `typeof uri === 'string'`-Guard fängt das **nicht** ab, denn `'data:,'` ist ein String
 - **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
 - **Tests laufen gegen den echten Code:** `test.html` lädt `index.html` per Iframe. Nach Umbenennen einer Funktion die Tests mitziehen — sie schlagen sonst mit „ist keine Funktion" fehl
 - **PDF-Bericht ist eigenständig:** läuft im Print-Window ohne Zugriff auf `css/styles.css` — dort **keine** CSS-Variablen verwenden, sondern feste Werte
@@ -526,3 +529,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v67 | Reichweitenmessung via GoatCounter auf den drei Inhaltsseiten (cookiefrei, `async`); `SECURITY.md` und README entsprechend präzisiert — gezählt wird der Seitenaufruf, nicht der Datensatz |
 | v67 | Datenschutz im Produkt nachvollziehbar gemacht: FAQ-Eintrag „Welche Daten verlassen den Browser?" (`#datenschutz`) benennt Reichweitenmessung, opt-in-LLM-Übertragung und URL-Import; die Startseite behauptete bis dahin pauschal „kein Datentransfer" |
 | v68 | Eigene Datenschutzseite `datenschutz.html` statt Verweis auf `nozilla.de` — beschreibt Local Storage, GoatCounter, die opt-in-Übertragung an Anthropic, Share-Link und Betroffenenrechte mit Rechtsgrundlagen. FAQ-Einträge standardmäßig zugeklappt (Hash-Skript öffnet den adressierten), interne Links ohne `target="_blank"` |
+| v68 | Vollständiger Testdurchlauf (345 Prüfungen: Struktur/SEO/Links, Seiten in zwei Themes und drei Breiten, Anwendung E2E, Exporte, Unit-Tests, Kontrast). Ein Befund behoben: Überschriftensprünge von `h1` auf `h3` auf Startseite und Theorie-Seite |
