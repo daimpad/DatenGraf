@@ -163,6 +163,8 @@ Dafür trennt das Design-System bewusst zwischen **Flächenfarben** (`--c-succes
 
 **Tastatur und Fokus.** Dialoge übernehmen den Fokus beim Öffnen, halten ihn per Tab und Shift+Tab im Dialog und geben ihn beim Schließen an das auslösende Element zurück. Alle Modals lassen sich mit `Esc` schließen. Statusmeldungen sind als `aria-live`-Region ausgezeichnet und werden von Screenreadern angesagt.
 
+**Struktur.** Jede Seite hat genau eine `h1`, und die Überschriftenebenen laufen ohne Sprung – wer per Überschrift navigiert, bekommt die inhaltliche Gliederung und nicht die Schriftgrößen des Layouts.
+
 **Alternative zur Netzwerkkarte.** Die Karte ist ein Canvas und damit für Screenreader nicht erschließbar. Dieselben Daten stehen deshalb gleichwertig in der **Listenansicht**, und das **Analyse-Briefing** beschreibt alle Befunde als Fließtext. Unter der Karte verweist ein sichtbarer Link direkt auf die Listenansicht – die Karte ist eine visuelle Ergänzung, kein exklusiver Zugang zum Inhalt.
 
 ---
@@ -186,7 +188,16 @@ Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet di
 
 Ein Test muss nachweislich fehlschlagen können. Beim Anlegen wird deshalb einmal die geprüfte Stelle testweise gebrochen – wenn der Test dann nicht anschlägt, misst er nichts.
 
-Ergänzend werden die Nutzerflüsse vor größeren Änderungen im Browser durchgespielt: Wizard, Import, Netzwerk-Werkzeuge, Filter, Snapshots, Exporte, Tastenkürzel, beide Themes, Mobile sowie XSS- und CSV-Randfälle.
+Ergänzend läuft vor größeren Änderungen ein Durchgang im echten Browser – zuletzt **345 Prüfungen** in sechs Blöcken:
+
+| Block | Was geprüft wird |
+|---|---|
+| Struktur, SEO, Links | Canonical und `og:url` deckungsgleich, Titel- und Description-Längen, JSON-LD parst, Sitemap vollständig und ohne tote Ziele, jeder interne Link auflösbar |
+| Seiten | Alle vier Seiten in hellem und dunklem Theme, in drei Breiten, ohne horizontalen Überlauf und ohne Konsolenfehler |
+| Barrierefreiheit | Eine `h1` je Seite, keine Ebenensprünge, Alternativtexte, Fokusübernahme und -rückgabe in Dialogen |
+| Anwendung | Import, Tabs, Filter, alle Netzwerk-Werkzeuge, Knotendetail, Undo, Tastenkürzel, XSS-Nutzdaten durch Liste und Karte |
+| Exporte | PNG, SVG, PDF-Bericht und CSV – jeweils von jedem Tab aus, weil der Bericht sonst ein leeres Bild enthalten kann |
+| Kontrast | Alle sichtbaren Textelemente auf vier Seiten in zwei Themes, mit Auflösung transparenter Ebenen |
 
 ---
 
@@ -280,9 +291,9 @@ Der Pfadfinder nutzt den A\*-Algorithmus von Cytoscape.js (`cy.elements().aStar(
 DatenGraf/
 ├── index.html                        # Einstiegspunkt – HTML-Struktur
 ├── css/
-│   └── styles.css                    # Styles & Design-Tokens (~2960 Zeilen)
+│   └── styles.css                    # Styles & Design-Tokens (~3070 Zeilen)
 ├── js/
-│   └── app.js                        # Gesamte Anwendungslogik (~2810 Zeilen)
+│   └── app.js                        # Gesamte Anwendungslogik (~2940 Zeilen)
 ├── assets/
 │   ├── vendor/
 │   │   ├── cytoscape.min.js          # Cytoscape.js 3.23.0 (lokal, kein CDN)
