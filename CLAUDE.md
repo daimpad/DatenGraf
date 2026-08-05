@@ -11,7 +11,7 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 - **Einstiegspunkt:** `index.html`
 - **Styles:** `css/styles.css` (~2930 Zeilen)
 - **Logik:** `js/app.js` (~2690 Zeilen, eine einzige Datei)
-- **Inhaltsseiten:** `theorie.html`, `faq.html` — eigenständige HTML-Seiten, die `css/styles.css` mitnutzen, aber **kein** `app.js` laden
+- **Inhaltsseiten:** `theorie.html`, `faq.html`, `datenschutz.html` — eigenständige HTML-Seiten, die `css/styles.css` mitnutzen, aber **kein** `app.js` laden
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
 - **Aktuelle Version:** `v67` (Script-Tag: `<script src="js/app.js?v=67">`)
@@ -37,7 +37,7 @@ python3 -m http.server 8080
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape, cytoscape-svg und LZ-String unter `assets/vendor/`. Es wird kein Programmcode von fremden Servern geladen.
 
-**Reichweitenmessung:** `index.html`, `theorie.html` und `faq.html` binden vor `</body>` das GoatCounter-Snippet ein (`gc.zgo.at`, `async`). `test.html` bewusst **nicht** — Testläufe würden die Zahlen verfälschen. Blockiert ein Netz den Aufruf, erscheint eine Konsolenmeldung, die Anwendung bleibt unbeeinträchtigt (nachgewiesen: in einer Umgebung mit gesperrter Domain laufen alle Prüfungen durch). Ändert sich der Umfang der Messung, müssen `SECURITY.md`, die README-Aussagen **und der FAQ-Eintrag `#datenschutz`** mitgezogen werden — Letzterer ist die einzige Stelle, an der Nutzende das im Produkt selbst nachlesen können.
+**Reichweitenmessung:** `index.html`, `theorie.html`, `faq.html` und `datenschutz.html` binden vor `</body>` das GoatCounter-Snippet ein (`gc.zgo.at`, `async`). `test.html` bewusst **nicht** — Testläufe würden die Zahlen verfälschen. Blockiert ein Netz den Aufruf, erscheint eine Konsolenmeldung, die Anwendung bleibt unbeeinträchtigt (nachgewiesen: in einer Umgebung mit gesperrter Domain laufen alle Prüfungen durch). Ändert sich der Umfang der Messung, müssen `SECURITY.md`, die README-Aussagen, **`datenschutz.html` (Punkt 5) und der FAQ-Eintrag `#datenschutz`** mitgezogen werden — die beiden Letzteren sind die Stellen, an denen Nutzende das im Produkt selbst nachlesen können.
 
 ---
 
@@ -343,7 +343,7 @@ Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal 
 | Snapshots | `listSnapshots()`, `getBaselineSnapshot()`, `diffSnapshots()` | `#snapshot-backdrop`, `#snapshot-list` |
 | LLM-Narrativ | `generateNarrativeLLM(data, findings, vs)` | `.briefing-narrative-text` |
 | Settings Modal | `openSettingsModal()`, `closeSettingsModal()`, `updateKeyStatus()` | `#settings-backdrop`, `#settings-api-key` |
-| Inhaltsseiten | — (statisches HTML) | `theorie.html`, `faq.html` |
+| Inhaltsseiten | — (statisches HTML) | `theorie.html`, `faq.html`, `datenschutz.html` |
 | Theme-Toggle | `toggleTheme()`, `applyThemeIcon()`, `isDarkTheme()` | `#theme-toggle-btn` |
 | Fokus-Management | `focusablesIn()`, `openModalBackdrops()`, `MODAL_BACKDROP_IDS` | alle `*-backdrop` |
 | Canvas-Alternative | — | `#network-a11y-to-list`, `.network-a11y-note` |
@@ -377,11 +377,14 @@ Bis v65 lagen Hintergrund und FAQ in Modals — rund 1.300 Wörter, die Google a
 | Seite | Inhalt | Besonderheit |
 |---|---|---|
 | `theorie.html` | Sechs Muster der Netzwerkanalyse (~814 sichtbare Wörter) | `TechArticle`-Schema |
-| `faq.html` | Zehn Fragen (~783 sichtbare Wörter), `<details open>` | `FAQPage`-Schema für Rich Results; der Eintrag `#datenschutz` ist von der Startseite aus verlinkt |
+| `faq.html` | Zehn Fragen, `<details>` **zugeklappt** | `FAQPage`-Schema für Rich Results; ein Inline-Skript öffnet den per Hash adressierten Eintrag |
+| `datenschutz.html` | Elf Abschnitte, Rechtsgrundlagen, Local-Storage- und Übertragungstabelle | Klassen `.legal*`; ersetzt seit v68 den früheren Link auf `nozilla.de/datenschutz/` |
 
-Beide nutzen `css/styles.css` mit, laden aber **kein `app.js`** — sie sind statisches HTML ohne Anwendungslogik. Die Klassen `.theory-*` und `.faq-*` stylen weiterhin den Inhalt; die frühere Modal-Hülle (`.theory-modal`, `.faq-modal` …) wurde entfernt.
+Alle drei nutzen `css/styles.css` mit, laden aber **kein `app.js`** — sie sind statisches HTML ohne Anwendungslogik. Die Klassen `.theory-*`, `.faq-*` und `.legal*` stylen den Inhalt; die frühere Modal-Hülle (`.theory-modal`, `.faq-modal` …) wurde entfernt.
 
-Links aus der App tragen `target="_blank"`: Der Datensatz lebt nur im Speicher, ein Wegnavigieren würde nicht gespeicherte Arbeit verlieren.
+**Zugeklappte FAQ-Einträge brauchen ein Hash-Skript.** Seit v68 sind die `<details>` geschlossen. Ein Link auf `faq.html#datenschutz` liefe damit auf eine Seite ohne sichtbare Antwort; ein Inline-Skript am Ende von `faq.html` öffnet das adressierte Element und springt es an — auch bei `hashchange`. Der Inhalt bleibt zugeklappt im DOM und damit indexierbar.
+
+**Interne Links bleiben im selben Tab.** Bis v67 trugen Verweise auf `theorie.html`/`faq.html` ein `target="_blank"`, damit nicht gespeicherte Arbeit nicht verloren geht. Das war der Nutzererwartung entgegen und wurde entfernt; die Absicherung liegt beim Nutzer („Im Browser speichern"). `target="_blank"` bekommen nur noch **externe** Ziele (nozilla.de, GitHub, Datenatlas, DatenLotse) — dort immer mit `rel="noopener"`.
 
 **Kanonische Domain ist `datengraf.nozilla.net`.** Die Seite wird zusätzlich über GitHub Pages ausgeliefert; weil `canonical` auf nozilla.net zeigt, konsolidiert Google die Signale dort. Bei neuen Seiten immer `canonical`, `og:url` und einen Eintrag in `sitemap.xml` ergänzen.
 
@@ -391,7 +394,7 @@ Links aus der App tragen `target="_blank"`: Der Datensatz lebt nur im Speicher, 
 
 Reihenfolge unterhalb der App-Shell:
 
-1. `.cta-section` — lila Band „Was steckt hinter Netzwerkanalysen?" → verlinkt `theorie.html` (neuer Tab)
+1. `.cta-section` — lila Band „Was steckt hinter Netzwerkanalysen?" → verlinkt `theorie.html` (gleicher Tab)
 2. `.feature-duo-section` — heller Container mit Datenatlas und DatenLotse (Logo-Platzhalter mit Hover-Effekt)
 3. `.contact-cta-section` — dunkles Band (`#18181b`) → nozilla-Kontakt
 4. `.site-footer` — Brand links, Links rechtsbündig, Versionsnummer
@@ -522,3 +525,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v67 | `SECURITY.md` faktentreu gemacht: Die Richtlinie behauptete CDN-Aufrufe, die es seit v62 nicht mehr gibt, zeigte ein veraltetes `esc()`-Beispiel ohne `"`-Escaping und verschwieg die opt-in-LLM-Übertragung vollständig. Der Einstellungsdialog nennt jetzt konkret, welche Felder an Anthropic gehen |
 | v67 | Reichweitenmessung via GoatCounter auf den drei Inhaltsseiten (cookiefrei, `async`); `SECURITY.md` und README entsprechend präzisiert — gezählt wird der Seitenaufruf, nicht der Datensatz |
 | v67 | Datenschutz im Produkt nachvollziehbar gemacht: FAQ-Eintrag „Welche Daten verlassen den Browser?" (`#datenschutz`) benennt Reichweitenmessung, opt-in-LLM-Übertragung und URL-Import; die Startseite behauptete bis dahin pauschal „kein Datentransfer" |
+| v68 | Eigene Datenschutzseite `datenschutz.html` statt Verweis auf `nozilla.de` — beschreibt Local Storage, GoatCounter, die opt-in-Übertragung an Anthropic, Share-Link und Betroffenenrechte mit Rechtsgrundlagen. FAQ-Einträge standardmäßig zugeklappt (Hash-Skript öffnet den adressierten), interne Links ohne `target="_blank"` |

@@ -2,7 +2,7 @@
 
 ## Datenschutz-Grundsatz: Local-First
 
-**DatenGraf** ist eine **vollständig browserbasierte Anwendung ohne Backend**. Das hat direkte Sicherheitsimplikationen:
+**DatenGraf** ist eine **vollständig browserbasierte Anwendung ohne Backend**. Das hat direkte Sicherheitsimplikationen. Die rechtliche Einordnung derselben Sachverhalte – Rechtsgrundlagen, Betroffenenrechte, Widerspruch – steht in der [Datenschutzerklärung](https://datengraf.nozilla.net/datenschutz.html); dieses Dokument beschreibt die technische Seite.
 
 - **Ihre Daten verlassen das Gerät nicht.** Alle importierten CSV-Daten, alle über den Wizard erfassten Einträge und alle gespeicherten Zustände verbleiben ausschließlich im Browser (LocalStorage). Ausnahmen sind ausschließlich die beiden unten beschriebenen Funktionen, die der Nutzer aktiv auslöst.
 - **Kein Server, keine Datenbank, kein Account.** Es existiert keine serverseitige Komponente, die Nutzerdaten empfangen oder speichern könnte.

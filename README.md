@@ -18,7 +18,7 @@
 
 <br>
 
-[**→ Jetzt starten**](https://datengraf.nozilla.net) · [Hintergrund](https://datengraf.nozilla.net/theorie.html) · [Fragen & Antworten](https://datengraf.nozilla.net/faq.html) · [Sicherheit](SECURITY.md) · [Mitmachen](.github/CONTRIBUTING.md)
+[**→ Jetzt starten**](https://datengraf.nozilla.net) · [Hintergrund](https://datengraf.nozilla.net/theorie.html) · [Fragen & Antworten](https://datengraf.nozilla.net/faq.html) · [Datenschutz](https://datengraf.nozilla.net/datenschutz.html) · [Sicherheit](SECURITY.md) · [Mitmachen](.github/CONTRIBUTING.md)
 
 ---
 
@@ -79,7 +79,7 @@
 | 🌗 | **Hell & Dunkel** | Umschaltbares Theme, das die Auswahl merkt und beim Erststart der Systemeinstellung folgt |
 | ♿ | **Barrierefreiheit** | AA-Kontraste in beiden Themes, Fokusführung in Dialogen, Textalternative zur Karte (siehe unten) |
 | 🧯 | **Bibliotheken lokal** | Cytoscape, SVG-Erweiterung und LZ-String liegen im Projekt – die Anwendung läuft auch in Netzen, die CDNs sperren |
-| ❓ | **Eigene Inhaltsseiten** | [Hintergrund zur Netzwerkanalyse](https://datengraf.nozilla.net/theorie.html) und [Fragen &amp; Antworten](https://datengraf.nozilla.net/faq.html) als eigenständige, verlinkbare Seiten |
+| ❓ | **Eigene Inhaltsseiten** | [Hintergrund zur Netzwerkanalyse](https://datengraf.nozilla.net/theorie.html), [Fragen &amp; Antworten](https://datengraf.nozilla.net/faq.html) und [Datenschutz](https://datengraf.nozilla.net/datenschutz.html) als eigenständige, verlinkbare Seiten |
 | 📱 | **Mobile-Navigation** | Responsives Layout mit mobilem Menü-Dropdown für Tab-Wechsel und Wizard-Zugang |
 
 ---
@@ -300,6 +300,7 @@ DatenGraf/
 │   ├── sample-wissenschaft.csv       # Beispiel: Institut für Klimaforschung
 │   └── sample-medien.csv             # Beispiel: Tagesblatt Regional GmbH
 ├── theorie.html                      # Hintergrund zur Netzwerkanalyse (6 Muster)
+├── datenschutz.html                  # Datenschutzerklärung (Local Storage, GoatCounter, KI-Opt-in)
 ├── faq.html                          # Fragen & Antworten (FAQPage-Schema)
 ├── test.html                         # Testsuite (im Browser aufrufbar, kein Build nötig)
 ├── docs/
