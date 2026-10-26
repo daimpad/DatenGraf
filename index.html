@@ -183,6 +183,7 @@
       </div>
       <div class="topbar-spacer"></div>
       <button class="btn btn-primary btn-sm" id="open-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
+      <button class="btn btn-secondary btn-icon" id="tour-btn" title="Rundgang starten" aria-label="Rundgang starten"><i class="fas fa-compass"></i></button>
       <a class="btn btn-secondary btn-icon" href="faq.html" title="Häufige Fragen" aria-label="Häufige Fragen"><i class="fas fa-question"></i></a>
       <button class="btn btn-secondary btn-icon" id="theme-toggle-btn" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten"><i class="fas fa-moon"></i></button>
       <button class="btn btn-secondary btn-icon" id="settings-btn" title="Einstellungen" aria-label="Einstellungen"><i class="fas fa-gear"></i></button>
@@ -196,6 +197,7 @@
       <button class="mobile-nav-tab" data-tab="insights"><i class="fas fa-chart-bar fa-fw"></i> Netzwerk-Insights</button>
       <hr class="mobile-nav-divider">
       <button class="btn btn-primary btn-sm mobile-nav-wizard" id="mobile-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
+      <button class="mobile-nav-settings" id="mobile-tour-btn"><i class="fas fa-compass fa-fw"></i> Rundgang starten</button>
       <button class="mobile-nav-settings" id="mobile-settings-btn"><i class="fas fa-gear fa-fw"></i> Einstellungen</button>
     </div>
 
@@ -213,6 +215,7 @@
                 <button class="btn btn-primary btn-lg" id="hero-wizard-btn"><i class="fas fa-plus"></i> Datenfluss erfassen</button>
                 <button class="btn btn-secondary btn-lg" id="hero-sample-btn"><i class="fas fa-vials"></i> Beispieldaten entdecken</button>
               </div>
+              <p class="hero-tour-hint"><i class="fas fa-compass" aria-hidden="true"></i> Zum ersten Mal hier? <button type="button" class="link-button" id="hero-tour-btn">Rundgang starten</button> – in rund zwei Minuten durch alle Funktionen.</p>
             </div>
           </div>
 
@@ -690,10 +693,42 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/daimpad/datengraf" target="_blank" rel="noopener" title="GitHub Repository"><i class="fab fa-github"></i></a>
   </nav>
-  <span class="footer-version">v67</span>
+  <span class="footer-version">v68</span>
 </footer>
 
-<script src="js/app.js?v=67"></script>
+<!-- ── Geführter Rundgang ──────────────────────────────────────── -->
+<div class="tour-backdrop hidden" id="tour-backdrop">
+  <div class="tour-blocker"></div>
+  <div class="tour-spotlight" id="tour-spotlight" aria-hidden="true"></div>
+  <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-body">
+    <div class="tour-card-head">
+      <span class="tour-step-count" id="tour-step-count"></span>
+      <button class="tour-close" id="tour-close-btn" aria-label="Rundgang beenden"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="tour-progress" aria-hidden="true"><div class="tour-progress-bar" id="tour-progress-bar"></div></div>
+    <h2 class="tour-title" id="tour-title"></h2>
+    <div class="tour-body" id="tour-body"></div>
+    <div class="tour-actions">
+      <button class="btn btn-secondary btn-sm" id="tour-prev-btn"><i class="fas fa-arrow-left"></i> Zurück</button>
+      <button class="btn btn-primary btn-sm" id="tour-next-btn">Weiter <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- Einladung beim ersten Besuch -->
+<aside class="tour-invite hidden" id="tour-invite" aria-label="Einladung zum Rundgang">
+  <div class="tour-invite-icon" aria-hidden="true"><i class="fas fa-compass"></i></div>
+  <div class="tour-invite-text">
+    <strong>Neu beim DatenGraf?</strong>
+    <span>Ein kurzer Rundgang zeigt dir in zwei Minuten, was hier alles geht.</span>
+  </div>
+  <div class="tour-invite-actions">
+    <button class="btn btn-primary btn-sm" id="tour-invite-start">Rundgang starten</button>
+    <button class="btn btn-secondary btn-sm" id="tour-invite-dismiss">Nein, danke</button>
+  </div>
+</aside>
+
+<script src="js/app.js?v=68"></script>
 
 <!-- Reichweitenmessung: GoatCounter – keine Cookies, keine personenbezogenen Daten.
      async, damit ein blockierter Aufruf die Seite nicht beeinträchtigt. -->

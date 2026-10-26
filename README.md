@@ -12,7 +12,7 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-bereit-420093?style=flat-square&logo=github&logoColor=white)](https://daimpad.github.io/datengraf)
 [![Privacy](https://img.shields.io/badge/Privacy-Local--First-420093?style=flat-square&logo=shield&logoColor=white)](https://github.com/daimpad/DatenGraf)
 [![Barrierefrei](https://img.shields.io/badge/Barrierefreiheit-WCAG%20AA-420093?style=flat-square)](https://github.com/daimpad/DatenGraf)
-[![Tests](https://img.shields.io/badge/Tests-84%20im%20Browser-420093?style=flat-square)](test.html)
+[![Tests](https://img.shields.io/badge/Tests-93%20im%20Browser-420093?style=flat-square)](test.html)
 [![Zero Server](https://img.shields.io/badge/Zero--Server-100%25%20lokal-black?style=flat-square)](https://nozilla.de)
 [![nozilla](https://img.shields.io/badge/by-nozilla-00FF9C?style=flat-square)](https://nozilla.de)
 
@@ -76,6 +76,7 @@
 |---|---|---|
 | 🔒 | **Local-First / No-Database** | Alle Daten bleiben im Browser (LocalStorage) – kein Backend, kein Account |
 | 🛡️ | **Datenschutz-Dimensionen** | Schutzbedarf (DSGVO-relevant / Intern / Öffentlich), Erfassungsart, Ansprechpartner (Art. 30) |
+| 🧭 | **Geführter Rundgang** | 15 Schritte durch alle Bereiche – startet über den Kompass oben, lädt bei Bedarf ein Beispiel und ersetzt nie eigene Daten |
 | 🌗 | **Hell & Dunkel** | Umschaltbares Theme, das die Auswahl merkt und beim Erststart der Systemeinstellung folgt |
 | ♿ | **Barrierefreiheit** | AA-Kontraste in beiden Themes, Fokusführung in Dialogen, Textalternative zur Karte (siehe unten) |
 | 🧯 | **Bibliotheken lokal** | Cytoscape, SVG-Erweiterung und LZ-String liegen im Projekt – die Anwendung läuft auch in Netzen, die CDNs sperren |
@@ -91,7 +92,8 @@
 | `Strg`/`Cmd` + `N` | Wizard öffnen – neuen Datenfluss erfassen |
 | `Strg`/`Cmd` + `Z` | Letzte Datenänderung rückgängig machen (bis zu 20 Schritte) |
 | `Strg`/`Cmd` + `F` | Knotensuche fokussieren (in der Netzwerkansicht) |
-| `Esc` | Offenes Modal schließen |
+| `Esc` | Offenes Modal oder den Rundgang schließen |
+| `→` / `←` | Im Rundgang vor- und zurückblättern |
 
 ---
 
@@ -103,7 +105,7 @@
 https://datengraf.nozilla.net
 ```
 
-Klicke auf **Beispieldaten entdecken**, wähle einen der 5 Sektordatensätze, oder nutze **Datenfluss erfassen** für manuelle Einträge. Die Filter-Sidebar öffnest du über das Menü-Symbol oben rechts.
+Zum Einstieg zeigt der **Rundgang** (Kompass oben rechts oder „Rundgang starten“ unter den Hero-Buttons) in rund zwei Minuten alle Bereiche. Danach: **Beispieldaten entdecken** für einen der 5 Sektordatensätze, oder **Datenfluss erfassen** für eigene Einträge. Die Filter-Sidebar öffnest du über das Menü-Symbol oben rechts.
 
 ### Option B – lokal ausführen
 
@@ -171,7 +173,7 @@ Dafür trennt das Design-System bewusst zwischen **Flächenfarben** (`--c-succes
 
 ## Qualitätssicherung
 
-`test.html` prüft **84 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
+`test.html` prüft **93 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
 
 Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet die **echten** Funktionen über `contentWindow`. Es gibt also keine Kopie des Codes, die auseinanderlaufen könnte.
 
@@ -184,6 +186,7 @@ Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet di
 | **Normalisierung** | Vergleichsschlüssel, Erkennen abweichender Schreibweisen, Wahl der kanonischen Fassung |
 | **Score** | Gewichtung, Grenzfälle, DSGVO-Sonderregel |
 | **Graph-Algorithmen** | Betweenness, Label Propagation, Hub-/Gatekeeper-Schwellen |
+| **Rundgang** | Jedes Tour-Ziel existiert auf der Seite, Platzierung der Erklärkarte in sieben Lagen |
 | **Weiteres** | Snapshot-Diff, Duplikat-Erkennung, XSS-Escaping, Theme-abhängige Graph-Farben |
 
 Ein Test muss nachweislich fehlschlagen können. Beim Anlegen wird deshalb einmal die geprüfte Stelle testweise gebrochen – wenn der Test dann nicht anschlägt, misst er nichts.
@@ -291,9 +294,9 @@ Der Pfadfinder nutzt den A\*-Algorithmus von Cytoscape.js (`cy.elements().aStar(
 DatenGraf/
 ├── index.html                        # Einstiegspunkt – HTML-Struktur
 ├── css/
-│   └── styles.css                    # Styles & Design-Tokens (~3070 Zeilen)
+│   └── styles.css                    # Styles & Design-Tokens (~3230 Zeilen)
 ├── js/
-│   └── app.js                        # Gesamte Anwendungslogik (~2940 Zeilen)
+│   └── app.js                        # Gesamte Anwendungslogik (~3420 Zeilen)
 ├── assets/
 │   ├── vendor/
 │   │   ├── cytoscape.min.js          # Cytoscape.js 3.23.0 (lokal, kein CDN)

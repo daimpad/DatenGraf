@@ -9,12 +9,12 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 **DatenGraf** ist eine browserbasierte Single-Page-Application (SPA) zur Kartierung und Analyse von Datenflüssen in Organisationen. Kein Backend, kein Build-Prozess, kein Framework — nur HTML, CSS und Vanilla JS.
 
 - **Einstiegspunkt:** `index.html`
-- **Styles:** `css/styles.css` (~3070 Zeilen)
-- **Logik:** `js/app.js` (~2940 Zeilen, eine einzige Datei)
+- **Styles:** `css/styles.css` (~3230 Zeilen)
+- **Logik:** `js/app.js` (~3420 Zeilen, eine einzige Datei)
 - **Inhaltsseiten:** `theorie.html`, `faq.html`, `datenschutz.html` — eigenständige HTML-Seiten, die `css/styles.css` mitnutzen, aber **kein** `app.js` laden
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v67` (Script-Tag: `<script src="js/app.js?v=67">`)
+- **Aktuelle Version:** `v68` (Script-Tag: `<script src="js/app.js?v=68">`)
 
 ---
 
@@ -31,8 +31,8 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v67</span>
-<script src="js/app.js?v=67"></script>
+<span class="footer-version">v68</span>
+<script src="js/app.js?v=68"></script>
 ```
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape, cytoscape-svg und LZ-String unter `assets/vendor/`. Es wird kein Programmcode von fremden Servern geladen.
@@ -99,6 +99,7 @@ Das Theme hält keinen JS-State: Quelle der Wahrheit ist `document.documentEleme
 | `LS_API_KEY` | `datengraf_api_key` | Anthropic API-Key (opt-in) |
 | `LS_FILTERS_KEY` | `datengraf_filters` | Persistierte Filter-Einstellungen (JSON) |
 | `LS_THEME_KEY` | `datengraf_theme` | `'light'` \| `'dark'` |
+| `LS_TOUR_KEY` | `datengraf_tour_seen` | `'1'`, sobald der Rundgang gestartet oder die Einladung abgelehnt wurde |
 
 ### CSV-Spalten (Row-Schema)
 
@@ -214,7 +215,7 @@ Die fünf Beispieldatensätze erzeugen bewusst **null** Hinweise; sie taugen dam
 
 Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). Bei neuen Farbkombinationen den Kontrast prüfen, statt Werte zu schätzen — besonders bei getönten Chips (transparente Fläche über wechselndem Grund) und bei Text auf Akzentflächen.
 
-**Fokus in Dialogen:** Ein `MutationObserver` auf der `.hidden`-Klasse der drei Backdrops (`MODAL_BACKDROP_IDS`) setzt beim Öffnen den Fokus ins Modal und gibt ihn beim Schließen zurück; ein globaler Tab-Handler hält ihn im obersten offenen Dialog. Der Observer-Ansatz ist bewusst gewählt, damit er unabhängig von der öffnenden Code-Stelle greift — auch bei `Esc`. Neue Modals nur in `MODAL_BACKDROP_IDS` eintragen, sonst nichts zu tun.
+**Fokus in Dialogen:** Ein `MutationObserver` auf der `.hidden`-Klasse der vier Backdrops (`MODAL_BACKDROP_IDS`, inklusive Rundgang) setzt beim Öffnen den Fokus ins Modal und gibt ihn beim Schließen zurück; ein globaler Tab-Handler hält ihn im obersten offenen Dialog. Der Observer-Ansatz ist bewusst gewählt, damit er unabhängig von der öffnenden Code-Stelle greift — auch bei `Esc`. Neue Modals nur in `MODAL_BACKDROP_IDS` eintragen, sonst nichts zu tun.
 
 **Canvas-Alternative:** Die Netzwerkkarte ist für Screenreader nicht erschließbar. `#network-container` trägt deshalb `role="img"` mit Textalternative, darunter verweist `.network-a11y-note` sichtbar auf die Listenansicht. Listenansicht und Briefing müssen inhaltlich gleichwertig bleiben — die Karte darf nie der einzige Zugang zu einer Information werden.
 
@@ -309,7 +310,7 @@ Wichtige Hilfsfunktionen:
 
 **Wie es funktioniert:** Die Seite lädt `index.html` unsichtbar in einem Iframe und testet die echten Funktionen über `iframe.contentWindow` — keine Kopie des Codes, kein Build-Schritt, keine Abhängigkeit. Passt damit zur Projektphilosophie.
 
-Abgedeckt sind `parseCSV` (State-Machine: Quotes, `""`-Escapes, CRLF, Zeilenumbrüche im Feld), `toCSV` inklusive Round-Trip, `esc`, `calcVollstaendigkeit`, `betweennessCentrality`, `labelPropagation`, `computeTopologyRisks`, `diffSnapshots`, `findDuplicate`, `formatSnapAge` und `buildCyStyle` (inkl. der Zusicherung, dass `CY_STYLE` nicht mutiert wird).
+Abgedeckt sind `parseCSV` (State-Machine: Quotes, `""`-Escapes, CRLF, Zeilenumbrüche im Feld), `toCSV` inklusive Round-Trip, `esc`, `calcVollstaendigkeit`, `betweennessCentrality`, `labelPropagation`, `computeTopologyRisks`, `diffSnapshots`, `findDuplicate`, `formatSnapAge`, `buildCyStyle` (inkl. der Zusicherung, dass `CY_STYLE` nicht mutiert wird) sowie der Rundgang (`TOUR_STEPS` vollständig und alle Ziele vorhanden, `tourCardPosition` in sieben Lagen).
 
 **Beim Schreiben neuer Tests beachten:**
 - `instanceof` trägt **nicht** über die Iframe-Grenze. Für Objekte aus der App `win.Set` statt `Set` verwenden.
@@ -347,6 +348,7 @@ Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal 
 | Settings Modal | `openSettingsModal()`, `closeSettingsModal()`, `updateKeyStatus()` | `#settings-backdrop`, `#settings-api-key` |
 | Inhaltsseiten | — (statisches HTML) | `theorie.html`, `faq.html`, `datenschutz.html` |
 | Theme-Toggle | `toggleTheme()`, `applyThemeIcon()`, `isDarkTheme()` | `#theme-toggle-btn` |
+| Geführter Rundgang | `startTour()`, `endTour()`, `tourGoTo()`, `tourCardPosition()`, `TOUR_STEPS` | `#tour-backdrop`, `#tour-card`, `#tour-btn`, `#hero-tour-btn`, `#mobile-tour-btn`, `#tour-invite` |
 | Fokus-Management | `focusablesIn()`, `openModalBackdrops()`, `MODAL_BACKDROP_IDS` | alle `*-backdrop` |
 | Canvas-Alternative | — | `#network-a11y-to-list`, `.network-a11y-note` |
 | Undo | `pushUndo()`, `performUndo()` | — (`Strg+Z`) |
@@ -368,7 +370,35 @@ Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal 
 | `Strg`/`Cmd` + `N` | Wizard öffnen | kein Modal offen, Fokus nicht im Eingabefeld |
 | `Strg`/`Cmd` + `Z` | `performUndo()` | wie oben |
 | `Strg`/`Cmd` + `F` | Knotensuche fokussieren | nur bei aktivem `#panel-network` |
-| `Esc` | Oberstes offenes Modal schließen | — |
+| `Esc` | Oberstes offenes Modal schließen, auch den Rundgang | — |
+| `→` / `←` | Rundgang vor/zurück | nur bei offenem Rundgang |
+
+---
+
+## Geführter Rundgang
+
+Ein eigener, bibliotheksfreier Rundgang führt in 15 Schritten durch die Seite. Einstieg über den Kompass in der Topbar (`#tour-btn`, mobil ausgeblendet), den Eintrag im Mobil-Menü (`#mobile-tour-btn`), den Hinweis unter den Hero-Buttons (`#hero-tour-btn`) und beim ersten Besuch über eine Einladung unten links (`#tour-invite`).
+
+**Aufbau.** `#tour-backdrop` enthält drei Ebenen: einen transparenten Blocker (fängt Klicks ab, Scrollen bleibt möglich), das Spotlight (ein leeres Rechteck über dem Ziel, dessen `box-shadow` von 9999px den Rest abdunkelt) und die Karte (`role="dialog"`). Der Backdrop steht in `MODAL_BACKDROP_IDS` — Fokusfalle, Fokusrückgabe und das Sperren der Tastenkürzel kommen dadurch vom bestehenden Fokus-Management.
+
+**Schritte** stehen in `TOUR_STEPS`. Felder:
+
+| Feld | Bedeutung |
+|---|---|
+| `title`, `body()` | Text der Karte; `body` ist eine Funktion, damit Schritte auf den Zustand reagieren können (eigene Daten oder Beispiel) |
+| `target` | Liste von **Alternativen**; die erste mit sichtbaren Treffern gewinnt. Ein Selektor darf mehrere Elemente treffen, das Spotlight umschließt dann alle. `null` = Karte mittig |
+| `needsData` | Schritt braucht einen Datensatz. Fehlt er, lädt `tourEnsureData()` das Beispiel `verwaltung` — **nur wenn `allData` leer ist**, eigene Daten werden nie ersetzt. Scheitert das Laden, werden diese Schritte übersprungen |
+| `tab`, `sidebar` | Zustand, den der Schritt herstellt; beim Ende stellt `endTour()` Tab und Filterleiste wieder her |
+| `before()` | Vorbereitung, etwa das Import-Panel aufklappen |
+| `nextLabel()` | Abweichende Beschriftung des Weiter-Buttons |
+
+**Platzierung.** `tourCardPosition(rect, card, viewport)` ist eine reine Funktion und getestet: bevorzugt unter, dann über, rechts, links vom Ziel; passt nichts, unten rechts über dem Ziel; bis 640 px Breite immer als Leiste am unteren Rand. Gescrollt wird nur, wenn das Ziel nicht ganz sichtbar ist oder die Karte es sonst verdecken müsste — dann mit `scroll-margin-top` knapp unter die fixierte Topbar. Ziele in Topbar oder Filterleiste werden nie gescrollt.
+
+**Neue Schritte oder umbenannte IDs:** `test.html` prüft, dass jeder Selektor in `TOUR_STEPS` auf der Seite existiert. Ein umbenanntes Element lässt den Test fehlschlagen, statt den Rundgang still ins Leere zeigen zu lassen.
+
+**Einladung.** Erscheint nur, wenn kein Datensatz geladen ist, `datengraf_tour_seen` fehlt und die Seite nicht in einem Iframe läuft (sonst störte sie `test.html`). Sobald Daten geladen werden, blendet `updateViewSwitcher()` sie aus. Ohne LocalStorage (privater Modus) bleibt sie weg; der Rundgang selbst funktioniert trotzdem.
+
+`loadExample()` gibt seit v68 sein Promise zurück, damit der Rundgang auf die Daten warten kann.
 
 ---
 
@@ -450,7 +480,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v67) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v68) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
@@ -463,6 +493,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 - **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
 - **`cy.png()` braucht `full: true`:** Ohne die Option rendert Cytoscape den *sichtbaren* Ausschnitt. Auf einem inaktiven Tab ist der Container 0×0 groß, und der Export liefert stillschweigend `data:,` — ein leeres Bild im PDF-Bericht. Der Aufruf in `pdf-report-btn` setzt `full: true` und ist damit vom aktiven Tab unabhängig; ein `typeof uri === 'string'`-Guard fängt das **nicht** ab, denn `'data:,'` ist ein String
 - **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
+- **Fokus nach dem Rundgang:** Chrome lässt `document.activeElement` nach dem Ausblenden kurz auf dem versteckten Button stehen. Eine Prüfung „ist es `body`?“ greift deshalb nicht; `endTour()` prüft auf Sichtbarkeit und fällt auf den Kompass zurück
 - **Tests laufen gegen den echten Code:** `test.html` lädt `index.html` per Iframe. Nach Umbenennen einer Funktion die Tests mitziehen — sie schlagen sonst mit „ist keine Funktion" fehl
 - **PDF-Bericht ist eigenständig:** läuft im Print-Window ohne Zugriff auf `css/styles.css` — dort **keine** CSS-Variablen verwenden, sondern feste Werte
 - **LLM-Key-Validierung:** `sk-ant-` Prefix wird client-seitig geprüft; 401-Antwort setzt Key-Status auf `error`; andere HTTP-Fehler führen zu `null`-Rückgabe (kein UI-Fehler)
@@ -530,3 +561,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v67 | Datenschutz im Produkt nachvollziehbar gemacht: FAQ-Eintrag „Welche Daten verlassen den Browser?" (`#datenschutz`) benennt Reichweitenmessung, opt-in-LLM-Übertragung und URL-Import; die Startseite behauptete bis dahin pauschal „kein Datentransfer" |
 | v68 | Eigene Datenschutzseite `datenschutz.html` statt Verweis auf `nozilla.de` — beschreibt Local Storage, GoatCounter, die opt-in-Übertragung an Anthropic, Share-Link und Betroffenenrechte mit Rechtsgrundlagen. FAQ-Einträge standardmäßig zugeklappt (Hash-Skript öffnet den adressierten), interne Links ohne `target="_blank"` |
 | v68 | Vollständiger Testdurchlauf (345 Prüfungen: Struktur/SEO/Links, Seiten in zwei Themes und drei Breiten, Anwendung E2E, Exporte, Unit-Tests, Kontrast). Ein Befund behoben: Überschriftensprünge von `h1` auf `h3` auf Startseite und Theorie-Seite |
+| v68 | Geführter Rundgang in 15 Schritten (`TOUR_STEPS`), ohne Bibliothek: Spotlight, Erklärkarte, Tastatursteuerung, Fokusfalle über `MODAL_BACKDROP_IDS`. Lädt bei leerem Datensatz das Beispiel Stadtverwaltung, ersetzt nie eigene Daten. Einladung beim ersten Besuch (`datengraf_tour_seen`, in der Datenschutzerklärung ergänzt). 9 neue Tests, u. a. dass jedes Tour-Ziel existiert |
