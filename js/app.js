@@ -373,6 +373,8 @@ function updateSelectFilter(id, options) {
 // ── Render dispatcher ─────────────────────────────────────────────────────────
 function updateViewSwitcher() {
   document.getElementById('view-switcher').classList.toggle('hidden', allData.length === 0);
+  // Wer schon Daten geladen hat, braucht die Einladung zum Rundgang nicht mehr vor Augen
+  if (allData.length) document.getElementById('tour-invite').classList.add('hidden');
 }
 
 function renderAll() {
@@ -2380,14 +2382,15 @@ const EXAMPLES = {
   }
 };
 
+// Gibt das Promise zurück, damit der Rundgang auf die Daten warten kann.
 function loadExample(key) {
   const ex = EXAMPLES[key];
-  if (!ex) return;
+  if (!ex) return Promise.resolve();
   setStatus('Lade Beispieldaten…', 'loading');
   document.querySelectorAll('.sample-card').forEach(c =>
     c.classList.toggle('active', c.dataset.sample === key)
   );
-  fetch(ex.file)
+  return fetch(ex.file)
     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
     .then(text => {
       if (!text) { setStatus('Beispieldaten leer.', 'error'); return; }
@@ -2805,7 +2808,7 @@ function toggleTheme() {
 // ── Fokus-Management für Modals ─────────────────────────────────
 // Beobachtet die .hidden-Klasse, damit es unabhängig davon greift,
 // welche Stelle ein Modal öffnet oder schließt (inkl. Escape).
-const MODAL_BACKDROP_IDS = ['wizard-backdrop', 'snapshot-backdrop', 'settings-backdrop'];
+const MODAL_BACKDROP_IDS = ['wizard-backdrop', 'snapshot-backdrop', 'settings-backdrop', 'tour-backdrop'];
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
 let focusBeforeModal = null;
 
@@ -2900,6 +2903,7 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'Escape') {
     const pairs = [
+      ['tour-backdrop',     endTour],
       ['wizard-backdrop',   closeWizard],
       ['snapshot-backdrop', closeSnapshotModal],
       ['settings-backdrop', closeSettingsModal],
@@ -2937,6 +2941,475 @@ document.getElementById('btn-edge-labels').addEventListener('click', () => {
   document.getElementById('btn-edge-labels').title = edgeLabelsVisible ? 'Kantenbeschriftung ausblenden' : 'Kantenbeschriftung einblenden';
 });
 
+// ── Geführter Rundgang ────────────────────────────────────────────────────────
+// Führt Schritt für Schritt durch alle Bereiche der Seite. Ohne Bibliothek:
+// Ein Spotlight (Ausschnitt mit großem box-shadow) liegt über dem Zielelement,
+// daneben die Erklärkarte. Schritte mit `needsData` brauchen einen Datensatz –
+// fehlt er, lädt der Rundgang ein Beispiel. Eigene Daten werden nie ersetzt.
+//
+// `target` ist eine Liste von Alternativen: Die erste mit sichtbaren Treffern
+// gewinnt (z. B. Desktop-Button, sonst Mobile-Menü). Ein Selektor darf mehrere
+// Elemente treffen; das Spotlight umschließt dann alle.
+const LS_TOUR_KEY = 'datengraf_tour_seen';
+const TOUR_SAMPLE = 'verwaltung';
+
+const TOUR_STEPS = [
+  {
+    title: 'Willkommen beim DatenGraf',
+    target: null,
+    body: () => `
+      <p>Der DatenGraf macht sichtbar, welche Daten in deiner Organisation von wem zu wem fließen –
+      und findet darin Flaschenhälse, Datensilos und Lücken beim Datenschutz.</p>
+      <p>Dieser Rundgang zeigt dir in rund zwei Minuten alle Bereiche. Mit den Pfeiltasten blätterst du,
+      <kbd>Esc</kbd> beendet ihn jederzeit.</p>
+      <p class="tour-note"><i class="fas fa-lock"></i> Alles läuft in deinem Browser – dein Datensatz wird an keinen Server übertragen.</p>`
+  },
+  {
+    title: 'Datenflüsse erfassen',
+    target: ['#hero-wizard-btn', '#open-wizard-btn'],
+    body: () => `
+      <p>Ein Datenfluss besteht aus drei Angaben: <strong>Quelle</strong>, <strong>Beziehung</strong> und
+      <strong>Ziel</strong> – etwa „Personalamt übergibt Gehaltsdaten an Kämmerei“.</p>
+      <p>Der Assistent fragt sie Schritt für Schritt ab, dazu optional Schutzbedarf, Häufigkeit und Ansprechperson.
+      Tastenkürzel: <kbd>Strg</kbd>+<kbd>N</kbd>.</p>`
+  },
+  {
+    title: 'Vorhandene Listen importieren',
+    target: ['.import-panel-header, .import-method-tabs, .import-section.active, #btn-download-template'],
+    before: () => { tourOpenImport(); },
+    body: () => `
+      <p>Gibt es schon eine Tabelle, füge sie als Text ein, lade eine Datei hoch oder gib eine Adresse an.
+      Komma und Semikolon (wie aus Excel) werden automatisch erkannt.</p>
+      <p>Vor dem Import prüft der DatenGraf uneinheitliche Schreibweisen – „Kämmerei“ und „Kaemmerei“ würden sonst
+      zu zwei Akteuren. Die Vorlage enthält alle Spalten.</p>`
+  },
+  {
+    title: 'Beispieldaten zum Ausprobieren',
+    target: ['.sample-selector'],
+    before: () => { tourOpenImport(); },
+    nextLabel: () => allData.length ? null : 'Beispiel laden',
+    body: () => `
+      <p>Fünf realistische Datensätze – Unternehmen, Verein, Verwaltung, Forschung und Redaktion – zeigen typische Muster.</p>
+      <p>${allData.length
+        ? 'Für den Rest des Rundgangs nutzen wir die Daten, die du bereits geladen hast.'
+        : 'Für den Rest des Rundgangs laden wir jetzt das Beispiel einer <strong>Stadtverwaltung</strong>.'}</p>`
+  },
+  {
+    title: 'Drei Ansichten auf dieselben Daten',
+    target: ['#view-switcher'],
+    needsData: true,
+    tab: 'list',
+    body: () => `
+      <p><strong>Listenansicht</strong> zum Prüfen und Bearbeiten, <strong>Netzwerkkarte</strong> für das Gesamtbild,
+      <strong>Netzwerk-Insights</strong> für die Kennzahlen.</p>
+      <p>Alle drei zeigen denselben Datensatz und folgen denselben Filtern.</p>`
+  },
+  {
+    title: 'Das Analyse-Briefing',
+    target: ['#analyse-briefing'],
+    needsData: true,
+    before: () => {
+      // Hat jemand das Briefing ausgeblendet, holen wir es für diesen Schritt zurück.
+      const b = document.getElementById('analyse-briefing');
+      if (document.getElementById('briefing-findings').children.length) b.classList.remove('hidden');
+    },
+    body: () => `
+      <p>Hier fasst der DatenGraf zusammen, was er im Netzwerk gefunden hat: zentrale <strong>Hubs</strong>,
+      <strong>Gatekeeper</strong>, über die viele Wege laufen, <strong>isolierte Bereiche</strong> und fehlende Angaben –
+      etwa Ansprechpersonen bei DSGVO-relevanten Flüssen.</p>
+      <p>Jeder Befund lässt sich aufklappen: mit Erklärung, betroffenen Akteuren und einer Empfehlung.
+      Der <strong>Vollständigkeits-Score</strong> zeigt, wie gut der Datensatz ausgefüllt ist.</p>`
+  },
+  {
+    title: 'Listenansicht',
+    target: ['.list-toolbar, #list-content > :first-child'],
+    needsData: true,
+    tab: 'list',
+    body: () => `
+      <p>Jeder Datenfluss als Karte. Hier sortierst du, bearbeitest, duplizierst oder löschst Einträge.</p>
+      <p>Die Liste ist zugleich die barrierefreie Fassung der Netzwerkkarte – sie enthält dieselben Informationen als Text.
+      Versehentlich gelöscht? <kbd>Strg</kbd>+<kbd>Z</kbd> macht bis zu 20 Schritte rückgängig.</p>`
+  },
+  {
+    title: 'Die Netzwerkkarte',
+    target: ['#network-container'],
+    needsData: true,
+    tab: 'network',
+    body: () => `
+      <p>Jeder Kreis ist ein Akteur, jeder Pfeil ein Datenfluss; die Farbe zeigt die Art der Beziehung.
+      <strong>Orange</strong> umrandete Knoten sind Hubs, <strong>rot</strong> umrandete Gatekeeper.</p>
+      <p>Ein Klick auf einen Knoten zeigt seine Verbindungen und Kennzahlen, ein Doppelklick öffnet ihn zum Bearbeiten.
+      Zoomen geht mit dem Mausrad oder zwei Fingern, Verschieben durch Ziehen.</p>`
+  },
+  {
+    title: 'Werkzeuge der Karte',
+    target: ['.network-toolbar'],
+    needsData: true,
+    tab: 'network',
+    body: () => `
+      <ul>
+        <li><strong>Pfadfinder</strong> – zeigt den Weg zwischen zwei Akteuren</li>
+        <li><strong>Org-Farben</strong> und <strong>Hierarchie</strong> – färben bzw. gruppieren nach Organisation und Bereich</li>
+        <li><strong>Häufigkeit</strong> – dickere Pfeile für häufigere Flüsse</li>
+        <li><strong>PNG</strong> und <strong>SVG</strong> – die Karte als Bild für Präsentationen</li>
+        <li><strong>Suche</strong> – einen Akteur finden, auch mit <kbd>Strg</kbd>+<kbd>F</kbd></li>
+      </ul>`
+  },
+  {
+    title: 'Netzwerk-Insights',
+    target: ['#insights-grid'],
+    needsData: true,
+    tab: 'insights',
+    body: () => `
+      <p>Die Kennzahlen hinter der Karte: wer die meisten Daten liefert und sammelt, welche Akteure als Flaschenhals wirken
+      und welche Gruppen eng zusammenarbeiten – dazu die Verteilung nach Schutzbedarf und Erfassungsart.</p>`
+  },
+  {
+    title: 'Filter, Export und Speichern',
+    target: ['#sidebar'],
+    needsData: true,
+    sidebar: true,
+    body: () => `
+      <p>Das Menü-Symbol <i class="fas fa-bars"></i> oben rechts öffnet diese Leiste. Oben filterst du nach Beziehung,
+      Schutzbedarf, Organisation, Abteilung und mehr.</p>
+      <p>Unten exportierst du als CSV oder PDF-Bericht, teilst einen Link und legst <strong>Snapshots</strong> an,
+      um später zu sehen, was sich verändert hat.</p>
+      <p class="tour-note"><i class="fas fa-floppy-disk"></i> Wichtig: Ohne „Im Browser speichern“ ist der Datensatz beim Schließen des Tabs weg.</p>`
+  },
+  {
+    title: 'Einstellungen und KI-Zusammenfassung',
+    target: ['#settings-btn'],
+    body: () => `
+      <p>Optional hinterlegst du hier einen eigenen Anthropic-API-Schlüssel. Das Briefing wird dann zusätzlich als Fließtext formuliert.</p>
+      <p>Übertragen werden dabei nicht deine Daten, sondern Kennzahlen – und die Namen der drei zentralsten Akteure.
+      Ohne Schlüssel wird nichts gesendet.</p>`
+  },
+  {
+    title: 'Hell oder dunkel',
+    target: ['#theme-toggle-btn'],
+    body: () => `
+      <p>Schaltet zwischen hellem und dunklem Erscheinungsbild um. Ohne eigene Wahl folgt der DatenGraf der Einstellung deines Systems.</p>`
+  },
+  {
+    title: 'Hilfe und Hintergrund',
+    target: ['.topbar a[href="faq.html"]'],
+    body: () => `
+      <p>Antworten auf häufige Fragen findest du hinter dem Fragezeichen. Wie Hubs, Gatekeeper und Datensilos entstehen
+      und was man dagegen tut, erklärt die Seite <strong>Hintergrund</strong> – verlinkt im lila Band und im Fußbereich.</p>`
+  },
+  {
+    title: 'Bereit für deine eigenen Daten',
+    target: null,
+    nextLabel: () => 'Los geht’s',
+    body: () => `
+      <p>${tour.loadedSample
+        ? 'Das Beispiel bleibt geladen. Für eigene Daten importierst du eine Liste mit „Visualisieren“ – das ersetzt das Beispiel. Oder du lädst die Seite über das Logo neu und beginnst leer.'
+        : 'Erfasse weitere Datenflüsse mit dem Assistenten oder importiere eine Liste.'}</p>
+      <ul class="tour-keys">
+        <li><kbd>Strg</kbd>+<kbd>N</kbd> neuer Datenfluss</li>
+        <li><kbd>Strg</kbd>+<kbd>Z</kbd> rückgängig</li>
+        <li><kbd>Strg</kbd>+<kbd>F</kbd> Akteur in der Karte suchen</li>
+      </ul>
+      <p>Den Rundgang findest du jederzeit wieder über den Kompass <i class="fas fa-compass"></i> oben.</p>`
+  }
+];
+
+const tour = {
+  index: -1,
+  busy: false,
+  loadedSample: false,
+  restore: null,        // Zustand vor dem Rundgang: { tab, sidebarCollapsed }
+  rafPending: false
+};
+
+function tourEl(id) { return document.getElementById(id); }
+
+function tourIsOpen() { return !tourEl('tour-backdrop').classList.contains('hidden'); }
+
+function tourReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function tourWait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function tourOpenImport() {
+  if (!importBody.classList.contains('open')) {
+    importBody.classList.add('open');
+    importToggle.classList.add('open');
+    importLabel.textContent = '▲ schließen';
+  }
+}
+
+function tourActiveTab() {
+  const p = document.querySelector('.tab-panel.active');
+  return p ? p.id.replace('panel-', '') : 'list';
+}
+
+// Erste Alternative mit sichtbaren Treffern; null, wenn keine passt.
+function tourResolveTarget(step) {
+  if (!step.target) return null;
+  for (const sel of step.target) {
+    const els = [...document.querySelectorAll(sel)].filter(el => el.getClientRects().length > 0);
+    if (els.length) return els;
+  }
+  return null;
+}
+
+// Die Topbar bleibt beim Scrollen stehen; darunter beginnt der sichtbare Bereich.
+function tourTopInset() {
+  const bar = document.querySelector('.main > .topbar');
+  return bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+}
+
+// Ziele in Topbar oder Filterleiste sind fest positioniert – Scrollen hilft dort nicht.
+function tourIsFixed(el) { return !!el.closest('.topbar, .sidebar'); }
+
+function tourUnionRect(els) {
+  const rs = els.map(el => el.getBoundingClientRect());
+  const top = Math.min(...rs.map(r => r.top)),   left  = Math.min(...rs.map(r => r.left));
+  const bottom = Math.max(...rs.map(r => r.bottom)), right = Math.max(...rs.map(r => r.right));
+  return { top, left, bottom, right, width: right - left, height: bottom - top };
+}
+
+// Reine Funktion: Wohin kommt die Karte? Bevorzugt unter, dann über, rechts,
+// links vom Ziel; passt nichts, sitzt sie unten im Bild über dem Ziel.
+// Auf schmalen Bildschirmen immer als Leiste am unteren Rand.
+function tourCardPosition(rect, card, vp, gap = 14, margin = 8) {
+  if (vp.width <= 640 || !rect) {
+    if (!rect && vp.width > 640) {
+      return { side: 'center', top: Math.max(margin, (vp.height - card.height) / 2), left: (vp.width - card.width) / 2 };
+    }
+    return { side: 'sheet', top: vp.height - card.height - margin, left: margin };
+  }
+  const clampX = x => Math.min(Math.max(x, margin), vp.width - card.width - margin);
+  const clampY = y => Math.min(Math.max(y, margin), vp.height - card.height - margin);
+  const cx = rect.left + rect.width / 2 - card.width / 2;
+  const cy = rect.top + rect.height / 2 - card.height / 2;
+
+  if (rect.bottom + gap + card.height <= vp.height - margin) return { side: 'bottom', top: rect.bottom + gap, left: clampX(cx) };
+  if (rect.top - gap - card.height >= margin)                return { side: 'top',    top: rect.top - gap - card.height, left: clampX(cx) };
+  if (rect.right + gap + card.width <= vp.width - margin)    return { side: 'right',  top: clampY(cy), left: rect.right + gap };
+  if (rect.left - gap - card.width >= margin)                return { side: 'left',   top: clampY(cy), left: rect.left - gap - card.width };
+  // Passt nichts: unten rechts über dem Ziel – verdeckt am wenigsten von dessen Mitte.
+  return { side: 'overlay', top: vp.height - card.height - margin - 16, left: clampX(rect.right - card.width - 16) };
+}
+
+function tourPosition() {
+  if (!tourIsOpen() || tour.index < 0) return;
+  const step = TOUR_STEPS[tour.index];
+  const spot = tourEl('tour-spotlight');
+  const card = tourEl('tour-card');
+  const vp   = { width: window.innerWidth, height: window.innerHeight };
+  const els  = tourResolveTarget(step);
+
+  let rect = null;
+  if (els) {
+    const pad = 6, r = tourUnionRect(els);
+    // Auf den sichtbaren Bereich beschneiden – sonst zeigt das Spotlight ins Leere
+    // oder liegt über der Topbar.
+    const minTop = els.some(tourIsFixed) ? 4 : tourTopInset() + 2;
+    const top = Math.max(r.top - pad, minTop), left = Math.max(r.left - pad, 4);
+    const bottom = Math.min(r.bottom + pad, vp.height - 4), right = Math.min(r.right + pad, vp.width - 4);
+    rect = { top, left, bottom, right, width: Math.max(right - left, 0), height: Math.max(bottom - top, 0) };
+  }
+
+  if (rect) {
+    spot.classList.remove('is-empty');
+    Object.assign(spot.style, { top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px', height: rect.height + 'px' });
+  } else {
+    spot.classList.add('is-empty');
+    Object.assign(spot.style, { top: vp.height / 2 + 'px', left: vp.width / 2 + 'px', width: '0px', height: '0px' });
+  }
+
+  const size = { width: card.offsetWidth, height: card.offsetHeight };
+  const pos  = tourCardPosition(rect, size, vp);
+  card.dataset.side = pos.side;
+  if (pos.side === 'sheet') {
+    Object.assign(card.style, { top: '', left: '' });
+  } else {
+    Object.assign(card.style, { top: Math.round(pos.top) + 'px', left: Math.round(pos.left) + 'px' });
+  }
+}
+
+function tourSchedulePosition() {
+  if (tour.rafPending) return;
+  tour.rafPending = true;
+  requestAnimationFrame(() => { tour.rafPending = false; tourPosition(); });
+}
+
+async function tourEnsureData() {
+  if (allData.length) return;
+  tour.loadedSample = true;
+  await loadExample(TOUR_SAMPLE);
+}
+
+// Nächster anzeigbarer Schritt in Richtung `dir` ab `from` (inklusive).
+function tourFindStep(from, dir) {
+  for (let i = from; i >= 0 && i < TOUR_STEPS.length; i += dir) {
+    if (!TOUR_STEPS[i].needsData || allData.length) return i;
+  }
+  return -1;
+}
+
+async function tourGoTo(target, dir = 1) {
+  if (tour.busy) return;
+  tour.busy = true;
+  const next = tourEl('tour-next-btn'), prev = tourEl('tour-prev-btn');
+  next.disabled = prev.disabled = true;
+  tourEl('tour-card').setAttribute('aria-busy', 'true');
+
+  try {
+    // Beim Schritt in den datenabhängigen Teil: Beispiel laden, falls nötig.
+    const candidate = TOUR_STEPS[target];
+    if (candidate && candidate.needsData && !allData.length) {
+      next.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Lädt…';
+      await tourEnsureData().catch(() => {});
+    }
+    const i = tourFindStep(target, dir);
+    if (i < 0) { endTour(); return; }
+    const step = TOUR_STEPS[i];
+    tour.index = i;
+
+    // Zustand der Seite für diesen Schritt herstellen
+    let settle = 0;
+    if (step.tab && tourActiveTab() !== step.tab) { switchTab(step.tab); settle = 120; }
+    const wantCollapsed = !step.sidebar;
+    if (sidebar.classList.contains('collapsed') !== wantCollapsed) { toggleSidebar(wantCollapsed); settle = 320; }
+    if (step.before) step.before();
+
+    tourRender(step, i);
+
+    // Erst nach dem Umschalten von Tab/Leiste messen
+    if (settle) await tourWait(settle);
+    tourPosition();
+
+    // Gescrollt wird nur, wenn das Ziel nicht ganz sichtbar ist oder die Karte
+    // es sonst verdecken müsste. Dann an den oberen Rand, knapp unter die Topbar.
+    const els = tourResolveTarget(step);
+    if (els && !els.some(tourIsFixed)) {
+      const r = tourUnionRect(els);
+      const card = tourEl('tour-card');
+      const visibleBottom = card.dataset.side === 'sheet' ? card.getBoundingClientRect().top : window.innerHeight;
+      const fullyVisible = r.top >= tourTopInset() && r.bottom <= visibleBottom;
+      if (!fullyVisible || card.dataset.side === 'overlay') {
+        const first = els.reduce((a, b) => a.getBoundingClientRect().top <= b.getBoundingClientRect().top ? a : b);
+        first.style.scrollMarginTop = (tourTopInset() + 12) + 'px';
+        first.scrollIntoView({ block: 'start', behavior: tourReducedMotion() ? 'auto' : 'smooth' });
+        if (!tourReducedMotion()) await tourWait(420);
+        first.style.scrollMarginTop = '';
+        tourPosition();
+      }
+    }
+  } finally {
+    tour.busy = false;
+    next.disabled = false;
+    prev.disabled = tourFindStep(tour.index - 1, -1) < 0;
+    tourEl('tour-card').removeAttribute('aria-busy');
+    if (tourIsOpen()) {
+      tourRenderButtons();
+      // Nach dem MutationObserver des Fokus-Managements, der sonst „Schließen“ fokussiert
+      setTimeout(() => { if (tourIsOpen()) next.focus(); }, 0);
+    }
+  }
+}
+
+function tourRender(step, i) {
+  tourEl('tour-title').textContent = step.title;
+  tourEl('tour-body').innerHTML = step.body();
+  tourEl('tour-step-count').textContent = `Schritt ${i + 1} von ${TOUR_STEPS.length}`;
+  tourEl('tour-progress-bar').style.width = ((i + 1) / TOUR_STEPS.length * 100) + '%';
+  tourRenderButtons();
+}
+
+function tourRenderButtons() {
+  const step = TOUR_STEPS[tour.index];
+  if (!step) return;
+  const isLast = tour.index >= TOUR_STEPS.length - 1;
+  const custom = step.nextLabel && step.nextLabel();
+  const label = custom || (isLast ? 'Fertig' : 'Weiter');
+  tourEl('tour-next-btn').innerHTML = isLast ? esc(label) : `${esc(label)} <i class="fas fa-arrow-right"></i>`;
+  tourEl('tour-prev-btn').classList.toggle('tour-hidden', tour.index === 0);
+}
+
+function tourMarkSeen() {
+  try { localStorage.setItem(LS_TOUR_KEY, '1'); } catch (e) { /* privater Modus */ }
+  tourEl('tour-invite').classList.add('hidden');
+}
+
+function startTour() {
+  if (tourIsOpen()) return;
+  // Offene Dialoge und Menüs schließen, damit nichts über dem Rundgang liegt
+  if (!tourEl('wizard-backdrop').classList.contains('hidden')) closeWizard();
+  if (!tourEl('snapshot-backdrop').classList.contains('hidden')) closeSnapshotModal();
+  if (!tourEl('settings-backdrop').classList.contains('hidden')) closeSettingsModal();
+  mobileNav.classList.add('hidden');
+  if (document.querySelector('.fullscreen')) document.getElementById('btn-fullscreen').click();
+
+  tourMarkSeen();
+  tour.loadedSample = false;
+  tour.restore = { tab: tourActiveTab(), sidebarCollapsed: sidebar.classList.contains('collapsed') };
+  tourEl('tour-backdrop').classList.remove('hidden');
+  document.body.classList.add('tour-open');
+  tour.index = -1;
+  tourGoTo(0, 1);
+}
+
+function endTour() {
+  if (!tourIsOpen()) return;
+  tourEl('tour-backdrop').classList.add('hidden');
+  document.body.classList.remove('tour-open');
+  if (tour.restore) {
+    if (sidebar.classList.contains('collapsed') !== tour.restore.sidebarCollapsed) toggleSidebar(tour.restore.sidebarCollapsed);
+    // Hat der Rundgang das Beispiel geladen, bleibt die Liste offen; sonst der Tab von vorher.
+    if (allData.length) switchTab(tour.loadedSample ? 'list' : tour.restore.tab);
+  }
+  tour.index = -1;
+  tour.restore = null;
+  // Kam der Start aus der inzwischen ausgeblendeten Einladung, gibt es kein
+  // Element, zu dem der Fokus zurückkehren kann – dann zum Kompass.
+  setTimeout(() => {
+    // Chrome lässt activeElement kurz auf dem ausgeblendeten Button stehen –
+    // deshalb auf Sichtbarkeit prüfen, nicht auf body.
+    const a = document.activeElement;
+    if (a && a !== document.body && a.getClientRects().length) return;
+    const back = ['tour-btn', 'mobile-nav-btn'].map(tourEl).find(el => el && el.getClientRects().length);
+    if (back) back.focus();
+  }, 0);
+}
+
+tourEl('tour-next-btn').addEventListener('click', () => {
+  if (tour.index >= TOUR_STEPS.length - 1) endTour();
+  else tourGoTo(tour.index + 1, 1);
+});
+tourEl('tour-prev-btn').addEventListener('click', () => tourGoTo(tour.index - 1, -1));
+tourEl('tour-close-btn').addEventListener('click', endTour);
+tourEl('tour-btn').addEventListener('click', startTour);
+tourEl('hero-tour-btn').addEventListener('click', startTour);
+tourEl('mobile-tour-btn').addEventListener('click', () => { mobileNav.classList.add('hidden'); startTour(); });
+tourEl('tour-invite-start').addEventListener('click', startTour);
+tourEl('tour-invite-dismiss').addEventListener('click', tourMarkSeen);
+
+window.addEventListener('resize', tourSchedulePosition);
+// capture: erfasst auch Scrollcontainer innerhalb der Seite, nicht nur das Fenster
+document.addEventListener('scroll', tourSchedulePosition, { capture: true, passive: true });
+document.addEventListener('keydown', e => {
+  if (!tourIsOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); tourEl('tour-next-btn').click(); }
+  if (e.key === 'ArrowLeft' && tour.index > 0) { e.preventDefault(); tourGoTo(tour.index - 1, -1); }
+});
+
+// Einladung nur beim ersten Besuch, nur ohne geladene Daten und nicht im
+// Test-Iframe – dort würde sie die Testläufe stören.
+function maybeInviteTour() {
+  let seen = false;
+  try { seen = localStorage.getItem(LS_TOUR_KEY) === '1'; } catch (e) { seen = true; }
+  if (seen || allData.length || window.self !== window.top) return;
+  setTimeout(() => {
+    if (!allData.length && !tourIsOpen()) tourEl('tour-invite').classList.remove('hidden');
+  }, 1200);
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadFromShareHash();
 renderAll();
+maybeInviteTour();

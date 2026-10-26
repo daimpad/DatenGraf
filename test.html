@@ -587,6 +587,67 @@ function runAll(win) {
 
     root.setAttribute('data-theme', before || 'light');
   });
+
+  // ── Geführter Rundgang ───────────────────────────────────────
+  group('Rundgang – Schritte und Platzierung', () => {
+    const steps = win.eval('TOUR_STEPS');
+    const { tourCardPosition } = win;
+    const card = { width: 380, height: 300 };
+    const vp = { width: 1440, height: 900 };
+
+    test('jeder Schritt hat Titel und Text', () => {
+      steps.forEach((s, i) => {
+        assert(s.title && s.title.trim(), `Schritt ${i + 1} ohne Titel`);
+        assert(typeof s.body === 'function' && s.body().trim().length > 40, `Schritt ${i + 1} ohne Text`);
+      });
+    });
+
+    // Fängt umbenannte IDs und Klassen ab: Ohne Treffer zeigt ein Schritt ins Leere
+    test('jedes Ziel existiert auf der Seite', () => {
+      steps.forEach((s, i) => {
+        if (!s.target) return;
+        const hit = s.target.some(sel => win.document.querySelector(sel));
+        assert(hit, `Schritt ${i + 1} („${s.title}“): keiner der Selektoren trifft – ${s.target.join(' | ')}`);
+      });
+    });
+
+    test('Anfang und Ende kommen ohne Datensatz aus', () => {
+      assert(!steps[0].needsData, 'Begrüßung darf keine Daten voraussetzen');
+      assert(!steps[steps.length - 1].needsData, 'Abschluss darf keine Daten voraussetzen');
+    });
+
+    test('kleines Ziel oben: Karte darunter', () => {
+      const p = tourCardPosition({ top: 100, left: 600, bottom: 150, right: 800, width: 200, height: 50 }, card, vp);
+      assertEq(p.side, 'bottom');
+      assert(p.top >= 150, 'Karte muss unterhalb des Ziels beginnen');
+    });
+
+    test('Ziel unten: Karte darüber', () => {
+      const p = tourCardPosition({ top: 800, left: 600, bottom: 850, right: 800, width: 200, height: 50 }, card, vp);
+      assertEq(p.side, 'top');
+      assert(p.top + card.height <= 800, 'Karte darf das Ziel nicht überdecken');
+    });
+
+    test('Ziel am rechten Rand: Karte bleibt im Bild', () => {
+      const p = tourCardPosition({ top: 10, left: 1390, bottom: 54, right: 1434, width: 44, height: 44 }, card, vp);
+      assert(p.left + card.width <= vp.width, 'Karte ragt rechts aus dem Bild: left=' + p.left);
+    });
+
+    test('bildschirmfüllendes Ziel: Karte überlagert, bleibt aber im Bild', () => {
+      const p = tourCardPosition({ top: 60, left: 20, bottom: 880, right: 1420, width: 1400, height: 820 }, card, vp);
+      assertEq(p.side, 'overlay');
+      assert(p.top >= 0 && p.top + card.height <= vp.height, 'Karte vertikal außerhalb');
+    });
+
+    test('ohne Ziel: mittig', () => {
+      assertEq(tourCardPosition(null, card, vp).side, 'center');
+    });
+
+    test('schmaler Bildschirm: Leiste am unteren Rand', () => {
+      const p = tourCardPosition({ top: 100, left: 10, bottom: 150, right: 200, width: 190, height: 50 }, card, { width: 390, height: 844 });
+      assertEq(p.side, 'sheet');
+    });
+  });
 }
 
 // ── Ausgabe ────────────────────────────────────────────────────
