@@ -12,7 +12,7 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-bereit-420093?style=flat-square&logo=github&logoColor=white)](https://daimpad.github.io/datengraf)
 [![Privacy](https://img.shields.io/badge/Privacy-Local--First-420093?style=flat-square&logo=shield&logoColor=white)](https://github.com/daimpad/DatenGraf)
 [![Barrierefrei](https://img.shields.io/badge/Barrierefreiheit-WCAG%20AA-420093?style=flat-square)](https://github.com/daimpad/DatenGraf)
-[![Tests](https://img.shields.io/badge/Tests-93%20im%20Browser-420093?style=flat-square)](test.html)
+[![Tests](https://img.shields.io/badge/Tests-95%20im%20Browser-420093?style=flat-square)](test.html)
 [![Zero Server](https://img.shields.io/badge/Zero--Server-100%25%20lokal-black?style=flat-square)](https://nozilla.de)
 [![nozilla](https://img.shields.io/badge/by-nozilla-00FF9C?style=flat-square)](https://nozilla.de)
 
@@ -173,7 +173,7 @@ Dafür trennt das Design-System bewusst zwischen **Flächenfarben** (`--c-succes
 
 ## Qualitätssicherung
 
-`test.html` prüft **93 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
+`test.html` prüft **95 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
 
 Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet die **echten** Funktionen über `contentWindow`. Es gibt also keine Kopie des Codes, die auseinanderlaufen könnte.
 
@@ -187,6 +187,7 @@ Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet di
 | **Score** | Gewichtung, Grenzfälle, DSGVO-Sonderregel |
 | **Graph-Algorithmen** | Betweenness, Label Propagation, Hub-/Gatekeeper-Schwellen |
 | **Rundgang** | Jedes Tour-Ziel existiert auf der Seite, Platzierung der Erklärkarte in sieben Lagen |
+| **Export-Buttons** | PNG- und SVG-Button werden wirklich geklickt und müssen einen Download auslösen |
 | **Weiteres** | Snapshot-Diff, Duplikat-Erkennung, XSS-Escaping, Theme-abhängige Graph-Farben |
 
 Ein Test muss nachweislich fehlschlagen können. Beim Anlegen wird deshalb einmal die geprüfte Stelle testweise gebrochen – wenn der Test dann nicht anschlägt, misst er nichts.
@@ -297,9 +298,9 @@ DatenGraf/
 ├── index.html                        # Einstiegspunkt – HTML-Struktur
 ├── logo.svg                          # Maskottchen-Logo (Topbar, Hero)
 ├── css/
-│   └── styles.css                    # Styles & Design-Tokens (~3230 Zeilen)
+│   └── styles.css                    # Styles & Design-Tokens (~3240 Zeilen)
 ├── js/
-│   └── app.js                        # Gesamte Anwendungslogik (~3420 Zeilen)
+│   └── app.js                        # Gesamte Anwendungslogik (~3430 Zeilen)
 ├── assets/
 │   ├── vendor/
 │   │   ├── cytoscape.min.js          # Cytoscape.js 3.23.0 (lokal, kein CDN)
