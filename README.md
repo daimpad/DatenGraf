@@ -12,7 +12,7 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-bereit-420093?style=flat-square&logo=github&logoColor=white)](https://daimpad.github.io/datengraf)
 [![Privacy](https://img.shields.io/badge/Privacy-Local--First-420093?style=flat-square&logo=shield&logoColor=white)](https://github.com/daimpad/DatenGraf)
 [![Barrierefrei](https://img.shields.io/badge/Barrierefreiheit-WCAG%20AA-420093?style=flat-square)](https://github.com/daimpad/DatenGraf)
-[![Tests](https://img.shields.io/badge/Tests-93%20im%20Browser-420093?style=flat-square)](test.html)
+[![Tests](https://img.shields.io/badge/Tests-95%20im%20Browser-420093?style=flat-square)](test.html)
 [![Zero Server](https://img.shields.io/badge/Zero--Server-100%25%20lokal-black?style=flat-square)](https://nozilla.de)
 [![nozilla](https://img.shields.io/badge/by-nozilla-00FF9C?style=flat-square)](https://nozilla.de)
 
@@ -173,7 +173,7 @@ Dafür trennt das Design-System bewusst zwischen **Flächenfarben** (`--c-succes
 
 ## Qualitätssicherung
 
-`test.html` prüft **93 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
+`test.html` prüft **95 Fälle** über die reinen Funktionen – aufrufbar im Browser unter `localhost:8080/test.html`, ohne Build-Schritt und ohne Abhängigkeiten.
 
 Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet die **echten** Funktionen über `contentWindow`. Es gibt also keine Kopie des Codes, die auseinanderlaufen könnte.
 
@@ -187,11 +187,12 @@ Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet di
 | **Score** | Gewichtung, Grenzfälle, DSGVO-Sonderregel |
 | **Graph-Algorithmen** | Betweenness, Label Propagation, Hub-/Gatekeeper-Schwellen |
 | **Rundgang** | Jedes Tour-Ziel existiert auf der Seite, Platzierung der Erklärkarte in sieben Lagen |
+| **Export-Buttons** | PNG- und SVG-Button werden wirklich geklickt und müssen einen Download auslösen |
 | **Weiteres** | Snapshot-Diff, Duplikat-Erkennung, XSS-Escaping, Theme-abhängige Graph-Farben |
 
 Ein Test muss nachweislich fehlschlagen können. Beim Anlegen wird deshalb einmal die geprüfte Stelle testweise gebrochen – wenn der Test dann nicht anschlägt, misst er nichts.
 
-Ergänzend läuft vor größeren Änderungen ein Durchgang im echten Browser – zuletzt **345 Prüfungen** in sechs Blöcken:
+Ergänzend läuft vor größeren Änderungen ein Durchgang im echten Browser – der vollständige Lauf umfasste **345 Prüfungen** in sechs Blöcken, für den Rundgang kamen 76 hinzu:
 
 | Block | Was geprüft wird |
 |---|---|
@@ -201,6 +202,7 @@ Ergänzend läuft vor größeren Änderungen ein Durchgang im echten Browser –
 | Anwendung | Import, Tabs, Filter, alle Netzwerk-Werkzeuge, Knotendetail, Undo, Tastenkürzel, XSS-Nutzdaten durch Liste und Karte |
 | Exporte | PNG, SVG, PDF-Bericht und CSV – jeweils von jedem Tab aus, weil der Bericht sonst ein leeres Bild enthalten kann |
 | Kontrast | Alle sichtbaren Textelemente auf vier Seiten in zwei Themes, mit Auflösung transparenter Ebenen |
+| Rundgang | Alle 15 Schritte in drei Bildschirmgrößen und beiden Themes; eigene Daten bleiben unangetastet, nicht ladbares Beispiel, Abbruch mitten im Rundgang, Fokusfalle, ohne LocalStorage |
 
 ---
 
@@ -238,6 +240,7 @@ Zum Aktualisieren der Vendor-Dateien dient `npm run vendor`; zur Laufzeit wird n
 | `datengraf_filters` | Persistierte Filter-Einstellungen |
 | `datengraf_theme` | Hell/Dunkel-Auswahl |
 | `datengraf_api_key` | Anthropic API-Key (nur bei opt-in) |
+| `datengraf_tour_seen` | Rundgang bereits angeboten – die Einladung erscheint dann nicht erneut |
 
 ---
 
@@ -293,10 +296,11 @@ Der Pfadfinder nutzt den A\*-Algorithmus von Cytoscape.js (`cy.elements().aStar(
 ```
 DatenGraf/
 ├── index.html                        # Einstiegspunkt – HTML-Struktur
+├── logo.svg                          # Maskottchen-Logo (Topbar, Hero)
 ├── css/
-│   └── styles.css                    # Styles & Design-Tokens (~3230 Zeilen)
+│   └── styles.css                    # Styles & Design-Tokens (~3240 Zeilen)
 ├── js/
-│   └── app.js                        # Gesamte Anwendungslogik (~3420 Zeilen)
+│   └── app.js                        # Gesamte Anwendungslogik (~3430 Zeilen)
 ├── assets/
 │   ├── vendor/
 │   │   ├── cytoscape.min.js          # Cytoscape.js 3.23.0 (lokal, kein CDN)
@@ -336,6 +340,11 @@ DatenGraf/
 ├── sitemap.xml                       # Sitemap
 ├── social-preview.svg                # Vorschaubild für Social Media (Open Graph)
 ├── site.webmanifest                  # PWA-Manifest
+├── favicon.*, favicon-96x96.png      # Favicons
+├── apple-touch-icon.png              # Icon für iOS-Startbildschirm
+├── web-app-manifest-*.png            # App-Icons 192 und 512 px (PWA-Manifest)
+├── google2ea79d8f6f2f6a37.html       # Verifizierung für die Google Search Console
+├── package.json                      # Versionen der Vendor-Bibliotheken, `npm run vendor`
 ├── CLAUDE.md                         # AI-Entwicklungs-Kontext & Architektur
 ├── DOCS.md                           # Technische Dokumentation
 ├── SECURITY.md                       # Sicherheitsrichtlinie

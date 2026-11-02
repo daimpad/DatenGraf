@@ -28,8 +28,14 @@ const ROLLEN_OPTS    = ['Datenproduzent', 'Datenkonsument', 'Gatekeeper', 'Daten
 const BEZIEHUNG_OPTS = ['übergibt', 'nutzt', 'erstellt', 'empfängt', 'verarbeitet'];
 const LS_KEY         = 'datengraf_data';
 
+// animate: 'end' rechnet das Layout in einem Zug und animiert nur das Ergebnis.
+// Mit der schrittweisen Standard-Animation lief CoSE über eigene Timer weiter,
+// wenn währenddessen neu gezeichnet wurde (jeder Filterwechsel, jedes Laden):
+// Der Timer griff auf die verworfene Instanz zu („reading 'notify'“), und ihre
+// Listener am Fenster blieben hängen – gemessen 16 → 149 nach 20 Wechseln.
+// Die längste Blockade steigt dadurch kaum (200 Knoten: 156 → 175 ms).
 const COSE_OPTS = {
-  name: 'cose',
+  name: 'cose', animate: 'end',
   idealEdgeLength: 120, nodeOverlap: 20, refresh: 20,
   fit: true, padding: 30, randomize: false,
   componentSpacing: 120, nodeRepulsion: 450000,
@@ -1190,6 +1196,12 @@ function renderNetwork(data) {
 
   cachedTopoRisks = computeTopologyRisks(data);
   networkChart = cytoscape({ container, elements: prepareElements(data, orgHierarchyMode), style: buildCyStyle(), layout: COSE_OPTS });
+  // Läuft das Layout auf einem verdeckten Tab, passt es den Ausschnitt an einen
+  // 0×0-Container an und animiert dorthin – das überschrieb das fit() aus
+  // switchTab(), wenn direkt nach dem Laden auf die Karte gewechselt wurde.
+  networkChart.one('layoutstop', () => {
+    if (container.offsetWidth && container.offsetHeight) networkChart.fit(undefined, COSE_OPTS.padding);
+  });
   if (colorByOrg) applyOrgColors();
   if (frequencyVisMode) applyFrequencyVis();
   if (!edgeLabelsVisible) networkChart.edges().style({ label: '' });
@@ -1918,7 +1930,10 @@ function downloadBlob(blob, filename) {
 
 document.getElementById('btn-export-png').addEventListener('click', () => {
   if (!networkChart) return;
-  networkChart.png({ output: 'blob', full: true, scale: 2, bg: '#f0edf8' }, blob => downloadBlob(blob, 'datengraf-netzwerk.png'));
+  // png() liefert den Blob direkt zurück – einen Callback kennt Cytoscape nicht.
+  // Bis v68 stand hier einer; er wurde nie aufgerufen, der Button tat nichts.
+  const blob = networkChart.png({ output: 'blob', full: true, scale: 2, bg: '#f0edf8' });
+  downloadBlob(blob, 'datengraf-netzwerk.png');
 });
 
 document.getElementById('btn-export-svg').addEventListener('click', () => {

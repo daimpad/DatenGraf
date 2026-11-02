@@ -588,6 +588,37 @@ function runAll(win) {
     root.setAttribute('data-theme', before || 'light');
   });
 
+  // ── Export-Buttons ───────────────────────────────────────────
+  // Prüft die echten Klick-Handler, nicht nur die Bibliothek: Der PNG-Button
+  // übergab png() einen Callback, den Cytoscape nie aufruft, und tat nichts.
+  group('Export-Buttons – lösen wirklich einen Download aus', () => {
+    const origDownload = win.downloadBlob;
+    const csv = HEAD + '\n' + 'A,,,,,übergibt,B,,,,,,,,\n' + 'B,,,,,nutzt,C,,,,,,,,';
+    // allData ist ein top-level `let` und liegt nicht auf window – zuweisen per eval
+    win.__testCsv = csv;
+    win.eval('allData = parseCSV(window.__testCsv); buildSidebarFilters(); applyFilters();');
+    const calls = [];
+    win.downloadBlob = (blob, name) => calls.push({ name, size: blob && blob.size, type: blob && blob.type });
+
+    test('PNG-Button liefert ein Bild', () => {
+      calls.length = 0;
+      win.document.getElementById('btn-export-png').click();
+      assertEq(calls.length, 1, 'downloadBlob wurde nicht aufgerufen');
+      assert(calls[0].type === 'image/png' && calls[0].size > 500, 'kein PNG: ' + JSON.stringify(calls[0]));
+    });
+
+    test('SVG-Button liefert eine Vektorgrafik', () => {
+      calls.length = 0;
+      win.document.getElementById('btn-export-svg').click();
+      assertEq(calls.length, 1, 'downloadBlob wurde nicht aufgerufen');
+      assert(/svg/.test(calls[0].type) && calls[0].size > 500, 'kein SVG: ' + JSON.stringify(calls[0]));
+    });
+
+    win.downloadBlob = origDownload;
+    win.eval('allData = []; buildSidebarFilters(); applyFilters();');
+    delete win.__testCsv;
+  });
+
   // ── Geführter Rundgang ───────────────────────────────────────
   group('Rundgang – Schritte und Platzierung', () => {
     const steps = win.eval('TOUR_STEPS');

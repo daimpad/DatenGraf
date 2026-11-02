@@ -449,7 +449,7 @@ body {
   height: 28px;
   border-radius: 50%;
   background: var(--c-accent);
-  color: #fff;
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1278,7 +1278,7 @@ textarea.csv-textarea:focus {
 }
 
 .step-dot.done   { background: var(--c-success); border-color: var(--c-success); color: #fff; }
-.step-dot.active { background: var(--c-accent);  border-color: var(--c-accent);  color: #fff; }
+.step-dot.active { background: var(--c-accent);  border-color: var(--c-accent);  color: var(--on-accent); }
 
 .step-label        { color: var(--c-muted); font-size: 11px; font-weight: 500; }
 .step-label.active { color: var(--c-text); font-weight: 700; }
@@ -1553,7 +1553,7 @@ textarea.csv-textarea:focus {
   height: 40px;
   border-radius: 50%;
   background: var(--c-accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 17px;
   display: flex;
   align-items: center;
@@ -1928,7 +1928,7 @@ textarea.csv-textarea:focus {
   font-size: 11px;
   font-weight: 700;
   background: var(--c-accent);
-  color: #fff;
+  color: var(--on-accent);
   border-radius: 30px;
   padding: 2px 9px;
   white-space: nowrap;
@@ -2811,6 +2811,11 @@ textarea.csv-textarea:focus {
 }
 .doc-nav a:hover { color: var(--c-accent); background: var(--surface-2); }
 .doc-nav a.is-active { color: var(--c-accent); background: var(--surface-2); }
+/* Im Dark Theme hellt --surface-2 die Glas-Topbar auf; Akzent-Lila erreicht
+   darauf nur 4,35:1 (gemessen am gerenderten Pixel). Die hellere Variante
+   liegt deutlich über 4,5:1. */
+:root[data-theme="dark"] .doc-nav a:hover,
+:root[data-theme="dark"] .doc-nav a.is-active { color: var(--c-accent-h); }
 
 .doc-main {
   max-width: 820px;

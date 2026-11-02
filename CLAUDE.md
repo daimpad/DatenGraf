@@ -9,12 +9,12 @@ Dieses Dokument beschreibt Architektur, Konventionen und wichtige Implementierun
 **DatenGraf** ist eine browserbasierte Single-Page-Application (SPA) zur Kartierung und Analyse von Datenflüssen in Organisationen. Kein Backend, kein Build-Prozess, kein Framework — nur HTML, CSS und Vanilla JS.
 
 - **Einstiegspunkt:** `index.html`
-- **Styles:** `css/styles.css` (~3230 Zeilen)
-- **Logik:** `js/app.js` (~3420 Zeilen, eine einzige Datei)
+- **Styles:** `css/styles.css` (~3240 Zeilen)
+- **Logik:** `js/app.js` (~3430 Zeilen, eine einzige Datei)
 - **Inhaltsseiten:** `theorie.html`, `faq.html`, `datenschutz.html` — eigenständige HTML-Seiten, die `css/styles.css` mitnutzen, aber **kein** `app.js` laden
 - **Beispieldaten:** `data/sample-*.csv`, `data/template.csv`
 - **Design-Referenz:** `docs/design-system.html` (interaktive Token-Übersicht, Quelle der Dark-Theme-Farben)
-- **Aktuelle Version:** `v68` (Script-Tag: `<script src="js/app.js?v=68">`)
+- **Aktuelle Version:** `v69` (Script-Tag: `<script src="js/app.js?v=69">`)
 
 ---
 
@@ -31,8 +31,8 @@ python3 -m http.server 8080
 
 **Cache-Busting:** Nach Änderungen an `app.js` die Versionsnummer im Script-Tag in `index.html` erhöhen — **und** die sichtbare Version im Footer (`.footer-version`) mitziehen:
 ```html
-<span class="footer-version">v68</span>
-<script src="js/app.js?v=68"></script>
+<span class="footer-version">v69</span>
+<script src="js/app.js?v=69"></script>
 ```
 
 **Fonts/Icons/Libs:** Alles lokal — Inter + Font Awesome 6.7.2 unter `assets/fonts/`, Cytoscape, cytoscape-svg und LZ-String unter `assets/vendor/`. Es wird kein Programmcode von fremden Servern geladen.
@@ -101,6 +101,8 @@ Das Theme hält keinen JS-State: Quelle der Wahrheit ist `document.documentEleme
 | `LS_THEME_KEY` | `datengraf_theme` | `'light'` \| `'dark'` |
 | `LS_TOUR_KEY` | `datengraf_tour_seen` | `'1'`, sobald der Rundgang gestartet oder die Einladung abgelehnt wurde |
 
+**Ein neuer Schlüssel gehört an drei Stellen:** in diese Tabelle, in die Tabelle „LocalStorage-Schlüssel“ der README und in die Tabelle in `datenschutz.html` (Abschnitt 4) — Letztere ist rechtlich gefordert, weil sie jede Speicherung im Endgerät benennt. Gegenprobe: `grep -o "'datengraf_[a-z_]*'" js/app.js | sort -u` muss an allen drei Stellen vollständig auftauchen.
+
 ### CSV-Spalten (Row-Schema)
 
 ```
@@ -152,7 +154,9 @@ border-radius: var(--radius);
 | Fläche, Balken, Punkt | `--c-success` / `--c-warn` / `--c-danger` | `background`, Legendenpunkte |
 | Schrift | `--ink-success` / `--ink-warn` / `--ink-danger` | `color` |
 
-**Schrift auf Akzentfläche** immer `var(--on-accent)`, nie `#fff`: im Dark Theme ist der Akzent hell, dort schaltet das Token auf dunkle Tinte um.
+**Schrift auf Akzentfläche** immer `var(--on-accent)`, nie `#fff`: im Dark Theme ist der Akzent hell, dort schaltet das Token auf dunkle Tinte um. Weiß erreicht dort nur 3,49:1, `--on-accent` 5,21:1. Bis v68 verstießen vier Regeln dagegen (`.step-dot.active`, `.theory-example-badge`, `.hero-step-icon`, `.example-finding-icon`).
+
+**Akzent als Schrift auf aufgehellter Fläche:** Im Dark Theme hellt `--surface-2` die Glas-Topbar auf, Akzent-Lila erreicht darauf nur 4,35:1. Dort `--c-accent-h` verwenden (so in `.doc-nav`).
 
 Weitere abgeleitete Tokens: `--page-grad` (Body-Verlauf), `--surface-solid` (opake Modals), `--surface-alt` (Abschnittsflächen), `--field-bg` / `--field-bg-focus`, `--surface-2` / `--surface-3`, `--btn-sec-bg` / `--btn-sec-bg-h`, `--badge-*` und `--sector-*` (getönte Chips).
 
@@ -228,13 +232,13 @@ Textfarben erfüllen in beiden Themes WCAG 2.1 AA (4.5:1, große Schrift 3:1). B
 ## Cytoscape-Integration
 
 - **Library:** Cytoscape.js v3.23.0 — lokal unter `assets/vendor/cytoscape.min.js`, kein CDN
-- **Layout:** CoSE (force-directed), Konfiguration in `COSE_OPTS`
+- **Layout:** CoSE (force-directed), Konfiguration in `COSE_OPTS`, mit `animate: 'end'`: rechnet in einem Zug und animiert nur das Ergebnis. Am Ende der Animation passt ein `layoutstop`-Handler die Karte neu ein, falls sie inzwischen sichtbar ist
 - **Stylesheet:** `CY_STYLE` ist die **Basis-Konstante**; `buildCyStyle()` leitet daraus die themeabhängige Variante ab und wird an `cytoscape({ style })` übergeben. `CY_STYLE` selbst wird dabei nicht mutiert.
 - **Themeabhängig in `buildCyStyle()`:** Compound-Node-Label und -Rahmen (`:parent`), Kantenlabel-Hintergrund und -Schrift, Knoten-Rahmenfarbe
 - **Knotenfarbe:** `data(orgColor)` / `data(orgOutlineColor)` — Default `#7a6fa8`/`#5c5080`; via `applyOrgColors()` überschreibbar
 - **Klassen-Priorität:** `.highlighted` > `.path-node` > `data(orgColor)`
 - **Pfadsuche:** `cy.elements().aStar({ root, goal, directed: true })`
-- **PNG-Export:** `cy.png({ output: 'base64uri', full: true, scale: 2, bg: '#f0edf8' })` — synchron; bewusst **immer hell**, da Exporte in Dokumenten und im Druck landen
+- **PNG-Export:** `cy.png({ output: 'blob', full: true, scale: 2, bg: '#f0edf8' })` für den Download-Button, `output: 'base64uri'` für den PDF-Bericht — beides synchron, **ohne Callback**; bewusst **immer hell**, da Exporte in Dokumenten und im Druck landen
 - **SVG-Export:** `cy.svg({ full: true })` — synchron; benötigt die registrierte Erweiterung `cytoscape-svg`, der Button prüft `typeof networkChart.svg === 'function'`
 - **Pathfinder-Bar:** wird NUR bei leeren Daten (`!data.length`) versteckt — nicht bei jedem Re-Render
 
@@ -310,11 +314,11 @@ Wichtige Hilfsfunktionen:
 
 **Wie es funktioniert:** Die Seite lädt `index.html` unsichtbar in einem Iframe und testet die echten Funktionen über `iframe.contentWindow` — keine Kopie des Codes, kein Build-Schritt, keine Abhängigkeit. Passt damit zur Projektphilosophie.
 
-Abgedeckt sind `parseCSV` (State-Machine: Quotes, `""`-Escapes, CRLF, Zeilenumbrüche im Feld), `toCSV` inklusive Round-Trip, `esc`, `calcVollstaendigkeit`, `betweennessCentrality`, `labelPropagation`, `computeTopologyRisks`, `diffSnapshots`, `findDuplicate`, `formatSnapAge`, `buildCyStyle` (inkl. der Zusicherung, dass `CY_STYLE` nicht mutiert wird) sowie der Rundgang (`TOUR_STEPS` vollständig und alle Ziele vorhanden, `tourCardPosition` in sieben Lagen).
+Abgedeckt sind `parseCSV` (State-Machine: Quotes, `""`-Escapes, CRLF, Zeilenumbrüche im Feld), `toCSV` inklusive Round-Trip, `esc`, `calcVollstaendigkeit`, `betweennessCentrality`, `labelPropagation`, `computeTopologyRisks`, `diffSnapshots`, `findDuplicate`, `formatSnapAge`, `buildCyStyle` (inkl. der Zusicherung, dass `CY_STYLE` nicht mutiert wird) sowie der Rundgang (`TOUR_STEPS` vollständig und alle Ziele vorhanden, `tourCardPosition` in sieben Lagen) und die Klick-Handler von PNG- und SVG-Export.
 
 **Beim Schreiben neuer Tests beachten:**
 - `instanceof` trägt **nicht** über die Iframe-Grenze. Für Objekte aus der App `win.Set` statt `Set` verwenden.
-- Top-Level-`const` (z. B. `CY_STYLE`) liegen nicht auf `window`; über `win.eval('CY_STYLE')` zugreifen. Funktions-Deklarationen sind dagegen direkt erreichbar.
+- Top-Level-`const` **und `let`** (z. B. `CY_STYLE`, `allData`) liegen nicht auf `window`. Lesen und Schreiben über `win.eval(…)`; ein `win.allData = …` legt nur eine neue Eigenschaft an, die App sieht weiter den alten Wert. Funktions-Deklarationen sind dagegen direkt erreichbar und lassen sich auch ersetzen (so stubbt der Export-Test `downloadBlob`).
 - Für automatisierte Aufrufe steht das Ergebnis in `window.__testResults` (`{passed, failed, total, failures}`), der Titel beginnt mit `✓` oder `✗`.
 
 Ein neuer Test sollte nachweislich fehlschlagen können — beim Anlegen einmal die geprüfte Stelle testweise brechen und sehen, ob der Test anschlägt.
@@ -396,7 +400,7 @@ Ein eigener, bibliotheksfreier Rundgang führt in 15 Schritten durch die Seite. 
 
 **Neue Schritte oder umbenannte IDs:** `test.html` prüft, dass jeder Selektor in `TOUR_STEPS` auf der Seite existiert. Ein umbenanntes Element lässt den Test fehlschlagen, statt den Rundgang still ins Leere zeigen zu lassen.
 
-**Einladung.** Erscheint nur, wenn kein Datensatz geladen ist, `datengraf_tour_seen` fehlt und die Seite nicht in einem Iframe läuft (sonst störte sie `test.html`). Sobald Daten geladen werden, blendet `updateViewSwitcher()` sie aus. Ohne LocalStorage (privater Modus) bleibt sie weg; der Rundgang selbst funktioniert trotzdem.
+**Einladung.** Zum erneuten Ansehen beim Entwickeln: `localStorage.removeItem('datengraf_tour_seen')` und neu laden. Sie erscheint nur, wenn kein Datensatz geladen ist, `datengraf_tour_seen` fehlt und die Seite nicht in einem Iframe läuft (sonst störte sie `test.html`). Sobald Daten geladen werden, blendet `updateViewSwitcher()` sie aus. Ohne LocalStorage (privater Modus) bleibt sie weg; der Rundgang selbst funktioniert trotzdem.
 
 `loadExample()` gibt seit v68 sein Promise zurück, damit der Rundgang auf die Daten warten kann.
 
@@ -430,6 +434,8 @@ Reihenfolge unterhalb der App-Shell:
 2. `.feature-duo-section` — heller Container mit Datenatlas und DatenLotse (Logo-Platzhalter mit Hover-Effekt)
 3. `.contact-cta-section` — dunkles Band (`#18181b`) → nozilla-Kontakt
 4. `.site-footer` — Brand links, Links rechtsbündig, Versionsnummer
+
+Unter den Hero-Buttons steht der Einstieg in den Rundgang (`.hero-tour-hint`), beim ersten Besuch erscheint zusätzlich die Einladung `#tour-invite` unten links.
 
 Im Hero sitzt unter den drei Karten das SEO-Akkordeon `.about-accordion` („Mehr über den DatenGraf erfahren"), ein natives `<details>` ohne JS. Der Inhalt bleibt im DOM und damit indexierbar.
 
@@ -480,7 +486,7 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 
 ## Bekannte Fallstricke
 
-- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v68) — und `.footer-version` mitziehen
+- **GitHub Pages CDN-Cache:** Nach Änderungen an `app.js` unbedingt `?v=N` erhöhen (aktuell v69) — und `.footer-version` mitziehen
 - **`file://`-Protokoll:** `fetch()` schlägt fehl → Beispieldaten nicht ladbar, CSV-Paste funktioniert
 - **Fehlende Bibliothek:** Ohne Cytoscape/LZString bleiben Netzwerkkarte und Share-Link aus; alles andere muss weiterlaufen. Neue Aufrufe dieser Bibliotheken immer guarden. Keine neuen CDN-Abhängigkeiten einführen — Vendor-Dateien nach `assets/vendor/`
 - **Cytoscape-Styles sind kein CSS:** Themeabhängige Graph-Farben gehören in `buildCyStyle()`; `CY_STYLE` bleibt unmutiert (die Ableitung nutzt `map` + Spread)
@@ -492,6 +498,8 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 - **`showAnalyseBriefing()` ≠ `renderAll()`:** Das Briefing operiert auf `allData` und wird nicht automatisch bei Filter-Änderungen aktualisiert. Ein `filterNote`-Hinweis erscheint wenn `filterCount > 0`
 - **Share-Link-Größe:** Bei > 15 KB URL-Länge wird CSV-Export empfohlen; typische Datensätze (30–50 Zeilen) sind problemlos
 - **`cy.png()` braucht `full: true`:** Ohne die Option rendert Cytoscape den *sichtbaren* Ausschnitt. Auf einem inaktiven Tab ist der Container 0×0 groß, und der Export liefert stillschweigend `data:,` — ein leeres Bild im PDF-Bericht. Der Aufruf in `pdf-report-btn` setzt `full: true` und ist damit vom aktiven Tab unabhängig; ein `typeof uri === 'string'`-Guard fängt das **nicht** ab, denn `'data:,'` ist ein String
+- **Schrittweise Layout-Animation:** Mit CoSEs Standard-Animation plante das Layout nach jedem Neuaufbau noch Frames auf die verworfene Instanz ein — „reading 'notify'“ bei jedem Filterwechsel während der Animation, und deren Fenster-Listener blieben hängen (16 → 149 nach 20 Wechseln). `animate: 'end'` beseitigt beides. Nicht ohne Ersatz für den Fit zurückdrehen: Ohne den `layoutstop`-Handler zoomt die Karte auf 2,5, wenn direkt nach dem Laden auf sie gewechselt wird (das Layout lief dann auf einem 0×0-Container)
+- **`cy.png()` kennt keinen Callback:** Mit `output: 'blob'` kommt der Blob als Rückgabewert. Bis v68 übergab der PNG-Button einen Callback, der nie aufgerufen wurde — der Button tat nichts. Ein Test in `test.html` klickt die Export-Buttons jetzt wirklich
 - **PDF in Chrome:** `document.close()` löst `load` synchron aus → `readyState === 'complete'`-Check vor `addEventListener`
 - **Fokus nach dem Rundgang:** Chrome lässt `document.activeElement` nach dem Ausblenden kurz auf dem versteckten Button stehen. Eine Prüfung „ist es `body`?“ greift deshalb nicht; `endTour()` prüft auf Sichtbarkeit und fällt auf den Kompass zurück
 - **Tests laufen gegen den echten Code:** `test.html` lädt `index.html` per Iframe. Nach Umbenennen einer Funktion die Tests mitziehen — sie schlagen sonst mit „ist keine Funktion" fehl
@@ -562,3 +570,4 @@ Font Awesome CSS referenziert Webfonts relativ: `../webfonts/fa-*.woff2` → `as
 | v68 | Eigene Datenschutzseite `datenschutz.html` statt Verweis auf `nozilla.de` — beschreibt Local Storage, GoatCounter, die opt-in-Übertragung an Anthropic, Share-Link und Betroffenenrechte mit Rechtsgrundlagen. FAQ-Einträge standardmäßig zugeklappt (Hash-Skript öffnet den adressierten), interne Links ohne `target="_blank"` |
 | v68 | Vollständiger Testdurchlauf (345 Prüfungen: Struktur/SEO/Links, Seiten in zwei Themes und drei Breiten, Anwendung E2E, Exporte, Unit-Tests, Kontrast). Ein Befund behoben: Überschriftensprünge von `h1` auf `h3` auf Startseite und Theorie-Seite |
 | v68 | Geführter Rundgang in 15 Schritten (`TOUR_STEPS`), ohne Bibliothek: Spotlight, Erklärkarte, Tastatursteuerung, Fokusfalle über `MODAL_BACKDROP_IDS`. Lädt bei leerem Datensatz das Beispiel Stadtverwaltung, ersetzt nie eigene Daten. Einladung beim ersten Besuch (`datengraf_tour_seen`, in der Datenschutzerklärung ergänzt). 9 neue Tests, u. a. dass jedes Tour-Ziel existiert |
+| v69 | Testrunde mit drei echten Fehlern: **PNG-Export-Button tat nichts** (Callback an `cy.png()`, den Cytoscape nicht kennt); **Layout-Animation** warf bei jedem Filterwechsel während der Animation einen Fehler und ließ Fenster-Listener zurück (`animate: 'end'` + Neueinpassen bei `layoutstop`); **Kontrast im Dark Theme**: Weiß auf Akzent an vier Stellen (3,49:1) und aktiver Navigationslink (4,35:1). Zwei Tests für die Export-Buttons (93 → 95) |
