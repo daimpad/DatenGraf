@@ -191,7 +191,7 @@ Der Kniff: Die Seite lädt `index.html` unsichtbar in einem Iframe und testet di
 
 Ein Test muss nachweislich fehlschlagen können. Beim Anlegen wird deshalb einmal die geprüfte Stelle testweise gebrochen – wenn der Test dann nicht anschlägt, misst er nichts.
 
-Ergänzend läuft vor größeren Änderungen ein Durchgang im echten Browser – zuletzt **345 Prüfungen** in sechs Blöcken:
+Ergänzend läuft vor größeren Änderungen ein Durchgang im echten Browser – der vollständige Lauf umfasste **345 Prüfungen** in sechs Blöcken, für den Rundgang kamen 76 hinzu:
 
 | Block | Was geprüft wird |
 |---|---|
@@ -201,6 +201,7 @@ Ergänzend läuft vor größeren Änderungen ein Durchgang im echten Browser –
 | Anwendung | Import, Tabs, Filter, alle Netzwerk-Werkzeuge, Knotendetail, Undo, Tastenkürzel, XSS-Nutzdaten durch Liste und Karte |
 | Exporte | PNG, SVG, PDF-Bericht und CSV – jeweils von jedem Tab aus, weil der Bericht sonst ein leeres Bild enthalten kann |
 | Kontrast | Alle sichtbaren Textelemente auf vier Seiten in zwei Themes, mit Auflösung transparenter Ebenen |
+| Rundgang | Alle 15 Schritte in drei Bildschirmgrößen und beiden Themes; eigene Daten bleiben unangetastet, nicht ladbares Beispiel, Abbruch mitten im Rundgang, Fokusfalle, ohne LocalStorage |
 
 ---
 
@@ -238,6 +239,7 @@ Zum Aktualisieren der Vendor-Dateien dient `npm run vendor`; zur Laufzeit wird n
 | `datengraf_filters` | Persistierte Filter-Einstellungen |
 | `datengraf_theme` | Hell/Dunkel-Auswahl |
 | `datengraf_api_key` | Anthropic API-Key (nur bei opt-in) |
+| `datengraf_tour_seen` | Rundgang bereits angeboten – die Einladung erscheint dann nicht erneut |
 
 ---
 
@@ -293,6 +295,7 @@ Der Pfadfinder nutzt den A\*-Algorithmus von Cytoscape.js (`cy.elements().aStar(
 ```
 DatenGraf/
 ├── index.html                        # Einstiegspunkt – HTML-Struktur
+├── logo.svg                          # Maskottchen-Logo (Topbar, Hero)
 ├── css/
 │   └── styles.css                    # Styles & Design-Tokens (~3230 Zeilen)
 ├── js/
@@ -336,6 +339,11 @@ DatenGraf/
 ├── sitemap.xml                       # Sitemap
 ├── social-preview.svg                # Vorschaubild für Social Media (Open Graph)
 ├── site.webmanifest                  # PWA-Manifest
+├── favicon.*, favicon-96x96.png      # Favicons
+├── apple-touch-icon.png              # Icon für iOS-Startbildschirm
+├── web-app-manifest-*.png            # App-Icons 192 und 512 px (PWA-Manifest)
+├── google2ea79d8f6f2f6a37.html       # Verifizierung für die Google Search Console
+├── package.json                      # Versionen der Vendor-Bibliotheken, `npm run vendor`
 ├── CLAUDE.md                         # AI-Entwicklungs-Kontext & Architektur
 ├── DOCS.md                           # Technische Dokumentation
 ├── SECURITY.md                       # Sicherheitsrichtlinie

@@ -101,6 +101,8 @@ Das Theme hält keinen JS-State: Quelle der Wahrheit ist `document.documentEleme
 | `LS_THEME_KEY` | `datengraf_theme` | `'light'` \| `'dark'` |
 | `LS_TOUR_KEY` | `datengraf_tour_seen` | `'1'`, sobald der Rundgang gestartet oder die Einladung abgelehnt wurde |
 
+**Ein neuer Schlüssel gehört an drei Stellen:** in diese Tabelle, in die Tabelle „LocalStorage-Schlüssel“ der README und in die Tabelle in `datenschutz.html` (Abschnitt 4) — Letztere ist rechtlich gefordert, weil sie jede Speicherung im Endgerät benennt. Gegenprobe: `grep -o "'datengraf_[a-z_]*'" js/app.js | sort -u` muss an allen drei Stellen vollständig auftauchen.
+
 ### CSV-Spalten (Row-Schema)
 
 ```
@@ -396,7 +398,7 @@ Ein eigener, bibliotheksfreier Rundgang führt in 15 Schritten durch die Seite. 
 
 **Neue Schritte oder umbenannte IDs:** `test.html` prüft, dass jeder Selektor in `TOUR_STEPS` auf der Seite existiert. Ein umbenanntes Element lässt den Test fehlschlagen, statt den Rundgang still ins Leere zeigen zu lassen.
 
-**Einladung.** Erscheint nur, wenn kein Datensatz geladen ist, `datengraf_tour_seen` fehlt und die Seite nicht in einem Iframe läuft (sonst störte sie `test.html`). Sobald Daten geladen werden, blendet `updateViewSwitcher()` sie aus. Ohne LocalStorage (privater Modus) bleibt sie weg; der Rundgang selbst funktioniert trotzdem.
+**Einladung.** Zum erneuten Ansehen beim Entwickeln: `localStorage.removeItem('datengraf_tour_seen')` und neu laden. Sie erscheint nur, wenn kein Datensatz geladen ist, `datengraf_tour_seen` fehlt und die Seite nicht in einem Iframe läuft (sonst störte sie `test.html`). Sobald Daten geladen werden, blendet `updateViewSwitcher()` sie aus. Ohne LocalStorage (privater Modus) bleibt sie weg; der Rundgang selbst funktioniert trotzdem.
 
 `loadExample()` gibt seit v68 sein Promise zurück, damit der Rundgang auf die Daten warten kann.
 
@@ -430,6 +432,8 @@ Reihenfolge unterhalb der App-Shell:
 2. `.feature-duo-section` — heller Container mit Datenatlas und DatenLotse (Logo-Platzhalter mit Hover-Effekt)
 3. `.contact-cta-section` — dunkles Band (`#18181b`) → nozilla-Kontakt
 4. `.site-footer` — Brand links, Links rechtsbündig, Versionsnummer
+
+Unter den Hero-Buttons steht der Einstieg in den Rundgang (`.hero-tour-hint`), beim ersten Besuch erscheint zusätzlich die Einladung `#tour-invite` unten links.
 
 Im Hero sitzt unter den drei Karten das SEO-Akkordeon `.about-accordion` („Mehr über den DatenGraf erfahren"), ein natives `<details>` ohne JS. Der Inhalt bleibt im DOM und damit indexierbar.
 
